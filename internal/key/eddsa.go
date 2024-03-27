@@ -11,6 +11,7 @@ import (
 type EdDSAKeyPair struct {
 	PrivateKey ed25519.PrivateKey
 	PublicKey ed25519.PublicKey
+	KeyMeta
 }
 
 func (k *EdDSAKeyPair) Generate() error {
@@ -39,8 +40,8 @@ func (k *EdDSAKeyPair) Decode(in string) error {
 	return nil
 }
 
-func (k *EdDSAKeyPair) Keys() (ed25519.PrivateKey, ed25519.PublicKey) {
-	return k.PrivateKey, k.PublicKey
+func (k *EdDSAKeyPair) Key() ed25519.PrivateKey {
+	return k.PrivateKey
 }
 
 func (k *EdDSAKeyPair) SigningMethod() jwt.SigningMethod {

@@ -25,6 +25,9 @@ func (s *Server) Init() error {
 	http.Handle("/api/login", LoginApiHandler{ Context: s.Context } )
 	http.Handle("/api/pkeys", PkeyApiHandler{ Context: s.Context } )
 
+	entityPrefix := "/api/admin/"
+	http.Handle(entityPrefix, NewEntityAPIHandler(entityPrefix, s.Context))
+
 	return nil
 }
 

@@ -15,6 +15,7 @@ type ECDSAKeyPair struct {
 	NumBits int
 	PrivateKey *ecdsa.PrivateKey
 	PublicKey *ecdsa.PublicKey
+	KeyMeta
 }
 
 func (k *ECDSAKeyPair) Generate() error {
@@ -51,8 +52,8 @@ func (k *ECDSAKeyPair) Decode(in string) error {
 	return nil
 }
 
-func (k *ECDSAKeyPair) Keys() (*ecdsa.PrivateKey, *ecdsa.PublicKey) {
-	return k.PrivateKey, k.PublicKey
+func (k *ECDSAKeyPair) Key() *ecdsa.PrivateKey {
+	return k.PrivateKey
 }
 
 func (k *ECDSAKeyPair) SigningMethod() jwt.SigningMethod {

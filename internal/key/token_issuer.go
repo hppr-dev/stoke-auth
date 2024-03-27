@@ -10,24 +10,19 @@ type Claims struct {
 }
 
 type TokenIssuer interface {
-	Init()
 	IssueToken(claim Claims) (string, error)
-	PublicString() string
+	PublicKeys() ([]byte, error)
 }
 
-type AsymetricTokenIssuer[P PrivateKey, K PublicKey]  struct {
-	KeyPair[P, K]
+type AsymetricTokenIssuer[P PrivateKey]  struct {
+	KeyCache[P]
 }
 
-func (a *AsymetricTokenIssuer[P, K]) IssueToken(claims Claims) (string, error) {
-	priv, _ := a.Keys()
-	return jwt.NewWithClaims(a.SigningMethod(), claims).SignedString(priv)
+func (a *AsymetricTokenIssuer[P]) IssueToken(claims Claims) (string, error) {
+	curr := a.CurrentKey()
+	return jwt.NewWithClaims(curr.SigningMethod(), claims).SignedString(curr.Key())
 }
 
-func (a *AsymetricTokenIssuer[P, K]) Init() {
-	a.Generate()
-}
-
-func (a *AsymetricTokenIssuer[P, K]) PublicString() string {
-	return a.KeyPair.PublicString()
+func (a *AsymetricTokenIssuer[P]) PublicKeys() ([]byte, error) {
+	return a.JSON()
 }

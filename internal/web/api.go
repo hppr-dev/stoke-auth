@@ -40,5 +40,9 @@ type PkeyApiHandler struct {
 }
 
 func (p PkeyApiHandler) ServeHTTP(res http.ResponseWriter, _ *http.Request) {
-	res.Write([]byte(p.Context.Issuer.PublicString()))
+	b, err := p.Context.Issuer.PublicKeys()
+	if err != nil {
+		log.Printf("Could not get public keys: %v", err)
+	}
+	res.Write(b)
 }

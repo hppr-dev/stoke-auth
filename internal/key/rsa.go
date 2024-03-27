@@ -14,6 +14,7 @@ type RSAKeyPair struct {
 	NumBits int
 	PrivateKey *rsa.PrivateKey
 	PublicKey *rsa.PublicKey
+	KeyMeta
 }
 
 func (k *RSAKeyPair) Generate() error {
@@ -50,8 +51,8 @@ func (k *RSAKeyPair) Decode(in string) error {
 	return nil
 }
 
-func (k *RSAKeyPair) Keys() (*rsa.PrivateKey, *rsa.PublicKey) {
-	return k.PrivateKey, k.PublicKey
+func (k *RSAKeyPair) Key() *rsa.PrivateKey {
+	return k.PrivateKey
 }
 
 func (k *RSAKeyPair) SigningMethod() jwt.SigningMethod {
