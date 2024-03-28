@@ -34,7 +34,7 @@ func (c *KeyCache[P]) JSON() ([]byte, error) {
 	out := make([]publicJson, len(c.keys))
 	for i, k := range c.keys {
 		out[i] = publicJson{
-			Text:    k.Encode(),
+			Text:    k.PublicString(),
 			Expires: k.ExpiresAt().Unix(),
 			Renews:  k.RenewsAt().Unix(),
 		}

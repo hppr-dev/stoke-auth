@@ -34,6 +34,20 @@ func (cgc *ClaimGroupCreate) SetDescription(s string) *ClaimGroupCreate {
 	return cgc
 }
 
+// SetIsUserGroup sets the "is_user_group" field.
+func (cgc *ClaimGroupCreate) SetIsUserGroup(b bool) *ClaimGroupCreate {
+	cgc.mutation.SetIsUserGroup(b)
+	return cgc
+}
+
+// SetNillableIsUserGroup sets the "is_user_group" field if the given value is not nil.
+func (cgc *ClaimGroupCreate) SetNillableIsUserGroup(b *bool) *ClaimGroupCreate {
+	if b != nil {
+		cgc.SetIsUserGroup(*b)
+	}
+	return cgc
+}
+
 // AddUserIDs adds the "users" edge to the User entity by IDs.
 func (cgc *ClaimGroupCreate) AddUserIDs(ids ...int) *ClaimGroupCreate {
 	cgc.mutation.AddUserIDs(ids...)
@@ -86,6 +100,7 @@ func (cgc *ClaimGroupCreate) Mutation() *ClaimGroupMutation {
 
 // Save creates the ClaimGroup in the database.
 func (cgc *ClaimGroupCreate) Save(ctx context.Context) (*ClaimGroup, error) {
+	cgc.defaults()
 	return withHooks(ctx, cgc.sqlSave, cgc.mutation, cgc.hooks)
 }
 
@@ -111,6 +126,14 @@ func (cgc *ClaimGroupCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (cgc *ClaimGroupCreate) defaults() {
+	if _, ok := cgc.mutation.IsUserGroup(); !ok {
+		v := claimgroup.DefaultIsUserGroup
+		cgc.mutation.SetIsUserGroup(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (cgc *ClaimGroupCreate) check() error {
 	if _, ok := cgc.mutation.Name(); !ok {
@@ -118,6 +141,9 @@ func (cgc *ClaimGroupCreate) check() error {
 	}
 	if _, ok := cgc.mutation.Description(); !ok {
 		return &ValidationError{Name: "description", err: errors.New(`ent: missing required field "ClaimGroup.description"`)}
+	}
+	if _, ok := cgc.mutation.IsUserGroup(); !ok {
+		return &ValidationError{Name: "is_user_group", err: errors.New(`ent: missing required field "ClaimGroup.is_user_group"`)}
 	}
 	return nil
 }
@@ -152,6 +178,10 @@ func (cgc *ClaimGroupCreate) createSpec() (*ClaimGroup, *sqlgraph.CreateSpec) {
 	if value, ok := cgc.mutation.Description(); ok {
 		_spec.SetField(claimgroup.FieldDescription, field.TypeString, value)
 		_node.Description = value
+	}
+	if value, ok := cgc.mutation.IsUserGroup(); ok {
+		_spec.SetField(claimgroup.FieldIsUserGroup, field.TypeBool, value)
+		_node.IsUserGroup = value
 	}
 	if nodes := cgc.mutation.UsersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -222,6 +252,7 @@ func (cgcb *ClaimGroupCreateBulk) Save(ctx context.Context) ([]*ClaimGroup, erro
 	for i := range cgcb.builders {
 		func(i int, root context.Context) {
 			builder := cgcb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*ClaimGroupMutation)
 				if !ok {

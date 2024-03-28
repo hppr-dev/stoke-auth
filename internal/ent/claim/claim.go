@@ -16,6 +16,8 @@ const (
 	FieldName = "name"
 	// FieldShortName holds the string denoting the short_name field in the database.
 	FieldShortName = "short_name"
+	// FieldValue holds the string denoting the value field in the database.
+	FieldValue = "value"
 	// FieldDescription holds the string denoting the description field in the database.
 	FieldDescription = "description"
 	// EdgeClaimGroups holds the string denoting the claim_groups edge name in mutations.
@@ -34,6 +36,7 @@ var Columns = []string{
 	FieldID,
 	FieldName,
 	FieldShortName,
+	FieldValue,
 	FieldDescription,
 }
 
@@ -69,6 +72,11 @@ func ByName(opts ...sql.OrderTermOption) OrderOption {
 // ByShortName orders the results by the short_name field.
 func ByShortName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldShortName, opts...).ToFunc()
+}
+
+// ByValue orders the results by the value field.
+func ByValue(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldValue, opts...).ToFunc()
 }
 
 // ByDescription orders the results by the description field.

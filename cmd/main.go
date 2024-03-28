@@ -10,6 +10,7 @@ import (
 	"stoke/internal/ctx"
 	"stoke/internal/ent"
 	"stoke/internal/key"
+	"stoke/internal/usr"
 	"stoke/internal/web"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -27,10 +28,19 @@ func main() {
 
 	dbClient := connectToDB(config)
 
+	localUserProvider := usr.LocalProvider{
+		DB: dbClient,
+	}
+	err := localUserProvider.Init()
+	if err != nil {
+		log.Panicf("Could not initialize local user database: %v", err)
+	}
+
 	appContext := &ctx.Context{
-		Config: config,
-		Issuer: createTokenIssuer(config, dbClient),
-		DB:     dbClient,
+		Config:       config,
+		Issuer:       createTokenIssuer(config, dbClient),
+		DB:           dbClient,
+		UserProvider: localUserProvider,
 	}
 
 	server := web.Server {

@@ -13,6 +13,7 @@ type ClaimClaimGroupsList struct {
 	ID          int    `json:"id"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
+	IsUserGroup bool   `json:"is_user_group"`
 }
 
 // GetID returns the value of ID.
@@ -30,6 +31,11 @@ func (s *ClaimClaimGroupsList) GetDescription() string {
 	return s.Description
 }
 
+// GetIsUserGroup returns the value of IsUserGroup.
+func (s *ClaimClaimGroupsList) GetIsUserGroup() bool {
+	return s.IsUserGroup
+}
+
 // SetID sets the value of ID.
 func (s *ClaimClaimGroupsList) SetID(val int) {
 	s.ID = val
@@ -45,11 +51,17 @@ func (s *ClaimClaimGroupsList) SetDescription(val string) {
 	s.Description = val
 }
 
+// SetIsUserGroup sets the value of IsUserGroup.
+func (s *ClaimClaimGroupsList) SetIsUserGroup(val bool) {
+	s.IsUserGroup = val
+}
+
 // Ref: #/components/schemas/ClaimCreate
 type ClaimCreate struct {
 	ID          int    `json:"id"`
 	Name        string `json:"name"`
 	ShortName   string `json:"short_name"`
+	Value       string `json:"value"`
 	Description string `json:"description"`
 }
 
@@ -66,6 +78,11 @@ func (s *ClaimCreate) GetName() string {
 // GetShortName returns the value of ShortName.
 func (s *ClaimCreate) GetShortName() string {
 	return s.ShortName
+}
+
+// GetValue returns the value of Value.
+func (s *ClaimCreate) GetValue() string {
+	return s.Value
 }
 
 // GetDescription returns the value of Description.
@@ -88,6 +105,11 @@ func (s *ClaimCreate) SetShortName(val string) {
 	s.ShortName = val
 }
 
+// SetValue sets the value of Value.
+func (s *ClaimCreate) SetValue(val string) {
+	s.Value = val
+}
+
 // SetDescription sets the value of Description.
 func (s *ClaimCreate) SetDescription(val string) {
 	s.Description = val
@@ -100,6 +122,7 @@ type ClaimGroupClaimsList struct {
 	ID          int    `json:"id"`
 	Name        string `json:"name"`
 	ShortName   string `json:"short_name"`
+	Value       string `json:"value"`
 	Description string `json:"description"`
 }
 
@@ -116,6 +139,11 @@ func (s *ClaimGroupClaimsList) GetName() string {
 // GetShortName returns the value of ShortName.
 func (s *ClaimGroupClaimsList) GetShortName() string {
 	return s.ShortName
+}
+
+// GetValue returns the value of Value.
+func (s *ClaimGroupClaimsList) GetValue() string {
+	return s.Value
 }
 
 // GetDescription returns the value of Description.
@@ -138,6 +166,11 @@ func (s *ClaimGroupClaimsList) SetShortName(val string) {
 	s.ShortName = val
 }
 
+// SetValue sets the value of Value.
+func (s *ClaimGroupClaimsList) SetValue(val string) {
+	s.Value = val
+}
+
 // SetDescription sets the value of Description.
 func (s *ClaimGroupClaimsList) SetDescription(val string) {
 	s.Description = val
@@ -148,6 +181,7 @@ type ClaimGroupCreate struct {
 	ID          int    `json:"id"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
+	IsUserGroup bool   `json:"is_user_group"`
 }
 
 // GetID returns the value of ID.
@@ -165,6 +199,11 @@ func (s *ClaimGroupCreate) GetDescription() string {
 	return s.Description
 }
 
+// GetIsUserGroup returns the value of IsUserGroup.
+func (s *ClaimGroupCreate) GetIsUserGroup() bool {
+	return s.IsUserGroup
+}
+
 // SetID sets the value of ID.
 func (s *ClaimGroupCreate) SetID(val int) {
 	s.ID = val
@@ -178,6 +217,11 @@ func (s *ClaimGroupCreate) SetName(val string) {
 // SetDescription sets the value of Description.
 func (s *ClaimGroupCreate) SetDescription(val string) {
 	s.Description = val
+}
+
+// SetIsUserGroup sets the value of IsUserGroup.
+func (s *ClaimGroupCreate) SetIsUserGroup(val bool) {
+	s.IsUserGroup = val
 }
 
 func (*ClaimGroupCreate) createClaimGroupRes() {}
@@ -224,6 +268,7 @@ type ClaimGroupList struct {
 	ID          int    `json:"id"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
+	IsUserGroup bool   `json:"is_user_group"`
 }
 
 // GetID returns the value of ID.
@@ -241,6 +286,11 @@ func (s *ClaimGroupList) GetDescription() string {
 	return s.Description
 }
 
+// GetIsUserGroup returns the value of IsUserGroup.
+func (s *ClaimGroupList) GetIsUserGroup() bool {
+	return s.IsUserGroup
+}
+
 // SetID sets the value of ID.
 func (s *ClaimGroupList) SetID(val int) {
 	s.ID = val
@@ -256,11 +306,17 @@ func (s *ClaimGroupList) SetDescription(val string) {
 	s.Description = val
 }
 
+// SetIsUserGroup sets the value of IsUserGroup.
+func (s *ClaimGroupList) SetIsUserGroup(val bool) {
+	s.IsUserGroup = val
+}
+
 // Ref: #/components/schemas/ClaimGroupRead
 type ClaimGroupRead struct {
 	ID          int    `json:"id"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
+	IsUserGroup bool   `json:"is_user_group"`
 }
 
 // GetID returns the value of ID.
@@ -278,6 +334,11 @@ func (s *ClaimGroupRead) GetDescription() string {
 	return s.Description
 }
 
+// GetIsUserGroup returns the value of IsUserGroup.
+func (s *ClaimGroupRead) GetIsUserGroup() bool {
+	return s.IsUserGroup
+}
+
 // SetID sets the value of ID.
 func (s *ClaimGroupRead) SetID(val int) {
 	s.ID = val
@@ -293,6 +354,11 @@ func (s *ClaimGroupRead) SetDescription(val string) {
 	s.Description = val
 }
 
+// SetIsUserGroup sets the value of IsUserGroup.
+func (s *ClaimGroupRead) SetIsUserGroup(val bool) {
+	s.IsUserGroup = val
+}
+
 func (*ClaimGroupRead) readClaimGroupRes() {}
 
 // Ref: #/components/schemas/ClaimGroupUpdate
@@ -300,6 +366,7 @@ type ClaimGroupUpdate struct {
 	ID          int    `json:"id"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
+	IsUserGroup bool   `json:"is_user_group"`
 }
 
 // GetID returns the value of ID.
@@ -317,6 +384,11 @@ func (s *ClaimGroupUpdate) GetDescription() string {
 	return s.Description
 }
 
+// GetIsUserGroup returns the value of IsUserGroup.
+func (s *ClaimGroupUpdate) GetIsUserGroup() bool {
+	return s.IsUserGroup
+}
+
 // SetID sets the value of ID.
 func (s *ClaimGroupUpdate) SetID(val int) {
 	s.ID = val
@@ -330,6 +402,11 @@ func (s *ClaimGroupUpdate) SetName(val string) {
 // SetDescription sets the value of Description.
 func (s *ClaimGroupUpdate) SetDescription(val string) {
 	s.Description = val
+}
+
+// SetIsUserGroup sets the value of IsUserGroup.
+func (s *ClaimGroupUpdate) SetIsUserGroup(val bool) {
+	s.IsUserGroup = val
 }
 
 func (*ClaimGroupUpdate) updateClaimGroupRes() {}
@@ -431,6 +508,7 @@ type ClaimList struct {
 	ID          int    `json:"id"`
 	Name        string `json:"name"`
 	ShortName   string `json:"short_name"`
+	Value       string `json:"value"`
 	Description string `json:"description"`
 }
 
@@ -447,6 +525,11 @@ func (s *ClaimList) GetName() string {
 // GetShortName returns the value of ShortName.
 func (s *ClaimList) GetShortName() string {
 	return s.ShortName
+}
+
+// GetValue returns the value of Value.
+func (s *ClaimList) GetValue() string {
+	return s.Value
 }
 
 // GetDescription returns the value of Description.
@@ -469,6 +552,11 @@ func (s *ClaimList) SetShortName(val string) {
 	s.ShortName = val
 }
 
+// SetValue sets the value of Value.
+func (s *ClaimList) SetValue(val string) {
+	s.Value = val
+}
+
 // SetDescription sets the value of Description.
 func (s *ClaimList) SetDescription(val string) {
 	s.Description = val
@@ -479,6 +567,7 @@ type ClaimRead struct {
 	ID          int    `json:"id"`
 	Name        string `json:"name"`
 	ShortName   string `json:"short_name"`
+	Value       string `json:"value"`
 	Description string `json:"description"`
 }
 
@@ -495,6 +584,11 @@ func (s *ClaimRead) GetName() string {
 // GetShortName returns the value of ShortName.
 func (s *ClaimRead) GetShortName() string {
 	return s.ShortName
+}
+
+// GetValue returns the value of Value.
+func (s *ClaimRead) GetValue() string {
+	return s.Value
 }
 
 // GetDescription returns the value of Description.
@@ -517,6 +611,11 @@ func (s *ClaimRead) SetShortName(val string) {
 	s.ShortName = val
 }
 
+// SetValue sets the value of Value.
+func (s *ClaimRead) SetValue(val string) {
+	s.Value = val
+}
+
 // SetDescription sets the value of Description.
 func (s *ClaimRead) SetDescription(val string) {
 	s.Description = val
@@ -529,6 +628,7 @@ type ClaimUpdate struct {
 	ID          int    `json:"id"`
 	Name        string `json:"name"`
 	ShortName   string `json:"short_name"`
+	Value       string `json:"value"`
 	Description string `json:"description"`
 }
 
@@ -545,6 +645,11 @@ func (s *ClaimUpdate) GetName() string {
 // GetShortName returns the value of ShortName.
 func (s *ClaimUpdate) GetShortName() string {
 	return s.ShortName
+}
+
+// GetValue returns the value of Value.
+func (s *ClaimUpdate) GetValue() string {
+	return s.Value
 }
 
 // GetDescription returns the value of Description.
@@ -567,6 +672,11 @@ func (s *ClaimUpdate) SetShortName(val string) {
 	s.ShortName = val
 }
 
+// SetValue sets the value of Value.
+func (s *ClaimUpdate) SetValue(val string) {
+	s.Value = val
+}
+
 // SetDescription sets the value of Description.
 func (s *ClaimUpdate) SetDescription(val string) {
 	s.Description = val
@@ -577,6 +687,7 @@ func (*ClaimUpdate) updateClaimRes() {}
 type CreateClaimGroupReq struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
+	IsUserGroup bool   `json:"is_user_group"`
 	Users       []int  `json:"users"`
 	GroupLinks  []int  `json:"group_links"`
 	Claims      []int  `json:"claims"`
@@ -590,6 +701,11 @@ func (s *CreateClaimGroupReq) GetName() string {
 // GetDescription returns the value of Description.
 func (s *CreateClaimGroupReq) GetDescription() string {
 	return s.Description
+}
+
+// GetIsUserGroup returns the value of IsUserGroup.
+func (s *CreateClaimGroupReq) GetIsUserGroup() bool {
+	return s.IsUserGroup
 }
 
 // GetUsers returns the value of Users.
@@ -617,6 +733,11 @@ func (s *CreateClaimGroupReq) SetDescription(val string) {
 	s.Description = val
 }
 
+// SetIsUserGroup sets the value of IsUserGroup.
+func (s *CreateClaimGroupReq) SetIsUserGroup(val bool) {
+	s.IsUserGroup = val
+}
+
 // SetUsers sets the value of Users.
 func (s *CreateClaimGroupReq) SetUsers(val []int) {
 	s.Users = val
@@ -635,6 +756,7 @@ func (s *CreateClaimGroupReq) SetClaims(val []int) {
 type CreateClaimReq struct {
 	Name        string `json:"name"`
 	ShortName   string `json:"short_name"`
+	Value       string `json:"value"`
 	Description string `json:"description"`
 	ClaimGroups []int  `json:"claim_groups"`
 }
@@ -647,6 +769,11 @@ func (s *CreateClaimReq) GetName() string {
 // GetShortName returns the value of ShortName.
 func (s *CreateClaimReq) GetShortName() string {
 	return s.ShortName
+}
+
+// GetValue returns the value of Value.
+func (s *CreateClaimReq) GetValue() string {
+	return s.Value
 }
 
 // GetDescription returns the value of Description.
@@ -667,6 +794,11 @@ func (s *CreateClaimReq) SetName(val string) {
 // SetShortName sets the value of ShortName.
 func (s *CreateClaimReq) SetShortName(val string) {
 	s.ShortName = val
+}
+
+// SetValue sets the value of Value.
+func (s *CreateClaimReq) SetValue(val string) {
+	s.Value = val
 }
 
 // SetDescription sets the value of Description.
@@ -831,6 +963,7 @@ type GroupLinkClaimGroupsRead struct {
 	ID          int    `json:"id"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
+	IsUserGroup bool   `json:"is_user_group"`
 }
 
 // GetID returns the value of ID.
@@ -848,6 +981,11 @@ func (s *GroupLinkClaimGroupsRead) GetDescription() string {
 	return s.Description
 }
 
+// GetIsUserGroup returns the value of IsUserGroup.
+func (s *GroupLinkClaimGroupsRead) GetIsUserGroup() bool {
+	return s.IsUserGroup
+}
+
 // SetID sets the value of ID.
 func (s *GroupLinkClaimGroupsRead) SetID(val int) {
 	s.ID = val
@@ -861,6 +999,11 @@ func (s *GroupLinkClaimGroupsRead) SetName(val string) {
 // SetDescription sets the value of Description.
 func (s *GroupLinkClaimGroupsRead) SetDescription(val string) {
 	s.Description = val
+}
+
+// SetIsUserGroup sets the value of IsUserGroup.
+func (s *GroupLinkClaimGroupsRead) SetIsUserGroup(val bool) {
+	s.IsUserGroup = val
 }
 
 func (*GroupLinkClaimGroupsRead) readGroupLinkClaimGroupsRes() {}
@@ -1058,6 +1201,52 @@ func (*ListUserClaimGroupsOKApplicationJSON) listUserClaimGroupsRes() {}
 type ListUserOKApplicationJSON []UserList
 
 func (*ListUserOKApplicationJSON) listUserRes() {}
+
+// NewOptBool returns new OptBool with value set to v.
+func NewOptBool(v bool) OptBool {
+	return OptBool{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptBool is optional bool.
+type OptBool struct {
+	Value bool
+	Set   bool
+}
+
+// IsSet returns true if OptBool was set.
+func (o OptBool) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptBool) Reset() {
+	var v bool
+	o.Value = v
+	o.Set = false
+}
+
+// SetTo sets value to v.
+func (o *OptBool) SetTo(v bool) {
+	o.Set = true
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptBool) Get() (v bool, ok bool) {
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptBool) Or(d bool) bool {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
 
 // NewOptDateTime returns new OptDateTime with value set to v.
 func NewOptDateTime(v time.Time) OptDateTime {
@@ -1554,6 +1743,7 @@ func (*R500) updateUserRes()               {}
 type UpdateClaimGroupReq struct {
 	Name        OptString `json:"name"`
 	Description OptString `json:"description"`
+	IsUserGroup OptBool   `json:"is_user_group"`
 	Users       []int     `json:"users"`
 	GroupLinks  []int     `json:"group_links"`
 	Claims      []int     `json:"claims"`
@@ -1567,6 +1757,11 @@ func (s *UpdateClaimGroupReq) GetName() OptString {
 // GetDescription returns the value of Description.
 func (s *UpdateClaimGroupReq) GetDescription() OptString {
 	return s.Description
+}
+
+// GetIsUserGroup returns the value of IsUserGroup.
+func (s *UpdateClaimGroupReq) GetIsUserGroup() OptBool {
+	return s.IsUserGroup
 }
 
 // GetUsers returns the value of Users.
@@ -1594,6 +1789,11 @@ func (s *UpdateClaimGroupReq) SetDescription(val OptString) {
 	s.Description = val
 }
 
+// SetIsUserGroup sets the value of IsUserGroup.
+func (s *UpdateClaimGroupReq) SetIsUserGroup(val OptBool) {
+	s.IsUserGroup = val
+}
+
 // SetUsers sets the value of Users.
 func (s *UpdateClaimGroupReq) SetUsers(val []int) {
 	s.Users = val
@@ -1612,6 +1812,7 @@ func (s *UpdateClaimGroupReq) SetClaims(val []int) {
 type UpdateClaimReq struct {
 	Name        OptString `json:"name"`
 	ShortName   OptString `json:"short_name"`
+	Value       OptString `json:"value"`
 	Description OptString `json:"description"`
 	ClaimGroups []int     `json:"claim_groups"`
 }
@@ -1624,6 +1825,11 @@ func (s *UpdateClaimReq) GetName() OptString {
 // GetShortName returns the value of ShortName.
 func (s *UpdateClaimReq) GetShortName() OptString {
 	return s.ShortName
+}
+
+// GetValue returns the value of Value.
+func (s *UpdateClaimReq) GetValue() OptString {
+	return s.Value
 }
 
 // GetDescription returns the value of Description.
@@ -1644,6 +1850,11 @@ func (s *UpdateClaimReq) SetName(val OptString) {
 // SetShortName sets the value of ShortName.
 func (s *UpdateClaimReq) SetShortName(val OptString) {
 	s.ShortName = val
+}
+
+// SetValue sets the value of Value.
+func (s *UpdateClaimReq) SetValue(val OptString) {
+	s.Value = val
 }
 
 // SetDescription sets the value of Description.
@@ -1788,6 +1999,7 @@ type UserClaimGroupsList struct {
 	ID          int    `json:"id"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
+	IsUserGroup bool   `json:"is_user_group"`
 }
 
 // GetID returns the value of ID.
@@ -1805,6 +2017,11 @@ func (s *UserClaimGroupsList) GetDescription() string {
 	return s.Description
 }
 
+// GetIsUserGroup returns the value of IsUserGroup.
+func (s *UserClaimGroupsList) GetIsUserGroup() bool {
+	return s.IsUserGroup
+}
+
 // SetID sets the value of ID.
 func (s *UserClaimGroupsList) SetID(val int) {
 	s.ID = val
@@ -1818,6 +2035,11 @@ func (s *UserClaimGroupsList) SetName(val string) {
 // SetDescription sets the value of Description.
 func (s *UserClaimGroupsList) SetDescription(val string) {
 	s.Description = val
+}
+
+// SetIsUserGroup sets the value of IsUserGroup.
+func (s *UserClaimGroupsList) SetIsUserGroup(val bool) {
+	s.IsUserGroup = val
 }
 
 // Ref: #/components/schemas/UserCreate

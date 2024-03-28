@@ -1,9 +1,12 @@
 package usr
 
+import "stoke/internal/ent"
+
 type Provider interface {
 	Init() error
-	ValidateUser(user, pass string) bool
+	GetUserClaims(user, pass string) (ent.Claims, error)
 }
+
 
 type MultiProvider struct {
 	providers []Provider
@@ -23,11 +26,21 @@ func (m MultiProvider) Init() error {
 	return nil
 }
 
-func (m MultiProvider) ValidateUser(user, pass string) bool {
+func (m MultiProvider) GetUserClaims(username, password string) (ent.Claims, error) {
+	var claims ent.Claims
 	for _, p := range m.providers {
-		if p.ValidateUser(user, pass) {
-			return true
-		}
+		provClaims, _ := p.GetUserClaims(username, password)
+		claims = append(claims, provClaims...)
 	}
-	return false
+	if len(claims) == 0 {
+		return nil, NoClaimsFound{}
+	}
+	return claims, nil
+}
+
+type NoClaimsFound struct {
+}
+
+func (NoClaimsFound) Error() string {
+	return "No claims found for user"
 }

@@ -58,6 +58,20 @@ func (cgu *ClaimGroupUpdate) SetNillableDescription(s *string) *ClaimGroupUpdate
 	return cgu
 }
 
+// SetIsUserGroup sets the "is_user_group" field.
+func (cgu *ClaimGroupUpdate) SetIsUserGroup(b bool) *ClaimGroupUpdate {
+	cgu.mutation.SetIsUserGroup(b)
+	return cgu
+}
+
+// SetNillableIsUserGroup sets the "is_user_group" field if the given value is not nil.
+func (cgu *ClaimGroupUpdate) SetNillableIsUserGroup(b *bool) *ClaimGroupUpdate {
+	if b != nil {
+		cgu.SetIsUserGroup(*b)
+	}
+	return cgu
+}
+
 // AddUserIDs adds the "users" edge to the User entity by IDs.
 func (cgu *ClaimGroupUpdate) AddUserIDs(ids ...int) *ClaimGroupUpdate {
 	cgu.mutation.AddUserIDs(ids...)
@@ -212,6 +226,9 @@ func (cgu *ClaimGroupUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := cgu.mutation.Description(); ok {
 		_spec.SetField(claimgroup.FieldDescription, field.TypeString, value)
+	}
+	if value, ok := cgu.mutation.IsUserGroup(); ok {
+		_spec.SetField(claimgroup.FieldIsUserGroup, field.TypeBool, value)
 	}
 	if cgu.mutation.UsersCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -392,6 +409,20 @@ func (cguo *ClaimGroupUpdateOne) SetDescription(s string) *ClaimGroupUpdateOne {
 func (cguo *ClaimGroupUpdateOne) SetNillableDescription(s *string) *ClaimGroupUpdateOne {
 	if s != nil {
 		cguo.SetDescription(*s)
+	}
+	return cguo
+}
+
+// SetIsUserGroup sets the "is_user_group" field.
+func (cguo *ClaimGroupUpdateOne) SetIsUserGroup(b bool) *ClaimGroupUpdateOne {
+	cguo.mutation.SetIsUserGroup(b)
+	return cguo
+}
+
+// SetNillableIsUserGroup sets the "is_user_group" field if the given value is not nil.
+func (cguo *ClaimGroupUpdateOne) SetNillableIsUserGroup(b *bool) *ClaimGroupUpdateOne {
+	if b != nil {
+		cguo.SetIsUserGroup(*b)
 	}
 	return cguo
 }
@@ -580,6 +611,9 @@ func (cguo *ClaimGroupUpdateOne) sqlSave(ctx context.Context) (_node *ClaimGroup
 	}
 	if value, ok := cguo.mutation.Description(); ok {
 		_spec.SetField(claimgroup.FieldDescription, field.TypeString, value)
+	}
+	if value, ok := cguo.mutation.IsUserGroup(); ok {
+		_spec.SetField(claimgroup.FieldIsUserGroup, field.TypeBool, value)
 	}
 	if cguo.mutation.UsersCleared() {
 		edge := &sqlgraph.EdgeSpec{

@@ -56,6 +56,20 @@ func (cu *ClaimUpdate) SetNillableShortName(s *string) *ClaimUpdate {
 	return cu
 }
 
+// SetValue sets the "value" field.
+func (cu *ClaimUpdate) SetValue(s string) *ClaimUpdate {
+	cu.mutation.SetValue(s)
+	return cu
+}
+
+// SetNillableValue sets the "value" field if the given value is not nil.
+func (cu *ClaimUpdate) SetNillableValue(s *string) *ClaimUpdate {
+	if s != nil {
+		cu.SetValue(*s)
+	}
+	return cu
+}
+
 // SetDescription sets the "description" field.
 func (cu *ClaimUpdate) SetDescription(s string) *ClaimUpdate {
 	cu.mutation.SetDescription(s)
@@ -153,6 +167,9 @@ func (cu *ClaimUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := cu.mutation.ShortName(); ok {
 		_spec.SetField(claim.FieldShortName, field.TypeString, value)
 	}
+	if value, ok := cu.mutation.Value(); ok {
+		_spec.SetField(claim.FieldValue, field.TypeString, value)
+	}
 	if value, ok := cu.mutation.Description(); ok {
 		_spec.SetField(claim.FieldDescription, field.TypeString, value)
 	}
@@ -245,6 +262,20 @@ func (cuo *ClaimUpdateOne) SetShortName(s string) *ClaimUpdateOne {
 func (cuo *ClaimUpdateOne) SetNillableShortName(s *string) *ClaimUpdateOne {
 	if s != nil {
 		cuo.SetShortName(*s)
+	}
+	return cuo
+}
+
+// SetValue sets the "value" field.
+func (cuo *ClaimUpdateOne) SetValue(s string) *ClaimUpdateOne {
+	cuo.mutation.SetValue(s)
+	return cuo
+}
+
+// SetNillableValue sets the "value" field if the given value is not nil.
+func (cuo *ClaimUpdateOne) SetNillableValue(s *string) *ClaimUpdateOne {
+	if s != nil {
+		cuo.SetValue(*s)
 	}
 	return cuo
 }
@@ -375,6 +406,9 @@ func (cuo *ClaimUpdateOne) sqlSave(ctx context.Context) (_node *Claim, err error
 	}
 	if value, ok := cuo.mutation.ShortName(); ok {
 		_spec.SetField(claim.FieldShortName, field.TypeString, value)
+	}
+	if value, ok := cuo.mutation.Value(); ok {
+		_spec.SetField(claim.FieldValue, field.TypeString, value)
 	}
 	if value, ok := cuo.mutation.Description(); ok {
 		_spec.SetField(claim.FieldDescription, field.TypeString, value)

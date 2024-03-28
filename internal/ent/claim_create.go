@@ -32,6 +32,12 @@ func (cc *ClaimCreate) SetShortName(s string) *ClaimCreate {
 	return cc
 }
 
+// SetValue sets the "value" field.
+func (cc *ClaimCreate) SetValue(s string) *ClaimCreate {
+	cc.mutation.SetValue(s)
+	return cc
+}
+
 // SetDescription sets the "description" field.
 func (cc *ClaimCreate) SetDescription(s string) *ClaimCreate {
 	cc.mutation.SetDescription(s)
@@ -93,6 +99,9 @@ func (cc *ClaimCreate) check() error {
 	if _, ok := cc.mutation.ShortName(); !ok {
 		return &ValidationError{Name: "short_name", err: errors.New(`ent: missing required field "Claim.short_name"`)}
 	}
+	if _, ok := cc.mutation.Value(); !ok {
+		return &ValidationError{Name: "value", err: errors.New(`ent: missing required field "Claim.value"`)}
+	}
 	if _, ok := cc.mutation.Description(); !ok {
 		return &ValidationError{Name: "description", err: errors.New(`ent: missing required field "Claim.description"`)}
 	}
@@ -129,6 +138,10 @@ func (cc *ClaimCreate) createSpec() (*Claim, *sqlgraph.CreateSpec) {
 	if value, ok := cc.mutation.ShortName(); ok {
 		_spec.SetField(claim.FieldShortName, field.TypeString, value)
 		_node.ShortName = value
+	}
+	if value, ok := cc.mutation.Value(); ok {
+		_spec.SetField(claim.FieldValue, field.TypeString, value)
+		_node.Value = value
 	}
 	if value, ok := cc.mutation.Description(); ok {
 		_spec.SetField(claim.FieldDescription, field.TypeString, value)

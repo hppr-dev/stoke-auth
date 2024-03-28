@@ -20,6 +20,8 @@ type Claim struct {
 	Name string `json:"name,omitempty"`
 	// ShortName holds the value of the "short_name" field.
 	ShortName string `json:"short_name,omitempty"`
+	// Value holds the value of the "value" field.
+	Value string `json:"value,omitempty"`
 	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -53,7 +55,7 @@ func (*Claim) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case claim.FieldID:
 			values[i] = new(sql.NullInt64)
-		case claim.FieldName, claim.FieldShortName, claim.FieldDescription:
+		case claim.FieldName, claim.FieldShortName, claim.FieldValue, claim.FieldDescription:
 			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -88,6 +90,12 @@ func (c *Claim) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				c.ShortName = value.String
 			}
+		case claim.FieldValue:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field value", values[i])
+			} else if value.Valid {
+				c.Value = value.String
+			}
 		case claim.FieldDescription:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field description", values[i])
@@ -101,9 +109,9 @@ func (c *Claim) assignValues(columns []string, values []any) error {
 	return nil
 }
 
-// Value returns the ent.Value that was dynamically selected and assigned to the Claim.
+// GetValue returns the ent.Value that was dynamically selected and assigned to the Claim.
 // This includes values selected through modifiers, order, etc.
-func (c *Claim) Value(name string) (ent.Value, error) {
+func (c *Claim) GetValue(name string) (ent.Value, error) {
 	return c.selectValues.Get(name)
 }
 
@@ -140,6 +148,9 @@ func (c *Claim) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("short_name=")
 	builder.WriteString(c.ShortName)
+	builder.WriteString(", ")
+	builder.WriteString("value=")
+	builder.WriteString(c.Value)
 	builder.WriteString(", ")
 	builder.WriteString("description=")
 	builder.WriteString(c.Description)

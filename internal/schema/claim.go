@@ -16,6 +16,7 @@ func (Claim) Fields() []ent.Field {
 			Unique(),
 		field.String("short_name").
 			Unique(),
+		field.String("value"),
 		field.String("description"),
 	}
 }

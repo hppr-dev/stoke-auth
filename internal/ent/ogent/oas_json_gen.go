@@ -38,12 +38,18 @@ func (s *ClaimClaimGroupsList) encodeFields(e *jx.Encoder) {
 		e.FieldStart("description")
 		e.Str(s.Description)
 	}
+	{
+
+		e.FieldStart("is_user_group")
+		e.Bool(s.IsUserGroup)
+	}
 }
 
-var jsonFieldsNameOfClaimClaimGroupsList = [3]string{
+var jsonFieldsNameOfClaimClaimGroupsList = [4]string{
 	0: "id",
 	1: "name",
 	2: "description",
+	3: "is_user_group",
 }
 
 // Decode decodes ClaimClaimGroupsList from json.
@@ -91,6 +97,18 @@ func (s *ClaimClaimGroupsList) Decode(d *jx.Decoder) error {
 			}(); err != nil {
 				return errors.Wrap(err, "decode field \"description\"")
 			}
+		case "is_user_group":
+			requiredBitSet[0] |= 1 << 3
+			if err := func() error {
+				v, err := d.Bool()
+				s.IsUserGroup = bool(v)
+				if err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"is_user_group\"")
+			}
 		default:
 			return d.Skip()
 		}
@@ -101,7 +119,7 @@ func (s *ClaimClaimGroupsList) Decode(d *jx.Decoder) error {
 	// Validate required fields.
 	var failures []validate.FieldError
 	for i, mask := range [1]uint8{
-		0b00000111,
+		0b00001111,
 	} {
 		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
 			// Mask only required fields and check equality to mask using XOR.
@@ -173,16 +191,22 @@ func (s *ClaimCreate) encodeFields(e *jx.Encoder) {
 	}
 	{
 
+		e.FieldStart("value")
+		e.Str(s.Value)
+	}
+	{
+
 		e.FieldStart("description")
 		e.Str(s.Description)
 	}
 }
 
-var jsonFieldsNameOfClaimCreate = [4]string{
+var jsonFieldsNameOfClaimCreate = [5]string{
 	0: "id",
 	1: "name",
 	2: "short_name",
-	3: "description",
+	3: "value",
+	4: "description",
 }
 
 // Decode decodes ClaimCreate from json.
@@ -230,8 +254,20 @@ func (s *ClaimCreate) Decode(d *jx.Decoder) error {
 			}(); err != nil {
 				return errors.Wrap(err, "decode field \"short_name\"")
 			}
-		case "description":
+		case "value":
 			requiredBitSet[0] |= 1 << 3
+			if err := func() error {
+				v, err := d.Str()
+				s.Value = string(v)
+				if err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"value\"")
+			}
+		case "description":
+			requiredBitSet[0] |= 1 << 4
 			if err := func() error {
 				v, err := d.Str()
 				s.Description = string(v)
@@ -252,7 +288,7 @@ func (s *ClaimCreate) Decode(d *jx.Decoder) error {
 	// Validate required fields.
 	var failures []validate.FieldError
 	for i, mask := range [1]uint8{
-		0b00001111,
+		0b00011111,
 	} {
 		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
 			// Mask only required fields and check equality to mask using XOR.
@@ -324,16 +360,22 @@ func (s *ClaimGroupClaimsList) encodeFields(e *jx.Encoder) {
 	}
 	{
 
+		e.FieldStart("value")
+		e.Str(s.Value)
+	}
+	{
+
 		e.FieldStart("description")
 		e.Str(s.Description)
 	}
 }
 
-var jsonFieldsNameOfClaimGroupClaimsList = [4]string{
+var jsonFieldsNameOfClaimGroupClaimsList = [5]string{
 	0: "id",
 	1: "name",
 	2: "short_name",
-	3: "description",
+	3: "value",
+	4: "description",
 }
 
 // Decode decodes ClaimGroupClaimsList from json.
@@ -381,8 +423,20 @@ func (s *ClaimGroupClaimsList) Decode(d *jx.Decoder) error {
 			}(); err != nil {
 				return errors.Wrap(err, "decode field \"short_name\"")
 			}
-		case "description":
+		case "value":
 			requiredBitSet[0] |= 1 << 3
+			if err := func() error {
+				v, err := d.Str()
+				s.Value = string(v)
+				if err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"value\"")
+			}
+		case "description":
+			requiredBitSet[0] |= 1 << 4
 			if err := func() error {
 				v, err := d.Str()
 				s.Description = string(v)
@@ -403,7 +457,7 @@ func (s *ClaimGroupClaimsList) Decode(d *jx.Decoder) error {
 	// Validate required fields.
 	var failures []validate.FieldError
 	for i, mask := range [1]uint8{
-		0b00001111,
+		0b00011111,
 	} {
 		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
 			// Mask only required fields and check equality to mask using XOR.
@@ -473,12 +527,18 @@ func (s *ClaimGroupCreate) encodeFields(e *jx.Encoder) {
 		e.FieldStart("description")
 		e.Str(s.Description)
 	}
+	{
+
+		e.FieldStart("is_user_group")
+		e.Bool(s.IsUserGroup)
+	}
 }
 
-var jsonFieldsNameOfClaimGroupCreate = [3]string{
+var jsonFieldsNameOfClaimGroupCreate = [4]string{
 	0: "id",
 	1: "name",
 	2: "description",
+	3: "is_user_group",
 }
 
 // Decode decodes ClaimGroupCreate from json.
@@ -526,6 +586,18 @@ func (s *ClaimGroupCreate) Decode(d *jx.Decoder) error {
 			}(); err != nil {
 				return errors.Wrap(err, "decode field \"description\"")
 			}
+		case "is_user_group":
+			requiredBitSet[0] |= 1 << 3
+			if err := func() error {
+				v, err := d.Bool()
+				s.IsUserGroup = bool(v)
+				if err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"is_user_group\"")
+			}
 		default:
 			return d.Skip()
 		}
@@ -536,7 +608,7 @@ func (s *ClaimGroupCreate) Decode(d *jx.Decoder) error {
 	// Validate required fields.
 	var failures []validate.FieldError
 	for i, mask := range [1]uint8{
-		0b00000111,
+		0b00001111,
 	} {
 		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
 			// Mask only required fields and check equality to mask using XOR.
@@ -739,12 +811,18 @@ func (s *ClaimGroupList) encodeFields(e *jx.Encoder) {
 		e.FieldStart("description")
 		e.Str(s.Description)
 	}
+	{
+
+		e.FieldStart("is_user_group")
+		e.Bool(s.IsUserGroup)
+	}
 }
 
-var jsonFieldsNameOfClaimGroupList = [3]string{
+var jsonFieldsNameOfClaimGroupList = [4]string{
 	0: "id",
 	1: "name",
 	2: "description",
+	3: "is_user_group",
 }
 
 // Decode decodes ClaimGroupList from json.
@@ -792,6 +870,18 @@ func (s *ClaimGroupList) Decode(d *jx.Decoder) error {
 			}(); err != nil {
 				return errors.Wrap(err, "decode field \"description\"")
 			}
+		case "is_user_group":
+			requiredBitSet[0] |= 1 << 3
+			if err := func() error {
+				v, err := d.Bool()
+				s.IsUserGroup = bool(v)
+				if err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"is_user_group\"")
+			}
 		default:
 			return d.Skip()
 		}
@@ -802,7 +892,7 @@ func (s *ClaimGroupList) Decode(d *jx.Decoder) error {
 	// Validate required fields.
 	var failures []validate.FieldError
 	for i, mask := range [1]uint8{
-		0b00000111,
+		0b00001111,
 	} {
 		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
 			// Mask only required fields and check equality to mask using XOR.
@@ -872,12 +962,18 @@ func (s *ClaimGroupRead) encodeFields(e *jx.Encoder) {
 		e.FieldStart("description")
 		e.Str(s.Description)
 	}
+	{
+
+		e.FieldStart("is_user_group")
+		e.Bool(s.IsUserGroup)
+	}
 }
 
-var jsonFieldsNameOfClaimGroupRead = [3]string{
+var jsonFieldsNameOfClaimGroupRead = [4]string{
 	0: "id",
 	1: "name",
 	2: "description",
+	3: "is_user_group",
 }
 
 // Decode decodes ClaimGroupRead from json.
@@ -925,6 +1021,18 @@ func (s *ClaimGroupRead) Decode(d *jx.Decoder) error {
 			}(); err != nil {
 				return errors.Wrap(err, "decode field \"description\"")
 			}
+		case "is_user_group":
+			requiredBitSet[0] |= 1 << 3
+			if err := func() error {
+				v, err := d.Bool()
+				s.IsUserGroup = bool(v)
+				if err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"is_user_group\"")
+			}
 		default:
 			return d.Skip()
 		}
@@ -935,7 +1043,7 @@ func (s *ClaimGroupRead) Decode(d *jx.Decoder) error {
 	// Validate required fields.
 	var failures []validate.FieldError
 	for i, mask := range [1]uint8{
-		0b00000111,
+		0b00001111,
 	} {
 		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
 			// Mask only required fields and check equality to mask using XOR.
@@ -1005,12 +1113,18 @@ func (s *ClaimGroupUpdate) encodeFields(e *jx.Encoder) {
 		e.FieldStart("description")
 		e.Str(s.Description)
 	}
+	{
+
+		e.FieldStart("is_user_group")
+		e.Bool(s.IsUserGroup)
+	}
 }
 
-var jsonFieldsNameOfClaimGroupUpdate = [3]string{
+var jsonFieldsNameOfClaimGroupUpdate = [4]string{
 	0: "id",
 	1: "name",
 	2: "description",
+	3: "is_user_group",
 }
 
 // Decode decodes ClaimGroupUpdate from json.
@@ -1058,6 +1172,18 @@ func (s *ClaimGroupUpdate) Decode(d *jx.Decoder) error {
 			}(); err != nil {
 				return errors.Wrap(err, "decode field \"description\"")
 			}
+		case "is_user_group":
+			requiredBitSet[0] |= 1 << 3
+			if err := func() error {
+				v, err := d.Bool()
+				s.IsUserGroup = bool(v)
+				if err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"is_user_group\"")
+			}
 		default:
 			return d.Skip()
 		}
@@ -1068,7 +1194,7 @@ func (s *ClaimGroupUpdate) Decode(d *jx.Decoder) error {
 	// Validate required fields.
 	var failures []validate.FieldError
 	for i, mask := range [1]uint8{
-		0b00000111,
+		0b00001111,
 	} {
 		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
 			// Mask only required fields and check equality to mask using XOR.
@@ -1363,16 +1489,22 @@ func (s *ClaimList) encodeFields(e *jx.Encoder) {
 	}
 	{
 
+		e.FieldStart("value")
+		e.Str(s.Value)
+	}
+	{
+
 		e.FieldStart("description")
 		e.Str(s.Description)
 	}
 }
 
-var jsonFieldsNameOfClaimList = [4]string{
+var jsonFieldsNameOfClaimList = [5]string{
 	0: "id",
 	1: "name",
 	2: "short_name",
-	3: "description",
+	3: "value",
+	4: "description",
 }
 
 // Decode decodes ClaimList from json.
@@ -1420,8 +1552,20 @@ func (s *ClaimList) Decode(d *jx.Decoder) error {
 			}(); err != nil {
 				return errors.Wrap(err, "decode field \"short_name\"")
 			}
-		case "description":
+		case "value":
 			requiredBitSet[0] |= 1 << 3
+			if err := func() error {
+				v, err := d.Str()
+				s.Value = string(v)
+				if err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"value\"")
+			}
+		case "description":
+			requiredBitSet[0] |= 1 << 4
 			if err := func() error {
 				v, err := d.Str()
 				s.Description = string(v)
@@ -1442,7 +1586,7 @@ func (s *ClaimList) Decode(d *jx.Decoder) error {
 	// Validate required fields.
 	var failures []validate.FieldError
 	for i, mask := range [1]uint8{
-		0b00001111,
+		0b00011111,
 	} {
 		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
 			// Mask only required fields and check equality to mask using XOR.
@@ -1514,16 +1658,22 @@ func (s *ClaimRead) encodeFields(e *jx.Encoder) {
 	}
 	{
 
+		e.FieldStart("value")
+		e.Str(s.Value)
+	}
+	{
+
 		e.FieldStart("description")
 		e.Str(s.Description)
 	}
 }
 
-var jsonFieldsNameOfClaimRead = [4]string{
+var jsonFieldsNameOfClaimRead = [5]string{
 	0: "id",
 	1: "name",
 	2: "short_name",
-	3: "description",
+	3: "value",
+	4: "description",
 }
 
 // Decode decodes ClaimRead from json.
@@ -1571,8 +1721,20 @@ func (s *ClaimRead) Decode(d *jx.Decoder) error {
 			}(); err != nil {
 				return errors.Wrap(err, "decode field \"short_name\"")
 			}
-		case "description":
+		case "value":
 			requiredBitSet[0] |= 1 << 3
+			if err := func() error {
+				v, err := d.Str()
+				s.Value = string(v)
+				if err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"value\"")
+			}
+		case "description":
+			requiredBitSet[0] |= 1 << 4
 			if err := func() error {
 				v, err := d.Str()
 				s.Description = string(v)
@@ -1593,7 +1755,7 @@ func (s *ClaimRead) Decode(d *jx.Decoder) error {
 	// Validate required fields.
 	var failures []validate.FieldError
 	for i, mask := range [1]uint8{
-		0b00001111,
+		0b00011111,
 	} {
 		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
 			// Mask only required fields and check equality to mask using XOR.
@@ -1665,16 +1827,22 @@ func (s *ClaimUpdate) encodeFields(e *jx.Encoder) {
 	}
 	{
 
+		e.FieldStart("value")
+		e.Str(s.Value)
+	}
+	{
+
 		e.FieldStart("description")
 		e.Str(s.Description)
 	}
 }
 
-var jsonFieldsNameOfClaimUpdate = [4]string{
+var jsonFieldsNameOfClaimUpdate = [5]string{
 	0: "id",
 	1: "name",
 	2: "short_name",
-	3: "description",
+	3: "value",
+	4: "description",
 }
 
 // Decode decodes ClaimUpdate from json.
@@ -1722,8 +1890,20 @@ func (s *ClaimUpdate) Decode(d *jx.Decoder) error {
 			}(); err != nil {
 				return errors.Wrap(err, "decode field \"short_name\"")
 			}
-		case "description":
+		case "value":
 			requiredBitSet[0] |= 1 << 3
+			if err := func() error {
+				v, err := d.Str()
+				s.Value = string(v)
+				if err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"value\"")
+			}
+		case "description":
+			requiredBitSet[0] |= 1 << 4
 			if err := func() error {
 				v, err := d.Str()
 				s.Description = string(v)
@@ -1744,7 +1924,7 @@ func (s *ClaimUpdate) Decode(d *jx.Decoder) error {
 	// Validate required fields.
 	var failures []validate.FieldError
 	for i, mask := range [1]uint8{
-		0b00001111,
+		0b00011111,
 	} {
 		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
 			// Mask only required fields and check equality to mask using XOR.
@@ -1810,6 +1990,11 @@ func (s *CreateClaimGroupReq) encodeFields(e *jx.Encoder) {
 		e.Str(s.Description)
 	}
 	{
+
+		e.FieldStart("is_user_group")
+		e.Bool(s.IsUserGroup)
+	}
+	{
 		if s.Users != nil {
 			e.FieldStart("users")
 			e.ArrStart()
@@ -1841,12 +2026,13 @@ func (s *CreateClaimGroupReq) encodeFields(e *jx.Encoder) {
 	}
 }
 
-var jsonFieldsNameOfCreateClaimGroupReq = [5]string{
+var jsonFieldsNameOfCreateClaimGroupReq = [6]string{
 	0: "name",
 	1: "description",
-	2: "users",
-	3: "group_links",
-	4: "claims",
+	2: "is_user_group",
+	3: "users",
+	4: "group_links",
+	5: "claims",
 }
 
 // Decode decodes CreateClaimGroupReq from json.
@@ -1881,6 +2067,18 @@ func (s *CreateClaimGroupReq) Decode(d *jx.Decoder) error {
 				return nil
 			}(); err != nil {
 				return errors.Wrap(err, "decode field \"description\"")
+			}
+		case "is_user_group":
+			requiredBitSet[0] |= 1 << 2
+			if err := func() error {
+				v, err := d.Bool()
+				s.IsUserGroup = bool(v)
+				if err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"is_user_group\"")
 			}
 		case "users":
 			if err := func() error {
@@ -1949,7 +2147,7 @@ func (s *CreateClaimGroupReq) Decode(d *jx.Decoder) error {
 	// Validate required fields.
 	var failures []validate.FieldError
 	for i, mask := range [1]uint8{
-		0b00000011,
+		0b00000111,
 	} {
 		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
 			// Mask only required fields and check equality to mask using XOR.
@@ -2016,6 +2214,11 @@ func (s *CreateClaimReq) encodeFields(e *jx.Encoder) {
 	}
 	{
 
+		e.FieldStart("value")
+		e.Str(s.Value)
+	}
+	{
+
 		e.FieldStart("description")
 		e.Str(s.Description)
 	}
@@ -2031,11 +2234,12 @@ func (s *CreateClaimReq) encodeFields(e *jx.Encoder) {
 	}
 }
 
-var jsonFieldsNameOfCreateClaimReq = [4]string{
+var jsonFieldsNameOfCreateClaimReq = [5]string{
 	0: "name",
 	1: "short_name",
-	2: "description",
-	3: "claim_groups",
+	2: "value",
+	3: "description",
+	4: "claim_groups",
 }
 
 // Decode decodes CreateClaimReq from json.
@@ -2071,8 +2275,20 @@ func (s *CreateClaimReq) Decode(d *jx.Decoder) error {
 			}(); err != nil {
 				return errors.Wrap(err, "decode field \"short_name\"")
 			}
-		case "description":
+		case "value":
 			requiredBitSet[0] |= 1 << 2
+			if err := func() error {
+				v, err := d.Str()
+				s.Value = string(v)
+				if err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"value\"")
+			}
+		case "description":
+			requiredBitSet[0] |= 1 << 3
 			if err := func() error {
 				v, err := d.Str()
 				s.Description = string(v)
@@ -2112,7 +2328,7 @@ func (s *CreateClaimReq) Decode(d *jx.Decoder) error {
 	// Validate required fields.
 	var failures []validate.FieldError
 	for i, mask := range [1]uint8{
-		0b00000111,
+		0b00001111,
 	} {
 		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
 			// Mask only required fields and check equality to mask using XOR.
@@ -2549,12 +2765,18 @@ func (s *GroupLinkClaimGroupsRead) encodeFields(e *jx.Encoder) {
 		e.FieldStart("description")
 		e.Str(s.Description)
 	}
+	{
+
+		e.FieldStart("is_user_group")
+		e.Bool(s.IsUserGroup)
+	}
 }
 
-var jsonFieldsNameOfGroupLinkClaimGroupsRead = [3]string{
+var jsonFieldsNameOfGroupLinkClaimGroupsRead = [4]string{
 	0: "id",
 	1: "name",
 	2: "description",
+	3: "is_user_group",
 }
 
 // Decode decodes GroupLinkClaimGroupsRead from json.
@@ -2602,6 +2824,18 @@ func (s *GroupLinkClaimGroupsRead) Decode(d *jx.Decoder) error {
 			}(); err != nil {
 				return errors.Wrap(err, "decode field \"description\"")
 			}
+		case "is_user_group":
+			requiredBitSet[0] |= 1 << 3
+			if err := func() error {
+				v, err := d.Bool()
+				s.IsUserGroup = bool(v)
+				if err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"is_user_group\"")
+			}
 		default:
 			return d.Skip()
 		}
@@ -2612,7 +2846,7 @@ func (s *GroupLinkClaimGroupsRead) Decode(d *jx.Decoder) error {
 	// Validate required fields.
 	var failures []validate.FieldError
 	for i, mask := range [1]uint8{
-		0b00000111,
+		0b00001111,
 	} {
 		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
 			// Mask only required fields and check equality to mask using XOR.
@@ -3690,6 +3924,41 @@ func (s *ListUserOKApplicationJSON) UnmarshalJSON(data []byte) error {
 	return s.Decode(d)
 }
 
+// Encode encodes bool as json.
+func (o OptBool) Encode(e *jx.Encoder) {
+	if !o.Set {
+		return
+	}
+	e.Bool(bool(o.Value))
+}
+
+// Decode decodes bool from json.
+func (o *OptBool) Decode(d *jx.Decoder) error {
+	if o == nil {
+		return errors.New("invalid: unable to decode OptBool to nil")
+	}
+	o.Set = true
+	v, err := d.Bool()
+	if err != nil {
+		return err
+	}
+	o.Value = bool(v)
+	return nil
+}
+
+// MarshalJSON implements stdjson.Marshaler.
+func (s OptBool) MarshalJSON() ([]byte, error) {
+	e := jx.Encoder{}
+	s.Encode(&e)
+	return e.Bytes(), nil
+}
+
+// UnmarshalJSON implements stdjson.Unmarshaler.
+func (s *OptBool) UnmarshalJSON(data []byte) error {
+	d := jx.DecodeBytes(data)
+	return s.Decode(d)
+}
+
 // Encode encodes time.Time as json.
 func (o OptDateTime) Encode(e *jx.Encoder, format func(*jx.Encoder, time.Time)) {
 	if !o.Set {
@@ -4655,6 +4924,12 @@ func (s *UpdateClaimGroupReq) encodeFields(e *jx.Encoder) {
 		}
 	}
 	{
+		if s.IsUserGroup.Set {
+			e.FieldStart("is_user_group")
+			s.IsUserGroup.Encode(e)
+		}
+	}
+	{
 		if s.Users != nil {
 			e.FieldStart("users")
 			e.ArrStart()
@@ -4686,12 +4961,13 @@ func (s *UpdateClaimGroupReq) encodeFields(e *jx.Encoder) {
 	}
 }
 
-var jsonFieldsNameOfUpdateClaimGroupReq = [5]string{
+var jsonFieldsNameOfUpdateClaimGroupReq = [6]string{
 	0: "name",
 	1: "description",
-	2: "users",
-	3: "group_links",
-	4: "claims",
+	2: "is_user_group",
+	3: "users",
+	4: "group_links",
+	5: "claims",
 }
 
 // Decode decodes UpdateClaimGroupReq from json.
@@ -4721,6 +4997,16 @@ func (s *UpdateClaimGroupReq) Decode(d *jx.Decoder) error {
 				return nil
 			}(); err != nil {
 				return errors.Wrap(err, "decode field \"description\"")
+			}
+		case "is_user_group":
+			if err := func() error {
+				s.IsUserGroup.Reset()
+				if err := s.IsUserGroup.Decode(d); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"is_user_group\"")
 			}
 		case "users":
 			if err := func() error {
@@ -4825,6 +5111,12 @@ func (s *UpdateClaimReq) encodeFields(e *jx.Encoder) {
 		}
 	}
 	{
+		if s.Value.Set {
+			e.FieldStart("value")
+			s.Value.Encode(e)
+		}
+	}
+	{
 		if s.Description.Set {
 			e.FieldStart("description")
 			s.Description.Encode(e)
@@ -4842,11 +5134,12 @@ func (s *UpdateClaimReq) encodeFields(e *jx.Encoder) {
 	}
 }
 
-var jsonFieldsNameOfUpdateClaimReq = [4]string{
+var jsonFieldsNameOfUpdateClaimReq = [5]string{
 	0: "name",
 	1: "short_name",
-	2: "description",
-	3: "claim_groups",
+	2: "value",
+	3: "description",
+	4: "claim_groups",
 }
 
 // Decode decodes UpdateClaimReq from json.
@@ -4876,6 +5169,16 @@ func (s *UpdateClaimReq) Decode(d *jx.Decoder) error {
 				return nil
 			}(); err != nil {
 				return errors.Wrap(err, "decode field \"short_name\"")
+			}
+		case "value":
+			if err := func() error {
+				s.Value.Reset()
+				if err := s.Value.Decode(d); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"value\"")
 			}
 		case "description":
 			if err := func() error {
@@ -5246,12 +5549,18 @@ func (s *UserClaimGroupsList) encodeFields(e *jx.Encoder) {
 		e.FieldStart("description")
 		e.Str(s.Description)
 	}
+	{
+
+		e.FieldStart("is_user_group")
+		e.Bool(s.IsUserGroup)
+	}
 }
 
-var jsonFieldsNameOfUserClaimGroupsList = [3]string{
+var jsonFieldsNameOfUserClaimGroupsList = [4]string{
 	0: "id",
 	1: "name",
 	2: "description",
+	3: "is_user_group",
 }
 
 // Decode decodes UserClaimGroupsList from json.
@@ -5299,6 +5608,18 @@ func (s *UserClaimGroupsList) Decode(d *jx.Decoder) error {
 			}(); err != nil {
 				return errors.Wrap(err, "decode field \"description\"")
 			}
+		case "is_user_group":
+			requiredBitSet[0] |= 1 << 3
+			if err := func() error {
+				v, err := d.Bool()
+				s.IsUserGroup = bool(v)
+				if err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"is_user_group\"")
+			}
 		default:
 			return d.Skip()
 		}
@@ -5309,7 +5630,7 @@ func (s *UserClaimGroupsList) Decode(d *jx.Decoder) error {
 	// Validate required fields.
 	var failures []validate.FieldError
 	for i, mask := range [1]uint8{
-		0b00000111,
+		0b00001111,
 	} {
 		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
 			// Mask only required fields and check equality to mask using XOR.

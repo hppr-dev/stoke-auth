@@ -12,6 +12,7 @@ func NewClaimCreate(e *ent.Claim) *ClaimCreate {
 	ret.ID = e.ID
 	ret.Name = e.Name
 	ret.ShortName = e.ShortName
+	ret.Value = e.Value
 	ret.Description = e.Description
 	return &ret
 }
@@ -42,6 +43,7 @@ func NewClaimGroupCreate(e *ent.ClaimGroup) *ClaimGroupCreate {
 	ret.ID = e.ID
 	ret.Name = e.Name
 	ret.Description = e.Description
+	ret.IsUserGroup = e.IsUserGroup
 	return &ret
 }
 
@@ -71,6 +73,7 @@ func NewClaimGroupList(e *ent.ClaimGroup) *ClaimGroupList {
 	ret.ID = e.ID
 	ret.Name = e.Name
 	ret.Description = e.Description
+	ret.IsUserGroup = e.IsUserGroup
 	return &ret
 }
 
@@ -100,6 +103,7 @@ func NewClaimGroupRead(e *ent.ClaimGroup) *ClaimGroupRead {
 	ret.ID = e.ID
 	ret.Name = e.Name
 	ret.Description = e.Description
+	ret.IsUserGroup = e.IsUserGroup
 	return &ret
 }
 
@@ -129,6 +133,7 @@ func NewClaimGroupUpdate(e *ent.ClaimGroup) *ClaimGroupUpdate {
 	ret.ID = e.ID
 	ret.Name = e.Name
 	ret.Description = e.Description
+	ret.IsUserGroup = e.IsUserGroup
 	return &ret
 }
 
@@ -158,6 +163,7 @@ func NewClaimGroupClaimsList(e *ent.Claim) *ClaimGroupClaimsList {
 	ret.ID = e.ID
 	ret.Name = e.Name
 	ret.ShortName = e.ShortName
+	ret.Value = e.Value
 	ret.Description = e.Description
 	return &ret
 }
@@ -251,6 +257,7 @@ func NewClaimList(e *ent.Claim) *ClaimList {
 	ret.ID = e.ID
 	ret.Name = e.Name
 	ret.ShortName = e.ShortName
+	ret.Value = e.Value
 	ret.Description = e.Description
 	return &ret
 }
@@ -281,6 +288,7 @@ func NewClaimRead(e *ent.Claim) *ClaimRead {
 	ret.ID = e.ID
 	ret.Name = e.Name
 	ret.ShortName = e.ShortName
+	ret.Value = e.Value
 	ret.Description = e.Description
 	return &ret
 }
@@ -311,6 +319,7 @@ func NewClaimUpdate(e *ent.Claim) *ClaimUpdate {
 	ret.ID = e.ID
 	ret.Name = e.Name
 	ret.ShortName = e.ShortName
+	ret.Value = e.Value
 	ret.Description = e.Description
 	return &ret
 }
@@ -341,6 +350,7 @@ func NewClaimClaimGroupsList(e *ent.ClaimGroup) *ClaimClaimGroupsList {
 	ret.ID = e.ID
 	ret.Name = e.Name
 	ret.Description = e.Description
+	ret.IsUserGroup = e.IsUserGroup
 	return &ret
 }
 
@@ -486,6 +496,7 @@ func NewGroupLinkClaimGroupsRead(e *ent.ClaimGroup) *GroupLinkClaimGroupsRead {
 	ret.ID = e.ID
 	ret.Name = e.Name
 	ret.Description = e.Description
+	ret.IsUserGroup = e.IsUserGroup
 	return &ret
 }
 
@@ -711,6 +722,7 @@ func NewUserClaimGroupsList(e *ent.ClaimGroup) *UserClaimGroupsList {
 	ret.ID = e.ID
 	ret.Name = e.Name
 	ret.Description = e.Description
+	ret.IsUserGroup = e.IsUserGroup
 	return &ret
 }
 

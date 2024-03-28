@@ -37,6 +37,7 @@ func (h *OgentHandler) CreateClaim(ctx context.Context, req *CreateClaimReq) (Cr
 	// Add all fields.
 	b.SetName(req.Name)
 	b.SetShortName(req.ShortName)
+	b.SetValue(req.Value)
 	b.SetDescription(req.Description)
 	// Add all edges.
 	b.AddClaimGroupIDs(req.ClaimGroups...)
@@ -106,6 +107,9 @@ func (h *OgentHandler) UpdateClaim(ctx context.Context, req *UpdateClaimReq, par
 	}
 	if v, ok := req.ShortName.Get(); ok {
 		b.SetShortName(v)
+	}
+	if v, ok := req.Value.Get(); ok {
+		b.SetValue(v)
 	}
 	if v, ok := req.Description.Get(); ok {
 		b.SetDescription(v)
@@ -250,6 +254,7 @@ func (h *OgentHandler) CreateClaimGroup(ctx context.Context, req *CreateClaimGro
 	// Add all fields.
 	b.SetName(req.Name)
 	b.SetDescription(req.Description)
+	b.SetIsUserGroup(req.IsUserGroup)
 	// Add all edges.
 	b.AddUserIDs(req.Users...)
 	b.AddGroupLinkIDs(req.GroupLinks...)
@@ -320,6 +325,9 @@ func (h *OgentHandler) UpdateClaimGroup(ctx context.Context, req *UpdateClaimGro
 	}
 	if v, ok := req.Description.Get(); ok {
 		b.SetDescription(v)
+	}
+	if v, ok := req.IsUserGroup.Get(); ok {
+		b.SetIsUserGroup(v)
 	}
 	// Add all edges.
 	if req.Users != nil {

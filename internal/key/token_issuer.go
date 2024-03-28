@@ -6,7 +6,7 @@ import (
 
 type Claims struct {
 	jwt.RegisteredClaims
-	CustomClaims map[string]interface{} `json:"stk"`
+	StokeClaims map[string]string `json:"stk"`
 }
 
 type TokenIssuer interface {

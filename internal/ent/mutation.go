@@ -43,6 +43,7 @@ type ClaimMutation struct {
 	id                  *int
 	name                *string
 	short_name          *string
+	value               *string
 	description         *string
 	clearedFields       map[string]struct{}
 	claim_groups        map[int]struct{}
@@ -223,6 +224,42 @@ func (m *ClaimMutation) ResetShortName() {
 	m.short_name = nil
 }
 
+// SetValue sets the "value" field.
+func (m *ClaimMutation) SetValue(s string) {
+	m.value = &s
+}
+
+// Value returns the value of the "value" field in the mutation.
+func (m *ClaimMutation) Value() (r string, exists bool) {
+	v := m.value
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldValue returns the old "value" field's value of the Claim entity.
+// If the Claim object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ClaimMutation) OldValue(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldValue is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldValue requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldValue: %w", err)
+	}
+	return oldValue.Value, nil
+}
+
+// ResetValue resets all changes to the "value" field.
+func (m *ClaimMutation) ResetValue() {
+	m.value = nil
+}
+
 // SetDescription sets the "description" field.
 func (m *ClaimMutation) SetDescription(s string) {
 	m.description = &s
@@ -347,12 +384,15 @@ func (m *ClaimMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ClaimMutation) Fields() []string {
-	fields := make([]string, 0, 3)
+	fields := make([]string, 0, 4)
 	if m.name != nil {
 		fields = append(fields, claim.FieldName)
 	}
 	if m.short_name != nil {
 		fields = append(fields, claim.FieldShortName)
+	}
+	if m.value != nil {
+		fields = append(fields, claim.FieldValue)
 	}
 	if m.description != nil {
 		fields = append(fields, claim.FieldDescription)
@@ -369,6 +409,8 @@ func (m *ClaimMutation) Field(name string) (ent.Value, bool) {
 		return m.Name()
 	case claim.FieldShortName:
 		return m.ShortName()
+	case claim.FieldValue:
+		return m.Value()
 	case claim.FieldDescription:
 		return m.Description()
 	}
@@ -384,6 +426,8 @@ func (m *ClaimMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldName(ctx)
 	case claim.FieldShortName:
 		return m.OldShortName(ctx)
+	case claim.FieldValue:
+		return m.OldValue(ctx)
 	case claim.FieldDescription:
 		return m.OldDescription(ctx)
 	}
@@ -408,6 +452,13 @@ func (m *ClaimMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetShortName(v)
+		return nil
+	case claim.FieldValue:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetValue(v)
 		return nil
 	case claim.FieldDescription:
 		v, ok := value.(string)
@@ -470,6 +521,9 @@ func (m *ClaimMutation) ResetField(name string) error {
 		return nil
 	case claim.FieldShortName:
 		m.ResetShortName()
+		return nil
+	case claim.FieldValue:
+		m.ResetValue()
 		return nil
 	case claim.FieldDescription:
 		m.ResetDescription()
@@ -570,6 +624,7 @@ type ClaimGroupMutation struct {
 	id                 *int
 	name               *string
 	description        *string
+	is_user_group      *bool
 	clearedFields      map[string]struct{}
 	users              map[int]struct{}
 	removedusers       map[int]struct{}
@@ -753,6 +808,42 @@ func (m *ClaimGroupMutation) OldDescription(ctx context.Context) (v string, err 
 // ResetDescription resets all changes to the "description" field.
 func (m *ClaimGroupMutation) ResetDescription() {
 	m.description = nil
+}
+
+// SetIsUserGroup sets the "is_user_group" field.
+func (m *ClaimGroupMutation) SetIsUserGroup(b bool) {
+	m.is_user_group = &b
+}
+
+// IsUserGroup returns the value of the "is_user_group" field in the mutation.
+func (m *ClaimGroupMutation) IsUserGroup() (r bool, exists bool) {
+	v := m.is_user_group
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsUserGroup returns the old "is_user_group" field's value of the ClaimGroup entity.
+// If the ClaimGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ClaimGroupMutation) OldIsUserGroup(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsUserGroup is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsUserGroup requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsUserGroup: %w", err)
+	}
+	return oldValue.IsUserGroup, nil
+}
+
+// ResetIsUserGroup resets all changes to the "is_user_group" field.
+func (m *ClaimGroupMutation) ResetIsUserGroup() {
+	m.is_user_group = nil
 }
 
 // AddUserIDs adds the "users" edge to the User entity by ids.
@@ -951,12 +1042,15 @@ func (m *ClaimGroupMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ClaimGroupMutation) Fields() []string {
-	fields := make([]string, 0, 2)
+	fields := make([]string, 0, 3)
 	if m.name != nil {
 		fields = append(fields, claimgroup.FieldName)
 	}
 	if m.description != nil {
 		fields = append(fields, claimgroup.FieldDescription)
+	}
+	if m.is_user_group != nil {
+		fields = append(fields, claimgroup.FieldIsUserGroup)
 	}
 	return fields
 }
@@ -970,6 +1064,8 @@ func (m *ClaimGroupMutation) Field(name string) (ent.Value, bool) {
 		return m.Name()
 	case claimgroup.FieldDescription:
 		return m.Description()
+	case claimgroup.FieldIsUserGroup:
+		return m.IsUserGroup()
 	}
 	return nil, false
 }
@@ -983,6 +1079,8 @@ func (m *ClaimGroupMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldName(ctx)
 	case claimgroup.FieldDescription:
 		return m.OldDescription(ctx)
+	case claimgroup.FieldIsUserGroup:
+		return m.OldIsUserGroup(ctx)
 	}
 	return nil, fmt.Errorf("unknown ClaimGroup field %s", name)
 }
@@ -1005,6 +1103,13 @@ func (m *ClaimGroupMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetDescription(v)
+		return nil
+	case claimgroup.FieldIsUserGroup:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsUserGroup(v)
 		return nil
 	}
 	return fmt.Errorf("unknown ClaimGroup field %s", name)
@@ -1060,6 +1165,9 @@ func (m *ClaimGroupMutation) ResetField(name string) error {
 		return nil
 	case claimgroup.FieldDescription:
 		m.ResetDescription()
+		return nil
+	case claimgroup.FieldIsUserGroup:
+		m.ResetIsUserGroup()
 		return nil
 	}
 	return fmt.Errorf("unknown ClaimGroup field %s", name)

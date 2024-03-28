@@ -13,6 +13,7 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "name", Type: field.TypeString, Unique: true},
 		{Name: "short_name", Type: field.TypeString, Unique: true},
+		{Name: "value", Type: field.TypeString},
 		{Name: "description", Type: field.TypeString},
 	}
 	// ClaimsTable holds the schema information for the "claims" table.
@@ -26,6 +27,7 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "name", Type: field.TypeString, Unique: true},
 		{Name: "description", Type: field.TypeString},
+		{Name: "is_user_group", Type: field.TypeBool, Default: false},
 	}
 	// ClaimGroupsTable holds the schema information for the "claim_groups" table.
 	ClaimGroupsTable = &schema.Table{

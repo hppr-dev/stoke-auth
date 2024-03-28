@@ -20,6 +20,8 @@ type ClaimGroup struct {
 	Name string `json:"name,omitempty"`
 	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
+	// IsUserGroup holds the value of the "is_user_group" field.
+	IsUserGroup bool `json:"is_user_group,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ClaimGroupQuery when eager-loading is set.
 	Edges        ClaimGroupEdges `json:"edges"`
@@ -71,6 +73,8 @@ func (*ClaimGroup) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case claimgroup.FieldIsUserGroup:
+			values[i] = new(sql.NullBool)
 		case claimgroup.FieldID:
 			values[i] = new(sql.NullInt64)
 		case claimgroup.FieldName, claimgroup.FieldDescription:
@@ -107,6 +111,12 @@ func (cg *ClaimGroup) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field description", values[i])
 			} else if value.Valid {
 				cg.Description = value.String
+			}
+		case claimgroup.FieldIsUserGroup:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field is_user_group", values[i])
+			} else if value.Valid {
+				cg.IsUserGroup = value.Bool
 			}
 		default:
 			cg.selectValues.Set(columns[i], values[i])
@@ -164,6 +174,9 @@ func (cg *ClaimGroup) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("description=")
 	builder.WriteString(cg.Description)
+	builder.WriteString(", ")
+	builder.WriteString("is_user_group=")
+	builder.WriteString(fmt.Sprintf("%v", cg.IsUserGroup))
 	builder.WriteByte(')')
 	return builder.String()
 }
