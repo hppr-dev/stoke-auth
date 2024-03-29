@@ -1,11 +1,10 @@
 package stoke
 
-import (
-)
+import "github.com/golang-jwt/jwt/v5"
 
 type PublicKeyStore interface {
 	Init() error
-	ValidateClaims(string, *ClaimsValidator) bool
+	ValidateClaims(string, *ClaimsValidator, ...jwt.ParserOption) bool
 }
 
 func DefaultPublicKeyStore(endpoint string) PublicKeyStore {

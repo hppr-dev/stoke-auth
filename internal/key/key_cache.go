@@ -38,6 +38,7 @@ type publicJson struct {
 	Text    string    `json:"text"`
 	Expires int64     `json:"expires"`
 	Renews  int64     `json:"renews"`
+	Method  string    `json:"method"`
 }
 
 func (c *KeyCache[P]) PublicKeys() ([]byte, error) {
@@ -47,6 +48,7 @@ func (c *KeyCache[P]) PublicKeys() ([]byte, error) {
 			Text:    k.PublicString(),
 			Expires: k.ExpiresAt().Unix(),
 			Renews:  k.RenewsAt().Unix(),
+			Method:  k.SigningMethod().Alg(),
 		}
 	}
 	return json.Marshal(out)
@@ -129,9 +131,8 @@ func (c *KeyCache[P]) Clean() {
 }
 
 // Implements stoke.PublicKeyStore
-func (c *KeyCache[P]) ValidateClaims(token string, claims *stoke.ClaimsValidator) bool {
-	// TODO user configured issuer/audience/etc
-	jwtToken, err := jwt.ParseWithClaims(token, claims, c.publicKeys, jwt.WithIssuer("stk"))
+func (c *KeyCache[P]) ValidateClaims(token string, claims *stoke.ClaimsValidator, parserOpts ...jwt.ParserOption) bool {
+	jwtToken, err := jwt.ParseWithClaims(token, claims, c.publicKeys, parserOpts...)
 	if err != nil {
 		logger.Debug().Err(err).Msg("Failed to validate claims")
 		return false

@@ -55,13 +55,7 @@ func (l LoginApiHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 
 	token, err := l.Context.Issuer.IssueToken(key.Claims{
 		StokeClaims : claimMap,
-		// TODO These should be configurable
-		RegisteredClaims: jwt.RegisteredClaims{
-			Issuer: "stk",
-			Subject: "ath",
-			IssuedAt: jwt.NewNumericDate(time.Now()),
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * 30)),
-		},
+		RegisteredClaims: l.createRegisteredClaims(),
 	})
 	if err != nil {
 		InternalServerError.Write(res)
@@ -69,4 +63,16 @@ func (l LoginApiHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	}
 
 	res.Write([]byte(fmt.Sprintf("{'token':'%s'}", token)))
+}
+
+func (l LoginApiHandler) createRegisteredClaims() jwt.RegisteredClaims {
+	now := time.Now()
+	return jwt.RegisteredClaims{
+		IssuedAt: jwt.NewNumericDate(now),
+		NotBefore: jwt.NewNumericDate(now),
+		ExpiresAt: jwt.NewNumericDate(now.Add(time.Minute * 30)),
+		Issuer:    l.Context.Config.Tokens.Issuer,
+		Subject:   l.Context.Config.Tokens.Subject,
+		Audience:  l.Context.Config.Tokens.Audience,
+	}
 }

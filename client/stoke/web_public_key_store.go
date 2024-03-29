@@ -1,6 +1,8 @@
 package stoke
 
 import (
+	"crypto"
+	"crypto/x509"
 	"net/http"
 	"time"
 
@@ -31,9 +33,8 @@ func (s *WebPublicKeyStore) goManage(){
 	}
 }
 
-func (s *WebPublicKeyStore) ValidateClaims(token string, reqClaims *ClaimsValidator) bool {
-	// TODO Make audience/issuer configurable
-	jwtToken, err := jwt.ParseWithClaims(token, reqClaims, s.keyFunc, jwt.WithIssuer("stk"))
+func (s *WebPublicKeyStore) ValidateClaims(token string, reqClaims *ClaimsValidator, parserOpts ...jwt.ParserOption) bool {
+	jwtToken, err := jwt.ParseWithClaims(token, reqClaims, s.keyFunc, parserOpts...)
 	if err != nil {
 		return false
 	}
@@ -60,14 +61,18 @@ func (s *WebPublicKeyStore) refreshPublicKeys() error {
 			return d.Obj(
 				func (d *jx.Decoder, key string) error {
 					var objErr error
-					var newKey []uint8
+					var keyBytes []uint8
+					var parsedKey jwt.VerificationKey
 					var t time.Time
 					switch key {
 					case "text":
-						newKey, objErr = d.Base64()
+						keyBytes, objErr = d.Base64()
 						if objErr != nil {
-							pkeys = append(pkeys, newKey)
+							return objErr
 						}
+						parsedKey, objErr = x509.ParsePKIXPublicKey(keyBytes)
+						pkeys = append(pkeys, parsedKey)
+
 					case "renews", "expires":
 						t, objErr = parseTime(d)
 						if t.Before(nextUpdate) {
@@ -92,4 +97,17 @@ func (s *WebPublicKeyStore) refreshPublicKeys() error {
 func parseTime(d *jx.Decoder) (time.Time, error) {
 	i, err := d.Int()
 	return time.Unix(int64(i), 0), err
+}
+
+func bytesToPublicKey(method string, pkeys [][]byte) ([]jwt.VerificationKey, error) {
+	var vKeys []jwt.VerificationKey
+
+	for _, keyBytes := range pkeys {
+		key, err := x509.ParsePKIXPublicKey(keyBytes)
+		if err != nil {
+			return nil, err
+		}
+		vKeys = append(vKeys, key)
+	}
+	return vKeys, nil
 }

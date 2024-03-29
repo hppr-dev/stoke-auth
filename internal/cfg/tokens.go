@@ -11,4 +11,8 @@ type Tokens struct {
 	KeyDuration   string `json:"key_duration"`
 	// How long to issue tokens for
 	TokenDuration string `json:"token_duration"`
+  // Claims to give all tokens
+	Issuer   string   `json:"issuer"`
+	Subject  string   `json:"subject"`
+	Audience []string `json:"audience"`
 }
