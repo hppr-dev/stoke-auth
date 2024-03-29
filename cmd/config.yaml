@@ -1,0 +1,24 @@
+---
+server:
+  address: ""
+  port: 8080
+
+database:
+  type: sqlite
+  sqlite:
+    file: stoke.db
+    flags: "cache=shared&_fk=1"
+
+logging:
+  level: debug
+  log_file: stoke.log
+  pretty_console: true
+
+tokens:
+  algorithm: ECDSA
+  num_bits: 256
+  persist_keys: true
+  key_duration: 3h
+  token_duration: 30m
+
+users:

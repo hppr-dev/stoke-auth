@@ -1,4 +1,4 @@
-package adm
+package admin
 
 import (
 	"embed"

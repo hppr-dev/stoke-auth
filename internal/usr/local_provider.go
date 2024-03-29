@@ -5,12 +5,12 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
-	"log"
 	"stoke/internal/ent"
 	"stoke/internal/ent/claim"
 	"stoke/internal/ent/claimgroup"
 	"stoke/internal/ent/user"
 
+	"github.com/rs/zerolog"
 	"golang.org/x/crypto/argon2"
 )
 
@@ -23,6 +23,14 @@ func (l LocalProvider) Init() error {
 }
 
 func (l LocalProvider) AddUser(fname, lname, email, username, password string, superUser bool) error {
+	logger.Info().
+			Str("fname", fname).
+			Str("lname", lname).
+			Str("username", username).
+			Str("email", email).
+			Bool("superuser", superUser).
+			Msg("Creating user")
+
 	salt := l.genSalt()
 	userInfo, err := l.DB.User.Create().
 		SetFname(fname).
@@ -33,7 +41,12 @@ func (l LocalProvider) AddUser(fname, lname, email, username, password string, s
 		SetPassword(l.hashPass(password, salt)).
 		Save(context.Background())
 	if err != nil {
-		return nil
+		logger.Error().
+			Err(err).
+			Str("username", username).
+			Str("email", email).
+			Msg("Could not create user")
+		return err
 	}
 	
 	_, err = l.DB.ClaimGroup.Create().
@@ -43,22 +56,44 @@ func (l LocalProvider) AddUser(fname, lname, email, username, password string, s
 		SetIsUserGroup(true).
 		Save(context.Background())
 	if err != nil {
-		return nil
+		logger.Error().
+			Err(err).
+			Str("username", username).
+			Str("email", email).
+			Msg("Could not create user claim group")
+		return err
 	}
 
 	if superUser {
 		superGroup, err := l.getOrCreateSuperGroup()
 		if err != nil {
+		logger.Error().
+			Err(err).
+			Str("username", username).
+			Str("email", email).
+			Msg("Could not get superuser group")
 			return err
 		}
+
 		_, err = superGroup.Update().AddUsers(userInfo).Save(context.Background())
-		return err
+		if err != nil {
+			logger.Error().
+				Err(err).
+				Str("username", username).
+				Str("email", email).
+				Msg("Could add user to super group")
+				return err
+		}
 	}
 
 	return nil
 }
 
 func (l LocalProvider) GetUserClaims(username, password string) (ent.Claims, error) {
+	logger.Debug().
+		Str("username", username).
+		Msg("Getting user claims")
+
 	usr, err := l.DB.User.Query().
 		Where(
 			user.Or(
@@ -71,15 +106,32 @@ func (l LocalProvider) GetUserClaims(username, password string) (ent.Claims, err
 		}).
 		Only(context.Background())
 	if err != nil {
+		logger.Error().
+			Err(err).
+			Str("username", username).
+			Msg("Could not find user")
 		return nil, err
 	}
+
 	if l.hashPass(password, usr.Salt) != usr.Password {
+		logger.Debug().Str("username", username).Msg("User password did not match")
 		return nil, fmt.Errorf("Bad Password")
 	}
+
 	var allClaims ent.Claims
 	for _, group := range usr.Edges.ClaimGroups {
 		allClaims = append(allClaims, group.Edges.Claims...)
 	}
+	logger.Debug().
+		Str("username", username).
+		Func(func (e *zerolog.Event) {
+			var values []string
+			for _, c := range allClaims {
+				values = append(values, c.ShortName + ":" + c.Value)
+			}
+			e.Strs("claims", values)
+		}).
+		Msg("Claims found")
 	return allClaims, nil
 }
 
@@ -107,7 +159,7 @@ func (l LocalProvider) getOrCreateSuperGroup() (*ent.ClaimGroup, error) {
 		Only(context.Background())
 
 	if ent.IsNotFound(err) {
-		log.Println("Stoke superusers not found. Creating...")
+		logger.Info().Msg("Stoke superusers not found. Creating...")
 		superClaim := l.DB.Claim.Create().
 			SetName("Stoke Super User").
 			SetDescription("Grants superuser management access to the stoke server").
@@ -134,7 +186,9 @@ func (l LocalProvider) checkForSuperUser() error {
 	if len(superGroup.Edges.Users) == 0 {
 		randomPass := l.genSalt()
 		l.AddUser("Stoke", "Admin", "sadmin@localhost", "sadmin", randomPass, true)
-		log.Printf("Created superuser 'sadmin' with password %s", randomPass)
+		logger.Info().
+			Str("password", randomPass).
+			Msg("Created superuser 'sadmin'")
 	}
 	return nil
 }

@@ -1,6 +1,7 @@
 package key
 
 import (
+	"crypto"
 	"crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/rsa"
@@ -19,6 +20,7 @@ type KeyPair[P PrivateKey] interface {
 	Encode() string
 	Decode(string) error
 	Key() P
+	PublicKey() crypto.PublicKey
 	SigningMethod() jwt.SigningMethod
 	SetExpires(time.Time)
 	ExpiresAt() time.Time

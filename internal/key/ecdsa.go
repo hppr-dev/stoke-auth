@@ -1,12 +1,12 @@
 package key
 
 import (
+	"crypto"
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/x509"
 	"encoding/base64"
-	"log"
 
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -14,40 +14,58 @@ import (
 type ECDSAKeyPair struct {
 	NumBits int
 	PrivateKey *ecdsa.PrivateKey
-	PublicKey *ecdsa.PublicKey
 	KeyMeta
 }
 
 func (k *ECDSAKeyPair) Generate() error {
-	log.Println("Generating new ECDSA keypair...")
+	logger.Info().Msg("Generating new ECDSA keypair...")
+
 	priv, err := ecdsa.GenerateKey(k.getCurve(), rand.Reader)
+	if err != nil {
+		logger.Error().Err(err).Msg("Could not genrate ECDSA key")
+		return err
+	}
+
 	k.PrivateKey = priv
-	k.PublicKey = &priv.PublicKey
-	return err
+	return nil
 }
 
 func (k *ECDSAKeyPair) PublicString() string {
-	s, _ := x509.MarshalPKIXPublicKey(k.PublicKey)
+	s, err := x509.MarshalPKIXPublicKey(&k.PrivateKey.PublicKey)
+	if err != nil {
+		logger.Error().Err(err).Msg("Error processing public string")
+		return ""
+	}
+
 	return base64.StdEncoding.EncodeToString(s)
 }
 
+func (k *ECDSAKeyPair) PublicKey() crypto.PublicKey {
+	return &k.PrivateKey.PublicKey
+}
+
 func (k *ECDSAKeyPair) Encode() string {
-	s, _ := x509.MarshalECPrivateKey(k.PrivateKey)
+	s, err := x509.MarshalECPrivateKey(k.PrivateKey)
+	if err != nil {
+		logger.Error().Err(err).Msg("Could not encode private key")
+		return ""
+	}
+
 	return base64.StdEncoding.EncodeToString(s)
 }
 
 func (k *ECDSAKeyPair) Decode(in string) error {
 	b, err := base64.StdEncoding.DecodeString(in)
 	if err != nil {
+		logger.Error().Err(err).Msg("Decoding base64 private key failed")
 		return err
 	}
 
 	k.PrivateKey, err = x509.ParseECPrivateKey(b)
 	if err != nil {
+		logger.Error().Err(err).Msg("Decoding ECDSA private key failed")
 		return err
 	}
-
-	k.PublicKey = &k.PrivateKey.PublicKey
 
 	return nil
 }
@@ -65,7 +83,8 @@ func (k *ECDSAKeyPair) SigningMethod() jwt.SigningMethod {
 	case 512:
 		return jwt.GetSigningMethod("ES512")
 	}
-	log.Println("Number of bits not set to 256, 384, or 512. Using default 256.")
+
+	logger.Info().Msg("Number of bits not set to 256, 384, or 512. Using default 256.")
 	return jwt.GetSigningMethod("ES256")
 }
 
@@ -79,7 +98,8 @@ func (k *ECDSAKeyPair) getCurve() elliptic.Curve {
 	case 512:
 		return elliptic.P521()
 	}
-	log.Println("Number of bits not set to 256, 384, or 512. Using default 256.")
+
+	logger.Info().Msg("Number of bits not set to 256, 384, or 512. Using default 256.")
 	return elliptic.P256()
 }
 

@@ -5,6 +5,8 @@ import (
 	"stoke/internal/ent"
 	"stoke/internal/key"
 	"stoke/internal/usr"
+
+	"github.com/rs/zerolog"
 )
 
 type Context struct {
@@ -12,4 +14,5 @@ type Context struct {
 	Issuer key.TokenIssuer
 	UserProvider usr.Provider
 	DB *ent.Client
+	RootLogger zerolog.Logger
 }

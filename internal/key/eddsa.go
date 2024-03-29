@@ -1,6 +1,7 @@
 package key
 
 import (
+	"crypto"
 	"crypto/ed25519"
 	"crypto/rand"
 	"encoding/base64"
@@ -10,19 +11,27 @@ import (
 
 type EdDSAKeyPair struct {
 	PrivateKey ed25519.PrivateKey
-	PublicKey ed25519.PublicKey
 	KeyMeta
 }
 
 func (k *EdDSAKeyPair) Generate() error {
-	pub, priv, err := ed25519.GenerateKey(rand.Reader)
+	_, priv, err := ed25519.GenerateKey(rand.Reader)
 	k.PrivateKey = priv
-	k.PublicKey = pub
 	return err
 }
 
 func (k *EdDSAKeyPair) PublicString() string {
-	return base64.StdEncoding.EncodeToString(k.PublicKey)
+	b, ok := k.PrivateKey.Public().(ed25519.PublicKey)
+	if !ok {
+		logger.Error().Msg("Failed to convert public key to bytes.")
+		return ""
+	}
+
+	return base64.StdEncoding.EncodeToString(b)
+}
+
+func (k *EdDSAKeyPair) PublicKey() crypto.PublicKey {
+	return k.PrivateKey.Public()
 }
 
 func (k *EdDSAKeyPair) Encode() string {
@@ -32,10 +41,10 @@ func (k *EdDSAKeyPair) Encode() string {
 func (k *EdDSAKeyPair) Decode(in string) error {
 	b, err := base64.StdEncoding.DecodeString(in)
 	if err != nil {
+		logger.Error().Err(err).Msg("Could not decode EdDSA private key")
 		return err
 	}
 	k.PrivateKey = b
-	k.PublicKey = k.PrivateKey.Public().(ed25519.PublicKey)
 
 	return nil
 }

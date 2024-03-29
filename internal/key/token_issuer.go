@@ -1,6 +1,8 @@
 package key
 
 import (
+	"stoke/client/stoke"
+
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -12,6 +14,7 @@ type Claims struct {
 type TokenIssuer interface {
 	IssueToken(claim Claims) (string, error)
 	PublicKeys() ([]byte, error)
+	stoke.PublicKeyStore
 }
 
 type AsymetricTokenIssuer[P PrivateKey]  struct {
@@ -21,8 +24,4 @@ type AsymetricTokenIssuer[P PrivateKey]  struct {
 func (a *AsymetricTokenIssuer[P]) IssueToken(claims Claims) (string, error) {
 	curr := a.CurrentKey()
 	return jwt.NewWithClaims(curr.SigningMethod(), claims).SignedString(curr.Key())
-}
-
-func (a *AsymetricTokenIssuer[P]) PublicKeys() ([]byte, error) {
-	return a.JSON()
 }

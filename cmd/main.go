@@ -1,46 +1,29 @@
 package main
 
 import (
-	"context"
-	"crypto/ecdsa"
-	"log"
-	"time"
-
 	"stoke/internal/cfg"
 	"stoke/internal/ctx"
 	"stoke/internal/ent"
-	"stoke/internal/key"
 	"stoke/internal/usr"
 	"stoke/internal/web"
-
-	_ "github.com/mattn/go-sqlite3"
 )
 
 func main() {
-	log.Println("Starting Stoke Server...")
+	// TODO command line flags for config
+	config := cfg.FromFile("config.yaml") 
 
-	config := cfg.Config{
-		Server: cfg.Server {
-			Address : "",
-			Port: 8080,
-		},
-	}
+	setupLoggers(*config)
 
-	dbClient := connectToDB(config)
+	logger.Debug().Interface("config", config).Msg("Config Loaded")
+	logger.Info().Msg("Starting Stoke Server...")
 
-	localUserProvider := usr.LocalProvider{
-		DB: dbClient,
-	}
-	err := localUserProvider.Init()
-	if err != nil {
-		log.Panicf("Could not initialize local user database: %v", err)
-	}
+	dbClient := createDBClient(*config)
 
 	appContext := &ctx.Context{
-		Config:       config,
-		Issuer:       createTokenIssuer(config, dbClient),
+		Config:       *config,
+		Issuer:       createTokenIssuer(*config, dbClient),
 		DB:           dbClient,
-		UserProvider: localUserProvider,
+		UserProvider: createUserProvider(*config, dbClient),
 	}
 
 	server := web.Server {
@@ -49,41 +32,24 @@ func main() {
 
 	server.Init()
 	if err := server.Run(); err != nil {
-		log.Printf("An error stopped the server: %v", err)
+		logger.Error().Err(err).Msg("An error stopped the server")
 	}
 	
-	log.Println("Stoke Server Terminated.")
+	logger.Info().Msg("Stoke Server Terminated.")
 }
 
-func connectToDB(_ cfg.Config) *ent.Client {
-	// Type and connection string should be configurable
-	dbClient, err := ent.Open("sqlite3", "file:stoke.db?cache=shared&_fk=1")
+
+
+func createUserProvider(_ cfg.Config, dbClient *ent.Client) usr.Provider {
+	// TODO need to be able to configure which provider to use
+	// Will always have user
+	localUserProvider := usr.LocalProvider{
+		DB: dbClient,
+	}
+	err := localUserProvider.Init()
 	if err != nil {
-		log.Panicf("Could not connect to database: %v", err)
+		logger.Error().Err(err).Msg("Could not initialize local user database")
 	}
 
-	dbClient.Schema.Create(context.Background())
-	return dbClient
-}
-
-func createTokenIssuer(_ cfg.Config, dbClient *ent.Client) key.TokenIssuer {
-	// Also should be an option to persist or not perist in db
-	// type, key and token duration must be configurable
-	cache := key.KeyCache[*ecdsa.PrivateKey]{
-		KeyDuration:   time.Hour * 3,
-		TokenDuration: time.Minute * 30,
-	}
-	// This will depend on the configuration of certificate type
-	pair := &key.ECDSAKeyPair{
-		NumBits : 256,
-	}
-
-	err := cache.Bootstrap(dbClient, pair)
-	if err != nil {
-		log.Panicf("Could not bootstrap key cache! %v", err)
-	}
-
-	return &key.AsymetricTokenIssuer[*ecdsa.PrivateKey]{
-		KeyCache: cache,
-	}
+	return localUserProvider
 }
