@@ -20,5 +20,7 @@ tokens:
   persist_keys: true
   key_duration: 3h
   token_duration: 30m
+  issuer: "stk"
+  subject: "ath"
 
 users:

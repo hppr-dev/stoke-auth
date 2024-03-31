@@ -25,16 +25,18 @@ func (s *Server) Init() error {
 
 	http.Handle("/admin/", http.StripPrefix("/admin/", http.FileServerFS(admin.Pages)))
 
-	http.Handle("/api/login", LogHTTP(LoginApiHandler{ Context: s.Context }) )
-	http.Handle("/api/pkeys", LogHTTP(PkeyApiHandler{ Context: s.Context }) )
+	http.Handle("/api/login", AllowAllMethods(LogHTTP(LoginApiHandler{ Context: s.Context })) )
+	http.Handle("/api/pkeys", AllowAllMethods(LogHTTP(PkeyApiHandler{ Context: s.Context })) )
 
 	entityPrefix := "/api/admin/"
 	http.Handle(entityPrefix,
-		LogHTTP(
-			stoke.WithClaims(
-				NewEntityAPIHandler(entityPrefix, s.Context),
-				s.Context.Issuer,
-				stoke.Claims().Require("srol", "spr").Validator(),
+		AllowAllMethods(
+			LogHTTP(
+				stoke.WithClaims(
+					NewEntityAPIHandler(entityPrefix, s.Context),
+					s.Context.Issuer,
+					stoke.Claims().Require("srol", "spr").Validator(),
+				),
 			),
 		),
 	)

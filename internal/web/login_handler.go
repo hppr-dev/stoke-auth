@@ -62,7 +62,7 @@ func (l LoginApiHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	res.Write([]byte(fmt.Sprintf("{'token':'%s'}", token)))
+	res.Write([]byte(fmt.Sprintf("{\"token\":\"%s\"}", token)))
 }
 
 func (l LoginApiHandler) createRegisteredClaims() jwt.RegisteredClaims {

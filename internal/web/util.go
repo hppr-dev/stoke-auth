@@ -12,12 +12,12 @@ type ApiMessage struct {
 
 func (m ApiMessage) Write(res http.ResponseWriter) {
 	res.WriteHeader(m.Code)
-	res.Write([]byte(fmt.Sprintf("{'message':'%s'}", m.Message)))
+	res.Write([]byte(fmt.Sprintf("{\"message\":\"%s\"}", m.Message)))
 }
 
 func (m ApiMessage) WriteWithError(res http.ResponseWriter, err error) {
 	res.WriteHeader(m.Code)
-	res.Write([]byte(fmt.Sprintf("{'message':'%s', 'error': '%s'}", m.Message, err.Error())))
+	res.Write([]byte(fmt.Sprintf("{\"message\":\"%s\", \"error\": \"%s\"}", m.Message, err.Error())))
 }
 
 var Unauthorized        = ApiMessage{ Code: http.StatusUnauthorized,        Message: "Unauthorized" }

@@ -1,7 +1,6 @@
 package stoke
 
 import (
-	"crypto"
 	"crypto/x509"
 	"net/http"
 	"time"
