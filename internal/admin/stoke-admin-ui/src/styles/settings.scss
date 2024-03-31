@@ -1,0 +1,17 @@
+/**
+ * src/styles/settings.scss
+ *
+ * Configures SASS variables and Vuetify overwrites
+ */
+
+// https://vuetifyjs.com/features/sass-variables/`
+// @use 'vuetify/settings' with (
+//   $color-pack: false
+// );
+
+// Disable global page scroll to control page scroll on a per component basis
+html, body {
+	margin: 0;
+	height: 100%;
+	overflow: hidden;
+}
