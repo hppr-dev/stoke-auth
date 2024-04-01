@@ -3,7 +3,7 @@
     <template #title>
       <div v-if="store.currentClaim.name" >
         <span> {{ store.currentClaim.name }} </span>
-        <EditActivator tooltipText="Edit Claim">
+        <EditActivator tooltipText="Edit Claim" :onSave="store.saveScratchClaim" :onCancel="store.resetScratchClaim">
           <EditClaimDialog />
         </EditActivator>
       </div>

@@ -7,6 +7,10 @@ export {}
 
 declare module 'vue' {
   export interface GlobalComponents {
+    AddActivator: typeof import('./components/AddActivator.vue')['default']
+    AddClaimDialog: typeof import('./components/dialogs/AddClaimDialog.vue')['default']
+    AddGroupDialog: typeof import('./components/dialogs/AddGroupDialog.vue')['default']
+    AddUserDialog: typeof import('./components/dialogs/AddUserDialog.vue')['default']
     AppFooter: typeof import('./components/AppFooter.vue')['default']
     ClaimInfo: typeof import('./components/ClaimInfo.vue')['default']
     ClaimList: typeof import('./components/ClaimList.vue')['default']

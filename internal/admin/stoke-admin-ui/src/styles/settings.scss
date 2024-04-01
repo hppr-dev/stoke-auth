@@ -10,8 +10,11 @@
 // );
 
 // Disable global page scroll to control page scroll on a per component basis
-html, body {
-	margin: 0;
-	height: 100%;
-	overflow: hidden;
+
+@media (min-width: 1000px) {
+	html, body {
+		margin: 0;
+		height: 100%;
+		overflow: hidden;
+	}
 }

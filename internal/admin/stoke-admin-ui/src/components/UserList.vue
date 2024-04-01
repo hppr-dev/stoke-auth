@@ -1,7 +1,21 @@
 <template>
-  <EntityList :items="store.allUsers" :headers="headers" :showSearch="props.showSearch" :showFooter="props.showFooter" :rowClick="setCurrentUser">
+  <EntityList
+    :items="store.allUsers"
+    :headers="headers"
+    :showSearch="props.showSearch"
+    :showFooter="props.showFooter"
+    :rowClick="setCurrentUser"
+    :rowProps="highlightSelected"
+  >
     <template #footer-prepend>
-      <v-btn v-if="props.addButton" @click="props.addButton" class="mx-auto" prepend-icon="mdi-plus" color="success"> Add User </v-btn>
+      <AddActivator
+        v-if="props.addButton"
+        buttonText="Add User"
+        :onSave="store.addScratchUser"
+        :onCancel="store.resetScratchUser"
+      >
+        <AddUserDialog />
+      </AddActivator>
     </template>
   </EntityList>
 </template>
@@ -10,9 +24,10 @@
   import { defineProps, onMounted } from "vue"
   import { useAppStore } from "../stores/app"
   import { User } from "../stores/entityTypes"
+  import AddUserDialog from "./dialogs/AddUserDialog.vue";
 
   const props= defineProps<{
-    addButton?: Function,
+    addButton?: boolean,
     showSearch?: boolean,
     showFooter?: boolean,
   }>()
@@ -27,11 +42,19 @@
 
   const store = useAppStore()
 
-  async function setCurrentUser(_PointerEvent, { item } : { item : User }) {
+  async function setCurrentUser(_ : PointerEvent, { item } : { item : User }) {
     await store.fetchGroupsForUser(item.id)
     store.$patch({
       currentUser: item,
     })
+  }
+
+  function highlightSelected({ item } : { item : User }) {
+    if ( item.id === store.currentUser.id ) {
+      return {
+        class : "bg-grey-lighten-1",
+      }
+    }
   }
 
   onMounted(store.fetchAllUsers)

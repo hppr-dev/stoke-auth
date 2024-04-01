@@ -1,9 +1,12 @@
 <template>
   <v-data-table
     class="h-100"
+    sticky
+    :headerProps="headerProps"
     :headers="props.headers"
     :items="props.items"
     :search="search"
+    :rowProps="rowProps"
     @click:row="rowClick"
   >
     <template #top>
@@ -39,9 +42,15 @@
     showFooter?: boolean,
     headers : Headers,
     items: Array<Object>,
-    rowClick?: Function,
+    rowClick: Function,
+    rowProps?: Function | Object,
   }>()
 
   const search = ref("")
+
+  const headerProps = {
+    class : "bg-blue-grey",
+    height: "3em",
+  }
 
 </script>

@@ -1,7 +1,14 @@
 <template>
-  <EntityList :items="claims" :headers="headers" :showSearch="props.showSearch" :showFooter="props.showFooter" :rowClick="setCurrentClaim">
+  <EntityList :items="claims" :headers="headers" :showSearch="props.showSearch" :showFooter="props.showFooter" :rowClick="props.rowClick">
     <template #footer-prepend>
-      <v-btn v-if="props.addButton" @click="addButton" class="mx-auto" prepend-icon="mdi-plus" color="success"> Add Claim </v-btn>
+      <AddActivator
+        v-if="props.addButton"
+        buttonText="Add Claim"
+        :onSave="store.addScratchClaim"
+        :onCancel="store.resetScratchClaim"
+      >
+        <EditClaimDialog add/>
+      </AddActivator>
     </template>
   </EntityList>
 </template>
@@ -10,10 +17,12 @@
   import { defineProps } from "vue"
   import { useAppStore } from "../stores/app"
   import { Claim } from "../stores/entityTypes"
+  import EditClaimDialog from "./dialogs/EditClaimDialog"
 
   const props= defineProps<{
     claims: Claim[],
-    addButton?: Function,
+    rowClick: Function,
+    addButton?: boolean,
     showSearch?: boolean,
     showFooter?: boolean,
   }>()
@@ -25,9 +34,4 @@
 
   const store = useAppStore()
 
-  async function setCurrentClaim(_ : PointerEvent, { item } : { item : Claim }) {
-    store.$patch({
-      currentClaim: item
-    })
-  }
 </script>

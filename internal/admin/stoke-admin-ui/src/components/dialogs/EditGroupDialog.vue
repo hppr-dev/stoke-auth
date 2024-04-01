@@ -1,38 +1,111 @@
 <template>
-  <v-sheet class="d-flex flex-column px-4 pt-4 mb-n5" width="40vw" height="70vh">
+  <v-sheet class="d-flex flex-column px-4 pt-4 mb-n5" width="60vw" height="65vh">
     <v-row>
-      <v-text-field variant="solo-filled" clearable label="Name" v-model="name" @blur="updateCurrentGroup"></v-text-field>
+      <v-text-field variant="solo-filled" clearable label="Name" v-model="name" @blur="updateScratchGroup"></v-text-field>
     </v-row>
     <v-row>
-      <v-textarea variant="solo-filled" clearable label="Description" v-model="description" no-resize @blur="updateCurrentGroup"></v-textarea>
+      <v-textarea variant="solo-filled" clearable label="Description" v-model="description" no-resize @blur="updateScratchGroup"></v-textarea>
     </v-row>
     <v-row class="mb-5 d-flex flex-grow-1 overflow-auto h-100">
-      <ClaimList :claims="claims" showFooter :addButton="addClaim"/>
+      <ClaimList
+        showFooter
+        showSearch
+        addButton
+        :claims="store.allClaims"
+        :rowClick="addOrRemoveClaim"
+        :rowProps="setRowProps"
+      />
     </v-row>
   </v-sheet>
 </template>
 
 <script setup lang="ts">
-  import { ref } from "vue"
-  import { useAppStore } from "@/stores/app"
+  import { ref, onMounted, defineProps } from "vue"
+  import { useAppStore } from "../../stores/app"
+  import { Claim } from "../../stores/entityTypes"
+
+  const props = defineProps<{
+    add?: boolean,
+  }>()
 
   const store = useAppStore()
 
   const name = ref(store.currentGroup.name)
   const description = ref(store.currentGroup.description)
-  const claims = ref(store.currentClaims)
+  if ( props.add ) {
+    name.value = ""
+    description.value = ""
+  }
 
-  function updateCurrentGroup() {
+  function updateScratchGroup() {
     store.$patch({
-      currentGroup: {
-        ...store.currentGroup,
+      scratchGroup: {
+        ...store.scratchGroup,
         name: name.value,
         description: description.value,
       },
     })
   }
 
-  function addClaim() {
-    console.log("components/dialogs/EditGroupDialog.vue")
+  function setRowProps({ item } : { item : Claim } ) {
+    let isClaim = (g : Claim) => g.id === item.id
+    let inCurrent = store.currentClaims.find(isClaim);
+    let inScratch = store.scratchClaims.find(isClaim)
+
+    if ( inCurrent && inScratch ) {
+      // Existed
+      return {
+        class: "bg-teal-darken-2",
+      }
+    } else if ( !inCurrent && inScratch ) {
+      // Added
+      return {
+        class: "bg-green-darken-3",
+      }
+    } else if ( inCurrent && !inScratch ) {
+      // Removed
+      return {
+        class : "bg-red-darken-3",
+      }
+    }
+    return {}
   }
+
+  function addOrRemoveClaim(_ : PointerEvent,  { item } : { item : Claim } ) {
+    let isClaim = (g : Claim) => g.id === item.id
+    let inScratch = store.scratchClaims.find(isClaim)
+    if ( inScratch ) {
+      store.$patch({
+        scratchClaims : store.scratchClaims.filter((v) => !isClaim(v)),
+      })
+    } else {
+      store.$patch({
+        scratchClaims : [
+          ...store.scratchClaims,
+          item
+        ],
+      })
+    }
+  }
+
+  onMounted(async () => {
+    await store.fetchAllClaims()
+    if ( props.add ) {
+      store.$patch({
+        scratchGroup: {},
+        currentGroup: {},
+        scratchClaims: [],
+        currentClaims: [],
+      })
+    } else {
+      store.$patch({
+        scratchGroup: {
+          ...store.currentGroup,
+        },
+        scratchClaims: [
+          ...store.currentClaims,
+        ],
+      })
+    }
+  })
 </script>

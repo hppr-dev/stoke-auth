@@ -4,7 +4,7 @@
       <template #title>
         <div v-if="store.currentUser.fname">
           <span class="text-h3"> {{ store.currentUser.fname }} {{ store.currentUser.lname }} </span>
-          <EditActivator tooltipText="Edit User" dialogTitle="Edit User">
+          <EditActivator tooltipText="Edit User" :onSave="store.saveScratchUser" :onCancel="store.resetScratchUser">
             <EditUserDialog />
           </EditActivator>
         </div>
@@ -27,7 +27,11 @@
       </template>
 
       <div v-if="store.currentUser.fname" class="d-flex flex-grow-1 overflow-auto h-100">
-        <GroupList :groups="store.currentGroups"/>
+        <GroupList
+          :groups="store.currentGroups"
+          :rowClick="setCurrentGroup"
+          :rowProps="highlightSelected"
+        />
       </div>
 
     </v-card>
@@ -42,6 +46,22 @@
 <script setup lang="ts">
   import EditUserDialog from './dialogs/EditUserDialog.vue'
   import { useAppStore } from "../stores/app"
+  import { Group } from "../stores/entityTypes"
 
   const store = useAppStore()
+
+  async function setCurrentGroup(_ : PointerEvent, { item } : { item : Group }) {
+    await store.fetchClaimsForGroup(item.id)
+    store.$patch({
+      currentGroup: item
+    })
+  }
+
+  function highlightSelected({ item } : { item : Group }) {
+    if ( item.id === store.currentGroup.id ) {
+      return {
+        class : "bg-grey-lighten-1",
+      }
+    }
+  }
 </script>

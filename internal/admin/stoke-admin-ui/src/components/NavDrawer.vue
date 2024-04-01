@@ -1,5 +1,5 @@
 <template>
-  <v-navigation-drawer class="fill-height" width="225" :rail="true" :expand-on-hover="!pinned" permanent>
+  <v-navigation-drawer class="fill-height" width="225" :rail="true" :expand-on-hover="!pinned" mobile-breakpoint="md" >
     <v-list>
       <v-list-item>
         <template #prepend>

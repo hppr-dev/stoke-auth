@@ -1,7 +1,14 @@
 <template>
-  <EntityList :items="groups" :headers="headers" :showSearch="props.showSearch" :showFooter="props.showFooter" :rowClick="setCurrentGroup">
+  <EntityList :items="groups" :headers="headers" :showSearch="props.showSearch" :showFooter="props.showFooter" :rowClick="props.rowClick">
     <template #footer-prepend>
-      <v-btn v-if="props.addButton" @click="addButton" class="mx-auto" prepend-icon="mdi-plus" color="success"> Add Group </v-btn>
+      <AddActivator
+        v-if="props.addButton"
+        buttonText="Add Group"
+        :onSave="store.addScratchGroup"
+        :onCancel="store.resetScratchGroup"
+      >
+        <EditGroupDialog add/>
+      </AddActivator>
     </template>
   </EntityList>
 </template>
@@ -10,11 +17,12 @@
   import { defineProps } from "vue"
   import { useAppStore } from "../stores/app"
   import { Group } from "../stores/entityTypes"
+  import EditGroupDialog from "./dialogs/EditGroupDialog"
 
   const props= defineProps<{
     groups: Group[],
-    rowClick?: Function,
-    addButton?: Function,
+    rowClick: Function,
+    addButton?: boolean,
     showSearch?: boolean,
     showFooter?: boolean,
   }>()
@@ -28,11 +36,5 @@
 
   const store = useAppStore()
 
-  async function setCurrentGroup(_ : PointerEvent, { item } : { item : Group }) {
-    await store.fetchClaimsForGroup(item.id)
-    store.$patch({
-      currentGroup: item
-    })
-  }
 
 </script>

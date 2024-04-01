@@ -1,4 +1,5 @@
 
+import { User, Claim, Group } from './entityTypes'
 
 export const appActions = {
   login: async function(username : string, password : string) {
@@ -85,5 +86,80 @@ export const appActions = {
     } catch (err) {
       throw err
     }
+  },
+  simplePatch: async function(endpoint : string, stateToSend : string) {
+    try {
+      const value : User | Claim | Group = this[stateToSend]
+      await fetch(`${this.api_url}${endpoint}/${value.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type"  : "application/json",
+          "Authorization" : `Token ${this.token}`,
+        },
+        body : JSON.stringify(value),
+      })
+    } catch (err) {
+      throw err
+    }
+  },
+  saveScratchUser: function() {
+    this.currentUser = { ...this.scratchUser }
+    this.currentGroups = [ ...this.scratchGroups ]
+    this.scratchUser.claim_groups = this.scratchGroups.map((g) => g.id)
+    return this.simplePatch("/api/admin/users", "scratchUser")
+      .then(() => this.scratchUser = {})
+  },
+  saveScratchGroup: function() {
+    this.currentGroup = { ...this.scratchGroup }
+    this.currentClaims = [ ...this.scratchClaims ]
+    this.scratchGroup.claims = this.scratchClaims.map((c) => c.id)
+    return this.simplePatch("/api/admin/claim-groups", "scratchGroup")
+      .then(() => this.scratchGroup = {})
+  },
+  saveScratchClaim: function() {
+    this.currentClaim = this.scratchClaim
+    return this.simplePatch("/api/admin/claims", "scratchClaim")
+      .then(() => this.scratchClaim = {})
+  },
+  simplePost: async function(endpoint : string, stateToSend : string) {
+    try {
+      await fetch(`${this.api_url}${endpoint}`, {
+        method: "POST",
+        headers: {
+          "Content-Type"  : "application/json",
+          "Authorization" : `Token ${this.token}`,
+        },
+        body : JSON.stringify(this[stateToSend]),
+      })
+    } catch (err) {
+      throw err
+    }
+  },
+  addScratchUser: function() {
+    return this.simplePost("/api/admin/users", "scratchUser")
+      .then( () => this.scratchUser = {} )
+      .then(this.fetchAllUsers)
+  },
+  addScratchGroup: function() {
+
+    return this.simplePost("/api/admin/claim-groups", "scratchGroup")
+      .then( () => this.scratchGroup = {} )
+      .then(this.fetchAllGroups)
+  },
+  addScratchClaim: function() {
+    return this.simplePost("/api/admin/claims", "scratchClaim")
+      .then( () => this.scratchClaim = {} )
+      .then(this.fetchAllClaims)
+  },
+  resetScratchUser: function() {
+    this.scratchUser = {}
+    this.scratchGroups = []
+  },
+  resetScratchGroup: function() {
+    this.scratchGroup = {}
+    this.scratchClaims = []
+  },
+  resetScratchClaim: function() {
+    this.scratchClaim = {}
   },
 }

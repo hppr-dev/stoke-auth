@@ -5,28 +5,30 @@
     </template>
   </v-tooltip>
 
-  <v-dialog v-model="dialogOpen" width="auto" persistent>
-    <v-card>
-      <template #title>
-        <span v-if="props.dialogTitle" > {{ props.dialogTitle }} </span>
-        <span v-else> {{ props.tooltipText }} </span>
-        <v-divider></v-divider>
-      </template>
-      <template #text>
-        <slot></slot>
-      </template>
-      <template #actions>
-        <div class="d-flex justify-center w-100">
-          <v-btn color="error" @click="innerOnCancel">
-            Cancel
-          </v-btn>
+  <v-dialog v-model="dialogOpen" width="auto" @afterLeave="onCancel" persistent>
+    <v-form v-model="formValid" @submit.prevent="innerOnSave" validate-on="submit">
+      <v-card>
+        <template #title>
+          <span v-if="props.dialogTitle" > {{ props.dialogTitle }} </span>
+          <span v-else> {{ props.tooltipText }} </span>
+          <v-divider></v-divider>
+        </template>
+        <template #text>
+          <slot></slot>
+        </template>
+        <template #actions>
+          <div class="d-flex justify-center w-100">
+            <v-btn color="error" @click="innerOnCancel">
+              Cancel
+            </v-btn>
 
-          <v-btn color="success" @click="innerOnSave">
-            Save
-          </v-btn>
-        </div>
-      </template>
-    </v-card>
+            <v-btn color="success" type="submit">
+              Save
+            </v-btn>
+          </div>
+        </template>
+      </v-card>
+    </v-form>
   </v-dialog>
 </template>
 
@@ -36,28 +38,23 @@
  const props = defineProps<{
     tooltipText: string,
     dialogTitle?: string
-    onCancel?: () => Promise<string>,
+    onCancel?: () => void,
     onSave?: () => Promise<string>,
   }>()
 
   const dialogOpen = ref(false)
+  const formValid = ref(false)
   const errorMessage = ref("")
 
   function innerOnCancel() {
-    if (props.onCancel) {
-      props.onCancel().
-        then(() => dialogOpen.value = false).
-        catch((d) => errorMessage.value = d)
-    } else {
-      dialogOpen.value = false
-    }
+    dialogOpen.value = false
   }
 
   function innerOnSave() {
     if (props.onSave) {
       props.onSave().
         then(() => dialogOpen.value = false).
-        catch((d) => errorMessage.value = d)
+        catch((d) => { console.log(d) ; errorMessage.value = d })
     } else {
       dialogOpen.value = false
     }

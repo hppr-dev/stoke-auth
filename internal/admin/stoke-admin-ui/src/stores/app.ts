@@ -8,14 +8,23 @@ export const useAppStore = defineStore('app', {
     api_url: import.meta.env.DEV? import.meta.env.VITE_API_URL : "",
     username: "",
     token: "",
-    currentClaim: {} as Claim,
-    currentClaims: [] as Claim[],
-    allClaims:[] as Claim[],
-    currentGroup: {} as Group,
-    currentGroups:[] as Group[],
-    allGroups:[] as Group[],
     currentUser : {} as User,
+    currentGroup: {} as Group,
+    currentClaim: {} as Claim,
+
+    scratchUser : {} as User,
+    scratchGroup: {} as Group,
+    scratchClaim: {} as Claim,
+
+    currentGroups: [] as Group[],
+    currentClaims: [] as Claim[],
+
+    scratchGroups: [] as Group[],
+    scratchClaims: [] as Claim[],
+
     allUsers:[] as User[],
+    allGroups:[] as Group[],
+    allClaims:[] as Claim[],
   }),
   getters: {
     authenticated: function() {
