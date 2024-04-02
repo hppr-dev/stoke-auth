@@ -409,10 +409,8 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 					switch r.Method {
 					case "GET":
 						s.handleListUserRequest([0]string{}, w, r)
-					case "POST":
-						s.handleCreateUserRequest([0]string{}, w, r)
 					default:
-						s.notAllowed(w, r, "GET,POST")
+						s.notAllowed(w, r, "GET")
 					}
 
 					return
@@ -435,24 +433,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 					elem = elem[idx:]
 
 					if len(elem) == 0 {
-						switch r.Method {
-						case "DELETE":
-							s.handleDeleteUserRequest([1]string{
-								args[0],
-							}, w, r)
-						case "GET":
-							s.handleReadUserRequest([1]string{
-								args[0],
-							}, w, r)
-						case "PATCH":
-							s.handleUpdateUserRequest([1]string{
-								args[0],
-							}, w, r)
-						default:
-							s.notAllowed(w, r, "DELETE,GET,PATCH")
-						}
-
-						return
+						break
 					}
 					switch elem[0] {
 					case '/': // Prefix: "/claim-groups"
@@ -973,13 +954,6 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 						r.args = args
 						r.count = 0
 						return r, true
-					case "POST":
-						r.name = "CreateUser"
-						r.operationID = "createUser"
-						r.pathPattern = "/users"
-						r.args = args
-						r.count = 0
-						return r, true
 					default:
 						return
 					}
@@ -1002,31 +976,7 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 					elem = elem[idx:]
 
 					if len(elem) == 0 {
-						switch method {
-						case "DELETE":
-							r.name = "DeleteUser"
-							r.operationID = "deleteUser"
-							r.pathPattern = "/users/{id}"
-							r.args = args
-							r.count = 1
-							return r, true
-						case "GET":
-							r.name = "ReadUser"
-							r.operationID = "readUser"
-							r.pathPattern = "/users/{id}"
-							r.args = args
-							r.count = 1
-							return r, true
-						case "PATCH":
-							r.name = "UpdateUser"
-							r.operationID = "updateUser"
-							r.pathPattern = "/users/{id}"
-							r.args = args
-							r.count = 1
-							return r, true
-						default:
-							return
-						}
+						break
 					}
 					switch elem[0] {
 					case '/': // Prefix: "/claim-groups"

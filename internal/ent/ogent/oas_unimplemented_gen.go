@@ -40,15 +40,6 @@ func (UnimplementedHandler) CreateGroupLink(ctx context.Context, req *CreateGrou
 	return r, ht.ErrNotImplemented
 }
 
-// CreateUser implements createUser operation.
-//
-// Creates a new User and persists it to storage.
-//
-// POST /users
-func (UnimplementedHandler) CreateUser(ctx context.Context, req *CreateUserReq) (r CreateUserRes, _ error) {
-	return r, ht.ErrNotImplemented
-}
-
 // DeleteClaim implements deleteClaim operation.
 //
 // Deletes the Claim with the requested ID.
@@ -73,15 +64,6 @@ func (UnimplementedHandler) DeleteClaimGroup(ctx context.Context, params DeleteC
 //
 // DELETE /group-links/{id}
 func (UnimplementedHandler) DeleteGroupLink(ctx context.Context, params DeleteGroupLinkParams) (r DeleteGroupLinkRes, _ error) {
-	return r, ht.ErrNotImplemented
-}
-
-// DeleteUser implements deleteUser operation.
-//
-// Deletes the User with the requested ID.
-//
-// DELETE /users/{id}
-func (UnimplementedHandler) DeleteUser(ctx context.Context, params DeleteUserParams) (r DeleteUserRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
@@ -220,15 +202,6 @@ func (UnimplementedHandler) ReadPrivateKey(ctx context.Context, params ReadPriva
 	return r, ht.ErrNotImplemented
 }
 
-// ReadUser implements readUser operation.
-//
-// Finds the User with the requested ID and returns it.
-//
-// GET /users/{id}
-func (UnimplementedHandler) ReadUser(ctx context.Context, params ReadUserParams) (r ReadUserRes, _ error) {
-	return r, ht.ErrNotImplemented
-}
-
 // UpdateClaim implements updateClaim operation.
 //
 // Updates a Claim and persists changes to storage.
@@ -253,14 +226,5 @@ func (UnimplementedHandler) UpdateClaimGroup(ctx context.Context, req *UpdateCla
 //
 // PATCH /group-links/{id}
 func (UnimplementedHandler) UpdateGroupLink(ctx context.Context, req *UpdateGroupLinkReq, params UpdateGroupLinkParams) (r UpdateGroupLinkRes, _ error) {
-	return r, ht.ErrNotImplemented
-}
-
-// UpdateUser implements updateUser operation.
-//
-// Updates a User and persists changes to storage.
-//
-// PATCH /users/{id}
-func (UnimplementedHandler) UpdateUser(ctx context.Context, req *UpdateUserReq, params UpdateUserParams) (r UpdateUserRes, _ error) {
 	return r, ht.ErrNotImplemented
 }

@@ -13,10 +13,6 @@ type CreateGroupLinkRes interface {
 	createGroupLinkRes()
 }
 
-type CreateUserRes interface {
-	createUserRes()
-}
-
 type DeleteClaimGroupRes interface {
 	deleteClaimGroupRes()
 }
@@ -27,10 +23,6 @@ type DeleteClaimRes interface {
 
 type DeleteGroupLinkRes interface {
 	deleteGroupLinkRes()
-}
-
-type DeleteUserRes interface {
-	deleteUserRes()
 }
 
 type ListClaimClaimGroupsRes interface {
@@ -93,10 +85,6 @@ type ReadPrivateKeyRes interface {
 	readPrivateKeyRes()
 }
 
-type ReadUserRes interface {
-	readUserRes()
-}
-
 type UpdateClaimGroupRes interface {
 	updateClaimGroupRes()
 }
@@ -107,8 +95,4 @@ type UpdateClaimRes interface {
 
 type UpdateGroupLinkRes interface {
 	updateGroupLinkRes()
-}
-
-type UpdateUserRes interface {
-	updateUserRes()
 }

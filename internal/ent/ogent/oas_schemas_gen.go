@@ -418,8 +418,6 @@ type ClaimGroupUsersList struct {
 	Lname     string    `json:"lname"`
 	Email     string    `json:"email"`
 	Username  string    `json:"username"`
-	Password  string    `json:"password"`
-	Salt      string    `json:"salt"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
@@ -446,16 +444,6 @@ func (s *ClaimGroupUsersList) GetEmail() string {
 // GetUsername returns the value of Username.
 func (s *ClaimGroupUsersList) GetUsername() string {
 	return s.Username
-}
-
-// GetPassword returns the value of Password.
-func (s *ClaimGroupUsersList) GetPassword() string {
-	return s.Password
-}
-
-// GetSalt returns the value of Salt.
-func (s *ClaimGroupUsersList) GetSalt() string {
-	return s.Salt
 }
 
 // GetCreatedAt returns the value of CreatedAt.
@@ -486,16 +474,6 @@ func (s *ClaimGroupUsersList) SetEmail(val string) {
 // SetUsername sets the value of Username.
 func (s *ClaimGroupUsersList) SetUsername(val string) {
 	s.Username = val
-}
-
-// SetPassword sets the value of Password.
-func (s *ClaimGroupUsersList) SetPassword(val string) {
-	s.Password = val
-}
-
-// SetSalt sets the value of Salt.
-func (s *ClaimGroupUsersList) SetSalt(val string) {
-	s.Salt = val
 }
 
 // SetCreatedAt sets the value of CreatedAt.
@@ -847,97 +825,6 @@ func (s *CreateGroupLinkReq) SetClaimGroups(val OptInt) {
 	s.ClaimGroups = val
 }
 
-type CreateUserReq struct {
-	Fname       string    `json:"fname"`
-	Lname       string    `json:"lname"`
-	Email       string    `json:"email"`
-	Username    string    `json:"username"`
-	Password    string    `json:"password"`
-	Salt        string    `json:"salt"`
-	CreatedAt   time.Time `json:"created_at"`
-	ClaimGroups []int     `json:"claim_groups"`
-}
-
-// GetFname returns the value of Fname.
-func (s *CreateUserReq) GetFname() string {
-	return s.Fname
-}
-
-// GetLname returns the value of Lname.
-func (s *CreateUserReq) GetLname() string {
-	return s.Lname
-}
-
-// GetEmail returns the value of Email.
-func (s *CreateUserReq) GetEmail() string {
-	return s.Email
-}
-
-// GetUsername returns the value of Username.
-func (s *CreateUserReq) GetUsername() string {
-	return s.Username
-}
-
-// GetPassword returns the value of Password.
-func (s *CreateUserReq) GetPassword() string {
-	return s.Password
-}
-
-// GetSalt returns the value of Salt.
-func (s *CreateUserReq) GetSalt() string {
-	return s.Salt
-}
-
-// GetCreatedAt returns the value of CreatedAt.
-func (s *CreateUserReq) GetCreatedAt() time.Time {
-	return s.CreatedAt
-}
-
-// GetClaimGroups returns the value of ClaimGroups.
-func (s *CreateUserReq) GetClaimGroups() []int {
-	return s.ClaimGroups
-}
-
-// SetFname sets the value of Fname.
-func (s *CreateUserReq) SetFname(val string) {
-	s.Fname = val
-}
-
-// SetLname sets the value of Lname.
-func (s *CreateUserReq) SetLname(val string) {
-	s.Lname = val
-}
-
-// SetEmail sets the value of Email.
-func (s *CreateUserReq) SetEmail(val string) {
-	s.Email = val
-}
-
-// SetUsername sets the value of Username.
-func (s *CreateUserReq) SetUsername(val string) {
-	s.Username = val
-}
-
-// SetPassword sets the value of Password.
-func (s *CreateUserReq) SetPassword(val string) {
-	s.Password = val
-}
-
-// SetSalt sets the value of Salt.
-func (s *CreateUserReq) SetSalt(val string) {
-	s.Salt = val
-}
-
-// SetCreatedAt sets the value of CreatedAt.
-func (s *CreateUserReq) SetCreatedAt(val time.Time) {
-	s.CreatedAt = val
-}
-
-// SetClaimGroups sets the value of ClaimGroups.
-func (s *CreateUserReq) SetClaimGroups(val []int) {
-	s.ClaimGroups = val
-}
-
 // DeleteClaimGroupNoContent is response for DeleteClaimGroup operation.
 type DeleteClaimGroupNoContent struct{}
 
@@ -952,11 +839,6 @@ func (*DeleteClaimNoContent) deleteClaimRes() {}
 type DeleteGroupLinkNoContent struct{}
 
 func (*DeleteGroupLinkNoContent) deleteGroupLinkRes() {}
-
-// DeleteUserNoContent is response for DeleteUser operation.
-type DeleteUserNoContent struct{}
-
-func (*DeleteUserNoContent) deleteUserRes() {}
 
 // Ref: #/components/schemas/GroupLink_ClaimGroupsRead
 type GroupLinkClaimGroupsRead struct {
@@ -1248,52 +1130,6 @@ func (o OptBool) Or(d bool) bool {
 	return d
 }
 
-// NewOptDateTime returns new OptDateTime with value set to v.
-func NewOptDateTime(v time.Time) OptDateTime {
-	return OptDateTime{
-		Value: v,
-		Set:   true,
-	}
-}
-
-// OptDateTime is optional time.Time.
-type OptDateTime struct {
-	Value time.Time
-	Set   bool
-}
-
-// IsSet returns true if OptDateTime was set.
-func (o OptDateTime) IsSet() bool { return o.Set }
-
-// Reset unsets value.
-func (o *OptDateTime) Reset() {
-	var v time.Time
-	o.Value = v
-	o.Set = false
-}
-
-// SetTo sets value to v.
-func (o *OptDateTime) SetTo(v time.Time) {
-	o.Set = true
-	o.Value = v
-}
-
-// Get returns value and boolean that denotes whether value was set.
-func (o OptDateTime) Get() (v time.Time, ok bool) {
-	if !o.Set {
-		return v, false
-	}
-	return o.Value, true
-}
-
-// Or returns value if set, or given parameter if does not.
-func (o OptDateTime) Or(d time.Time) time.Time {
-	if v, ok := o.Get(); ok {
-		return v
-	}
-	return d
-}
-
 // NewOptInt returns new OptInt with value set to v.
 func NewOptInt(v int) OptInt {
 	return OptInt{
@@ -1523,11 +1359,9 @@ func (s *R400) SetErrors(val jx.Raw) {
 func (*R400) createClaimGroupRes()         {}
 func (*R400) createClaimRes()              {}
 func (*R400) createGroupLinkRes()          {}
-func (*R400) createUserRes()               {}
 func (*R400) deleteClaimGroupRes()         {}
 func (*R400) deleteClaimRes()              {}
 func (*R400) deleteGroupLinkRes()          {}
-func (*R400) deleteUserRes()               {}
 func (*R400) listClaimClaimGroupsRes()     {}
 func (*R400) listClaimGroupClaimsRes()     {}
 func (*R400) listClaimGroupGroupLinksRes() {}
@@ -1543,11 +1377,9 @@ func (*R400) readClaimRes()                {}
 func (*R400) readGroupLinkClaimGroupsRes() {}
 func (*R400) readGroupLinkRes()            {}
 func (*R400) readPrivateKeyRes()           {}
-func (*R400) readUserRes()                 {}
 func (*R400) updateClaimGroupRes()         {}
 func (*R400) updateClaimRes()              {}
 func (*R400) updateGroupLinkRes()          {}
-func (*R400) updateUserRes()               {}
 
 type R404 struct {
 	Code   int    `json:"code"`
@@ -1588,7 +1420,6 @@ func (s *R404) SetErrors(val jx.Raw) {
 func (*R404) deleteClaimGroupRes()         {}
 func (*R404) deleteClaimRes()              {}
 func (*R404) deleteGroupLinkRes()          {}
-func (*R404) deleteUserRes()               {}
 func (*R404) listClaimClaimGroupsRes()     {}
 func (*R404) listClaimGroupClaimsRes()     {}
 func (*R404) listClaimGroupGroupLinksRes() {}
@@ -1604,11 +1435,9 @@ func (*R404) readClaimRes()                {}
 func (*R404) readGroupLinkClaimGroupsRes() {}
 func (*R404) readGroupLinkRes()            {}
 func (*R404) readPrivateKeyRes()           {}
-func (*R404) readUserRes()                 {}
 func (*R404) updateClaimGroupRes()         {}
 func (*R404) updateClaimRes()              {}
 func (*R404) updateGroupLinkRes()          {}
-func (*R404) updateUserRes()               {}
 
 type R409 struct {
 	Code   int    `json:"code"`
@@ -1649,11 +1478,9 @@ func (s *R409) SetErrors(val jx.Raw) {
 func (*R409) createClaimGroupRes()         {}
 func (*R409) createClaimRes()              {}
 func (*R409) createGroupLinkRes()          {}
-func (*R409) createUserRes()               {}
 func (*R409) deleteClaimGroupRes()         {}
 func (*R409) deleteClaimRes()              {}
 func (*R409) deleteGroupLinkRes()          {}
-func (*R409) deleteUserRes()               {}
 func (*R409) listClaimClaimGroupsRes()     {}
 func (*R409) listClaimGroupClaimsRes()     {}
 func (*R409) listClaimGroupGroupLinksRes() {}
@@ -1669,11 +1496,9 @@ func (*R409) readClaimRes()                {}
 func (*R409) readGroupLinkClaimGroupsRes() {}
 func (*R409) readGroupLinkRes()            {}
 func (*R409) readPrivateKeyRes()           {}
-func (*R409) readUserRes()                 {}
 func (*R409) updateClaimGroupRes()         {}
 func (*R409) updateClaimRes()              {}
 func (*R409) updateGroupLinkRes()          {}
-func (*R409) updateUserRes()               {}
 
 type R500 struct {
 	Code   int    `json:"code"`
@@ -1714,11 +1539,9 @@ func (s *R500) SetErrors(val jx.Raw) {
 func (*R500) createClaimGroupRes()         {}
 func (*R500) createClaimRes()              {}
 func (*R500) createGroupLinkRes()          {}
-func (*R500) createUserRes()               {}
 func (*R500) deleteClaimGroupRes()         {}
 func (*R500) deleteClaimRes()              {}
 func (*R500) deleteGroupLinkRes()          {}
-func (*R500) deleteUserRes()               {}
 func (*R500) listClaimClaimGroupsRes()     {}
 func (*R500) listClaimGroupClaimsRes()     {}
 func (*R500) listClaimGroupGroupLinksRes() {}
@@ -1734,11 +1557,9 @@ func (*R500) readClaimRes()                {}
 func (*R500) readGroupLinkClaimGroupsRes() {}
 func (*R500) readGroupLinkRes()            {}
 func (*R500) readPrivateKeyRes()           {}
-func (*R500) readUserRes()                 {}
 func (*R500) updateClaimGroupRes()         {}
 func (*R500) updateClaimRes()              {}
 func (*R500) updateGroupLinkRes()          {}
-func (*R500) updateUserRes()               {}
 
 type UpdateClaimGroupReq struct {
 	Name        OptString `json:"name"`
@@ -1903,97 +1724,6 @@ func (s *UpdateGroupLinkReq) SetClaimGroups(val OptInt) {
 	s.ClaimGroups = val
 }
 
-type UpdateUserReq struct {
-	Fname       OptString   `json:"fname"`
-	Lname       OptString   `json:"lname"`
-	Email       OptString   `json:"email"`
-	Username    OptString   `json:"username"`
-	Password    OptString   `json:"password"`
-	Salt        OptString   `json:"salt"`
-	CreatedAt   OptDateTime `json:"created_at"`
-	ClaimGroups []int       `json:"claim_groups"`
-}
-
-// GetFname returns the value of Fname.
-func (s *UpdateUserReq) GetFname() OptString {
-	return s.Fname
-}
-
-// GetLname returns the value of Lname.
-func (s *UpdateUserReq) GetLname() OptString {
-	return s.Lname
-}
-
-// GetEmail returns the value of Email.
-func (s *UpdateUserReq) GetEmail() OptString {
-	return s.Email
-}
-
-// GetUsername returns the value of Username.
-func (s *UpdateUserReq) GetUsername() OptString {
-	return s.Username
-}
-
-// GetPassword returns the value of Password.
-func (s *UpdateUserReq) GetPassword() OptString {
-	return s.Password
-}
-
-// GetSalt returns the value of Salt.
-func (s *UpdateUserReq) GetSalt() OptString {
-	return s.Salt
-}
-
-// GetCreatedAt returns the value of CreatedAt.
-func (s *UpdateUserReq) GetCreatedAt() OptDateTime {
-	return s.CreatedAt
-}
-
-// GetClaimGroups returns the value of ClaimGroups.
-func (s *UpdateUserReq) GetClaimGroups() []int {
-	return s.ClaimGroups
-}
-
-// SetFname sets the value of Fname.
-func (s *UpdateUserReq) SetFname(val OptString) {
-	s.Fname = val
-}
-
-// SetLname sets the value of Lname.
-func (s *UpdateUserReq) SetLname(val OptString) {
-	s.Lname = val
-}
-
-// SetEmail sets the value of Email.
-func (s *UpdateUserReq) SetEmail(val OptString) {
-	s.Email = val
-}
-
-// SetUsername sets the value of Username.
-func (s *UpdateUserReq) SetUsername(val OptString) {
-	s.Username = val
-}
-
-// SetPassword sets the value of Password.
-func (s *UpdateUserReq) SetPassword(val OptString) {
-	s.Password = val
-}
-
-// SetSalt sets the value of Salt.
-func (s *UpdateUserReq) SetSalt(val OptString) {
-	s.Salt = val
-}
-
-// SetCreatedAt sets the value of CreatedAt.
-func (s *UpdateUserReq) SetCreatedAt(val OptDateTime) {
-	s.CreatedAt = val
-}
-
-// SetClaimGroups sets the value of ClaimGroups.
-func (s *UpdateUserReq) SetClaimGroups(val []int) {
-	s.ClaimGroups = val
-}
-
 // Ref: #/components/schemas/User_ClaimGroupsList
 type UserClaimGroupsList struct {
 	ID          int    `json:"id"`
@@ -2042,100 +1772,6 @@ func (s *UserClaimGroupsList) SetIsUserGroup(val bool) {
 	s.IsUserGroup = val
 }
 
-// Ref: #/components/schemas/UserCreate
-type UserCreate struct {
-	ID        int       `json:"id"`
-	Fname     string    `json:"fname"`
-	Lname     string    `json:"lname"`
-	Email     string    `json:"email"`
-	Username  string    `json:"username"`
-	Password  string    `json:"password"`
-	Salt      string    `json:"salt"`
-	CreatedAt time.Time `json:"created_at"`
-}
-
-// GetID returns the value of ID.
-func (s *UserCreate) GetID() int {
-	return s.ID
-}
-
-// GetFname returns the value of Fname.
-func (s *UserCreate) GetFname() string {
-	return s.Fname
-}
-
-// GetLname returns the value of Lname.
-func (s *UserCreate) GetLname() string {
-	return s.Lname
-}
-
-// GetEmail returns the value of Email.
-func (s *UserCreate) GetEmail() string {
-	return s.Email
-}
-
-// GetUsername returns the value of Username.
-func (s *UserCreate) GetUsername() string {
-	return s.Username
-}
-
-// GetPassword returns the value of Password.
-func (s *UserCreate) GetPassword() string {
-	return s.Password
-}
-
-// GetSalt returns the value of Salt.
-func (s *UserCreate) GetSalt() string {
-	return s.Salt
-}
-
-// GetCreatedAt returns the value of CreatedAt.
-func (s *UserCreate) GetCreatedAt() time.Time {
-	return s.CreatedAt
-}
-
-// SetID sets the value of ID.
-func (s *UserCreate) SetID(val int) {
-	s.ID = val
-}
-
-// SetFname sets the value of Fname.
-func (s *UserCreate) SetFname(val string) {
-	s.Fname = val
-}
-
-// SetLname sets the value of Lname.
-func (s *UserCreate) SetLname(val string) {
-	s.Lname = val
-}
-
-// SetEmail sets the value of Email.
-func (s *UserCreate) SetEmail(val string) {
-	s.Email = val
-}
-
-// SetUsername sets the value of Username.
-func (s *UserCreate) SetUsername(val string) {
-	s.Username = val
-}
-
-// SetPassword sets the value of Password.
-func (s *UserCreate) SetPassword(val string) {
-	s.Password = val
-}
-
-// SetSalt sets the value of Salt.
-func (s *UserCreate) SetSalt(val string) {
-	s.Salt = val
-}
-
-// SetCreatedAt sets the value of CreatedAt.
-func (s *UserCreate) SetCreatedAt(val time.Time) {
-	s.CreatedAt = val
-}
-
-func (*UserCreate) createUserRes() {}
-
 // Ref: #/components/schemas/UserList
 type UserList struct {
 	ID        int       `json:"id"`
@@ -2143,8 +1779,6 @@ type UserList struct {
 	Lname     string    `json:"lname"`
 	Email     string    `json:"email"`
 	Username  string    `json:"username"`
-	Password  string    `json:"password"`
-	Salt      string    `json:"salt"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
@@ -2171,16 +1805,6 @@ func (s *UserList) GetEmail() string {
 // GetUsername returns the value of Username.
 func (s *UserList) GetUsername() string {
 	return s.Username
-}
-
-// GetPassword returns the value of Password.
-func (s *UserList) GetPassword() string {
-	return s.Password
-}
-
-// GetSalt returns the value of Salt.
-func (s *UserList) GetSalt() string {
-	return s.Salt
 }
 
 // GetCreatedAt returns the value of CreatedAt.
@@ -2213,205 +1837,7 @@ func (s *UserList) SetUsername(val string) {
 	s.Username = val
 }
 
-// SetPassword sets the value of Password.
-func (s *UserList) SetPassword(val string) {
-	s.Password = val
-}
-
-// SetSalt sets the value of Salt.
-func (s *UserList) SetSalt(val string) {
-	s.Salt = val
-}
-
 // SetCreatedAt sets the value of CreatedAt.
 func (s *UserList) SetCreatedAt(val time.Time) {
 	s.CreatedAt = val
 }
-
-// Ref: #/components/schemas/UserRead
-type UserRead struct {
-	ID        int       `json:"id"`
-	Fname     string    `json:"fname"`
-	Lname     string    `json:"lname"`
-	Email     string    `json:"email"`
-	Username  string    `json:"username"`
-	Password  string    `json:"password"`
-	Salt      string    `json:"salt"`
-	CreatedAt time.Time `json:"created_at"`
-}
-
-// GetID returns the value of ID.
-func (s *UserRead) GetID() int {
-	return s.ID
-}
-
-// GetFname returns the value of Fname.
-func (s *UserRead) GetFname() string {
-	return s.Fname
-}
-
-// GetLname returns the value of Lname.
-func (s *UserRead) GetLname() string {
-	return s.Lname
-}
-
-// GetEmail returns the value of Email.
-func (s *UserRead) GetEmail() string {
-	return s.Email
-}
-
-// GetUsername returns the value of Username.
-func (s *UserRead) GetUsername() string {
-	return s.Username
-}
-
-// GetPassword returns the value of Password.
-func (s *UserRead) GetPassword() string {
-	return s.Password
-}
-
-// GetSalt returns the value of Salt.
-func (s *UserRead) GetSalt() string {
-	return s.Salt
-}
-
-// GetCreatedAt returns the value of CreatedAt.
-func (s *UserRead) GetCreatedAt() time.Time {
-	return s.CreatedAt
-}
-
-// SetID sets the value of ID.
-func (s *UserRead) SetID(val int) {
-	s.ID = val
-}
-
-// SetFname sets the value of Fname.
-func (s *UserRead) SetFname(val string) {
-	s.Fname = val
-}
-
-// SetLname sets the value of Lname.
-func (s *UserRead) SetLname(val string) {
-	s.Lname = val
-}
-
-// SetEmail sets the value of Email.
-func (s *UserRead) SetEmail(val string) {
-	s.Email = val
-}
-
-// SetUsername sets the value of Username.
-func (s *UserRead) SetUsername(val string) {
-	s.Username = val
-}
-
-// SetPassword sets the value of Password.
-func (s *UserRead) SetPassword(val string) {
-	s.Password = val
-}
-
-// SetSalt sets the value of Salt.
-func (s *UserRead) SetSalt(val string) {
-	s.Salt = val
-}
-
-// SetCreatedAt sets the value of CreatedAt.
-func (s *UserRead) SetCreatedAt(val time.Time) {
-	s.CreatedAt = val
-}
-
-func (*UserRead) readUserRes() {}
-
-// Ref: #/components/schemas/UserUpdate
-type UserUpdate struct {
-	ID        int       `json:"id"`
-	Fname     string    `json:"fname"`
-	Lname     string    `json:"lname"`
-	Email     string    `json:"email"`
-	Username  string    `json:"username"`
-	Password  string    `json:"password"`
-	Salt      string    `json:"salt"`
-	CreatedAt time.Time `json:"created_at"`
-}
-
-// GetID returns the value of ID.
-func (s *UserUpdate) GetID() int {
-	return s.ID
-}
-
-// GetFname returns the value of Fname.
-func (s *UserUpdate) GetFname() string {
-	return s.Fname
-}
-
-// GetLname returns the value of Lname.
-func (s *UserUpdate) GetLname() string {
-	return s.Lname
-}
-
-// GetEmail returns the value of Email.
-func (s *UserUpdate) GetEmail() string {
-	return s.Email
-}
-
-// GetUsername returns the value of Username.
-func (s *UserUpdate) GetUsername() string {
-	return s.Username
-}
-
-// GetPassword returns the value of Password.
-func (s *UserUpdate) GetPassword() string {
-	return s.Password
-}
-
-// GetSalt returns the value of Salt.
-func (s *UserUpdate) GetSalt() string {
-	return s.Salt
-}
-
-// GetCreatedAt returns the value of CreatedAt.
-func (s *UserUpdate) GetCreatedAt() time.Time {
-	return s.CreatedAt
-}
-
-// SetID sets the value of ID.
-func (s *UserUpdate) SetID(val int) {
-	s.ID = val
-}
-
-// SetFname sets the value of Fname.
-func (s *UserUpdate) SetFname(val string) {
-	s.Fname = val
-}
-
-// SetLname sets the value of Lname.
-func (s *UserUpdate) SetLname(val string) {
-	s.Lname = val
-}
-
-// SetEmail sets the value of Email.
-func (s *UserUpdate) SetEmail(val string) {
-	s.Email = val
-}
-
-// SetUsername sets the value of Username.
-func (s *UserUpdate) SetUsername(val string) {
-	s.Username = val
-}
-
-// SetPassword sets the value of Password.
-func (s *UserUpdate) SetPassword(val string) {
-	s.Password = val
-}
-
-// SetSalt sets the value of Salt.
-func (s *UserUpdate) SetSalt(val string) {
-	s.Salt = val
-}
-
-// SetCreatedAt sets the value of CreatedAt.
-func (s *UserUpdate) SetCreatedAt(val time.Time) {
-	s.CreatedAt = val
-}
-
-func (*UserUpdate) updateUserRes() {}

@@ -201,68 +201,6 @@ func decodeDeleteGroupLinkParams(args [1]string, r *http.Request) (params Delete
 	return params, nil
 }
 
-// DeleteUserParams is parameters of deleteUser operation.
-type DeleteUserParams struct {
-	// ID of the User.
-	ID int
-}
-
-func unpackDeleteUserParams(packed middleware.Parameters) (params DeleteUserParams) {
-	{
-		key := middleware.ParameterKey{
-			Name: "id",
-			In:   "path",
-		}
-		params.ID = packed[key].(int)
-	}
-	return params
-}
-
-func decodeDeleteUserParams(args [1]string, r *http.Request) (params DeleteUserParams, _ error) {
-	// Decode path: id.
-	if err := func() error {
-		param, err := url.PathUnescape(args[0])
-		if err != nil {
-			return errors.Wrap(err, "unescape path")
-		}
-		if len(param) > 0 {
-			d := uri.NewPathDecoder(uri.PathDecoderConfig{
-				Param:   "id",
-				Value:   param,
-				Style:   uri.PathStyleSimple,
-				Explode: false,
-			})
-
-			if err := func() error {
-				val, err := d.DecodeValue()
-				if err != nil {
-					return err
-				}
-
-				c, err := conv.ToInt(val)
-				if err != nil {
-					return err
-				}
-
-				params.ID = c
-				return nil
-			}(); err != nil {
-				return err
-			}
-		} else {
-			return validate.ErrFieldRequired
-		}
-		return nil
-	}(); err != nil {
-		return params, &ogenerrors.DecodeParamError{
-			Name: "id",
-			In:   "path",
-			Err:  err,
-		}
-	}
-	return params, nil
-}
-
 // ListClaimParams is parameters of listClaim operation.
 type ListClaimParams struct {
 	// What page to render.
@@ -2233,68 +2171,6 @@ func decodeReadPrivateKeyParams(args [1]string, r *http.Request) (params ReadPri
 	return params, nil
 }
 
-// ReadUserParams is parameters of readUser operation.
-type ReadUserParams struct {
-	// ID of the User.
-	ID int
-}
-
-func unpackReadUserParams(packed middleware.Parameters) (params ReadUserParams) {
-	{
-		key := middleware.ParameterKey{
-			Name: "id",
-			In:   "path",
-		}
-		params.ID = packed[key].(int)
-	}
-	return params
-}
-
-func decodeReadUserParams(args [1]string, r *http.Request) (params ReadUserParams, _ error) {
-	// Decode path: id.
-	if err := func() error {
-		param, err := url.PathUnescape(args[0])
-		if err != nil {
-			return errors.Wrap(err, "unescape path")
-		}
-		if len(param) > 0 {
-			d := uri.NewPathDecoder(uri.PathDecoderConfig{
-				Param:   "id",
-				Value:   param,
-				Style:   uri.PathStyleSimple,
-				Explode: false,
-			})
-
-			if err := func() error {
-				val, err := d.DecodeValue()
-				if err != nil {
-					return err
-				}
-
-				c, err := conv.ToInt(val)
-				if err != nil {
-					return err
-				}
-
-				params.ID = c
-				return nil
-			}(); err != nil {
-				return err
-			}
-		} else {
-			return validate.ErrFieldRequired
-		}
-		return nil
-	}(); err != nil {
-		return params, &ogenerrors.DecodeParamError{
-			Name: "id",
-			In:   "path",
-			Err:  err,
-		}
-	}
-	return params, nil
-}
-
 // UpdateClaimParams is parameters of updateClaim operation.
 type UpdateClaimParams struct {
 	// ID of the Claim.
@@ -2437,68 +2313,6 @@ func unpackUpdateGroupLinkParams(packed middleware.Parameters) (params UpdateGro
 }
 
 func decodeUpdateGroupLinkParams(args [1]string, r *http.Request) (params UpdateGroupLinkParams, _ error) {
-	// Decode path: id.
-	if err := func() error {
-		param, err := url.PathUnescape(args[0])
-		if err != nil {
-			return errors.Wrap(err, "unescape path")
-		}
-		if len(param) > 0 {
-			d := uri.NewPathDecoder(uri.PathDecoderConfig{
-				Param:   "id",
-				Value:   param,
-				Style:   uri.PathStyleSimple,
-				Explode: false,
-			})
-
-			if err := func() error {
-				val, err := d.DecodeValue()
-				if err != nil {
-					return err
-				}
-
-				c, err := conv.ToInt(val)
-				if err != nil {
-					return err
-				}
-
-				params.ID = c
-				return nil
-			}(); err != nil {
-				return err
-			}
-		} else {
-			return validate.ErrFieldRequired
-		}
-		return nil
-	}(); err != nil {
-		return params, &ogenerrors.DecodeParamError{
-			Name: "id",
-			In:   "path",
-			Err:  err,
-		}
-	}
-	return params, nil
-}
-
-// UpdateUserParams is parameters of updateUser operation.
-type UpdateUserParams struct {
-	// ID of the User.
-	ID int
-}
-
-func unpackUpdateUserParams(packed middleware.Parameters) (params UpdateUserParams) {
-	{
-		key := middleware.ParameterKey{
-			Name: "id",
-			In:   "path",
-		}
-		params.ID = packed[key].(int)
-	}
-	return params
-}
-
-func decodeUpdateUserParams(args [1]string, r *http.Request) (params UpdateUserParams, _ error) {
 	// Decode path: id.
 	if err := func() error {
 		param, err := url.PathUnescape(args[0])

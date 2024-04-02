@@ -225,8 +225,6 @@ func NewClaimGroupUsersList(e *ent.User) *ClaimGroupUsersList {
 	ret.Lname = e.Lname
 	ret.Email = e.Email
 	ret.Username = e.Username
-	ret.Password = e.Password
-	ret.Salt = e.Salt
 	ret.CreatedAt = e.CreatedAt
 	return &ret
 }
@@ -578,40 +576,6 @@ func (pk *PrivateKeyRead) Elem() PrivateKeyRead {
 	return *pk
 }
 
-func NewUserCreate(e *ent.User) *UserCreate {
-	if e == nil {
-		return nil
-	}
-	var ret UserCreate
-	ret.ID = e.ID
-	ret.Fname = e.Fname
-	ret.Lname = e.Lname
-	ret.Email = e.Email
-	ret.Username = e.Username
-	ret.Password = e.Password
-	ret.Salt = e.Salt
-	ret.CreatedAt = e.CreatedAt
-	return &ret
-}
-
-func NewUserCreates(es []*ent.User) []UserCreate {
-	if len(es) == 0 {
-		return nil
-	}
-	r := make([]UserCreate, len(es))
-	for i, e := range es {
-		r[i] = NewUserCreate(e).Elem()
-	}
-	return r
-}
-
-func (u *UserCreate) Elem() UserCreate {
-	if u == nil {
-		return UserCreate{}
-	}
-	return *u
-}
-
 func NewUserList(e *ent.User) *UserList {
 	if e == nil {
 		return nil
@@ -622,8 +586,6 @@ func NewUserList(e *ent.User) *UserList {
 	ret.Lname = e.Lname
 	ret.Email = e.Email
 	ret.Username = e.Username
-	ret.Password = e.Password
-	ret.Salt = e.Salt
 	ret.CreatedAt = e.CreatedAt
 	return &ret
 }
@@ -642,74 +604,6 @@ func NewUserLists(es []*ent.User) []UserList {
 func (u *UserList) Elem() UserList {
 	if u == nil {
 		return UserList{}
-	}
-	return *u
-}
-
-func NewUserRead(e *ent.User) *UserRead {
-	if e == nil {
-		return nil
-	}
-	var ret UserRead
-	ret.ID = e.ID
-	ret.Fname = e.Fname
-	ret.Lname = e.Lname
-	ret.Email = e.Email
-	ret.Username = e.Username
-	ret.Password = e.Password
-	ret.Salt = e.Salt
-	ret.CreatedAt = e.CreatedAt
-	return &ret
-}
-
-func NewUserReads(es []*ent.User) []UserRead {
-	if len(es) == 0 {
-		return nil
-	}
-	r := make([]UserRead, len(es))
-	for i, e := range es {
-		r[i] = NewUserRead(e).Elem()
-	}
-	return r
-}
-
-func (u *UserRead) Elem() UserRead {
-	if u == nil {
-		return UserRead{}
-	}
-	return *u
-}
-
-func NewUserUpdate(e *ent.User) *UserUpdate {
-	if e == nil {
-		return nil
-	}
-	var ret UserUpdate
-	ret.ID = e.ID
-	ret.Fname = e.Fname
-	ret.Lname = e.Lname
-	ret.Email = e.Email
-	ret.Username = e.Username
-	ret.Password = e.Password
-	ret.Salt = e.Salt
-	ret.CreatedAt = e.CreatedAt
-	return &ret
-}
-
-func NewUserUpdates(es []*ent.User) []UserUpdate {
-	if len(es) == 0 {
-		return nil
-	}
-	r := make([]UserUpdate, len(es))
-	for i, e := range es {
-		r[i] = NewUserUpdate(e).Elem()
-	}
-	return r
-}
-
-func (u *UserUpdate) Elem() UserUpdate {
-	if u == nil {
-		return UserUpdate{}
 	}
 	return *u
 }

@@ -12,7 +12,7 @@ var (
 	ClaimsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "name", Type: field.TypeString, Unique: true},
-		{Name: "short_name", Type: field.TypeString, Unique: true},
+		{Name: "short_name", Type: field.TypeString},
 		{Name: "value", Type: field.TypeString},
 		{Name: "description", Type: field.TypeString},
 	}
@@ -21,6 +21,13 @@ var (
 		Name:       "claims",
 		Columns:    ClaimsColumns,
 		PrimaryKey: []*schema.Column{ClaimsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "claim_short_name_value",
+				Unique:  true,
+				Columns: []*schema.Column{ClaimsColumns[2], ClaimsColumns[3]},
+			},
+		},
 	}
 	// ClaimGroupsColumns holds the columns for the "claim_groups" table.
 	ClaimGroupsColumns = []*schema.Column{

@@ -1,3 +1,1 @@
-package ent
-
-//go:generate go run -mod=mod entc.go
+schema/generate.go.ln

@@ -26,12 +26,6 @@ type Handler interface {
 	//
 	// POST /group-links
 	CreateGroupLink(ctx context.Context, req *CreateGroupLinkReq) (CreateGroupLinkRes, error)
-	// CreateUser implements createUser operation.
-	//
-	// Creates a new User and persists it to storage.
-	//
-	// POST /users
-	CreateUser(ctx context.Context, req *CreateUserReq) (CreateUserRes, error)
 	// DeleteClaim implements deleteClaim operation.
 	//
 	// Deletes the Claim with the requested ID.
@@ -50,12 +44,6 @@ type Handler interface {
 	//
 	// DELETE /group-links/{id}
 	DeleteGroupLink(ctx context.Context, params DeleteGroupLinkParams) (DeleteGroupLinkRes, error)
-	// DeleteUser implements deleteUser operation.
-	//
-	// Deletes the User with the requested ID.
-	//
-	// DELETE /users/{id}
-	DeleteUser(ctx context.Context, params DeleteUserParams) (DeleteUserRes, error)
 	// ListClaim implements listClaim operation.
 	//
 	// List Claims.
@@ -146,12 +134,6 @@ type Handler interface {
 	//
 	// GET /private-keys/{id}
 	ReadPrivateKey(ctx context.Context, params ReadPrivateKeyParams) (ReadPrivateKeyRes, error)
-	// ReadUser implements readUser operation.
-	//
-	// Finds the User with the requested ID and returns it.
-	//
-	// GET /users/{id}
-	ReadUser(ctx context.Context, params ReadUserParams) (ReadUserRes, error)
 	// UpdateClaim implements updateClaim operation.
 	//
 	// Updates a Claim and persists changes to storage.
@@ -170,12 +152,6 @@ type Handler interface {
 	//
 	// PATCH /group-links/{id}
 	UpdateGroupLink(ctx context.Context, req *UpdateGroupLinkReq, params UpdateGroupLinkParams) (UpdateGroupLinkRes, error)
-	// UpdateUser implements updateUser operation.
-	//
-	// Updates a User and persists changes to storage.
-	//
-	// PATCH /users/{id}
-	UpdateUser(ctx context.Context, req *UpdateUserReq, params UpdateUserParams) (UpdateUserRes, error)
 }
 
 // Server implements http server based on OpenAPI v3 specification and
