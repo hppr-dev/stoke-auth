@@ -8,18 +8,18 @@ import (
 )
 
 type PrivateKey struct {
-    ent.Schema
+		ent.Schema
 }
 
 func (PrivateKey) Fields() []ent.Field {
-    return []ent.Field{
-        field.String("text").
-					Immutable(),
-        field.Time("expires").
-					Immutable(),
-        field.Time("renews").
-					Immutable(),
-    }
+		return []ent.Field{
+			field.String("text").
+				Immutable(),
+			field.Time("expires").
+				Immutable(),
+			field.Time("renews").
+				Immutable(),
+		}
 }
 
 func (PrivateKey) Annotations() []schema.Annotation {

@@ -5,17 +5,28 @@ import (
 	"stoke/internal/ent"
 )
 
+type ProviderType int
+
+const (
+	LOCAL ProviderType = iota
+	LDAP
+)
+
+var ProviderTypeNotSupported = errors.New("Provider type not supported")
+
 type Provider interface {
 	Init() error
 	GetUserClaims(user, pass string) (ent.Claims, error)
+  AddUser(provider ProviderType, fname, lname, email, username, password string, superUser bool) error
+  UpdateUser(provider ProviderType, fname, lname, email, username, password string) error
 }
 
 type MultiProvider struct {
-	providers []Provider
+	providers map[ProviderType]Provider
 }
 
-func (m MultiProvider) Add(p Provider) {
-	m.providers = append(m.providers, p)
+func (m MultiProvider) Add(t ProviderType, p Provider) {
+	m.providers[t] = p
 }
 
 func (m MultiProvider) Init() error {
@@ -30,6 +41,22 @@ func (m MultiProvider) Init() error {
 		}
 	}
 	return nil
+}
+
+func (m MultiProvider) AddUser(provider ProviderType, fname, lname, email, username, password string, superUser bool) error {
+	p, ok := m.providers[provider]
+	if !ok {
+		return ProviderTypeNotSupported
+	}
+	return p.AddUser(provider, fname, lname, email, username, password, superUser)
+}
+
+func (m MultiProvider) UpdateUser(provider ProviderType, fname, lname, email, username, password string) error {
+	p, ok := m.providers[provider]
+	if !ok {
+		return ProviderTypeNotSupported
+	}
+	return p.UpdateUser(provider, fname, lname, email, username, password)
 }
 
 func (m MultiProvider) GetUserClaims(username, password string) (ent.Claims, error) {

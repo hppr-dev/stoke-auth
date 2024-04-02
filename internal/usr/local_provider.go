@@ -22,7 +22,11 @@ func (l LocalProvider) Init() error {
 	return l.checkForSuperUser()
 }
 
-func (l LocalProvider) AddUser(fname, lname, email, username, password string, superUser bool) error {
+func (l LocalProvider) AddUser(provider ProviderType, fname, lname, email, username, password string, superUser bool) error {
+	if provider != LOCAL {
+		return ProviderTypeNotSupported
+	}
+
 	logger.Info().
 			Str("fname", fname).
 			Str("lname", lname).
@@ -185,10 +189,15 @@ func (l LocalProvider) checkForSuperUser() error {
 	}
 	if len(superGroup.Edges.Users) == 0 {
 		randomPass := l.genSalt()
-		l.AddUser("Stoke", "Admin", "sadmin@localhost", "sadmin", randomPass, true)
+		l.AddUser(LOCAL, "Stoke", "Admin", "sadmin@localhost", "sadmin", randomPass, true)
 		logger.Info().
 			Str("password", randomPass).
 			Msg("Created superuser 'sadmin'")
 	}
 	return nil
+}
+
+func (l LocalProvider) UpdateUser(provider ProviderType, fname, lname, email, username, password string) error {
+	// TODO
+	return fmt.Errorf("NOT IMPLEMENTED")
 }

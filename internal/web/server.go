@@ -23,17 +23,48 @@ func (s *Server) Init() error {
 		WriteTimeout:   10 * time.Second,
 	}
 
+	// Static files
 	http.Handle("/admin/", http.StripPrefix("/admin/", http.FileServerFS(admin.Pages)))
 
-	http.Handle("/api/login", AllowAllMethods(LogHTTP(LoginApiHandler{ Context: s.Context })) )
-	http.Handle("/api/pkeys", AllowAllMethods(LogHTTP(PkeyApiHandler{ Context: s.Context })) )
+	// TODO restrict methods/origins
+	// Register handlers
+	http.Handle(
+		"/api/login",
+		AllowAllMethods(
+			LogHTTP(
+				LoginApiHandler{ Context: s.Context },
+			),
+		),
+	)
 
-	entityPrefix := "/api/admin/"
-	http.Handle(entityPrefix,
+	http.Handle(
+		"/api/pkeys",
+		AllowAllMethods(
+			LogHTTP(
+				PkeyApiHandler{ Context: s.Context },
+			),
+		),
+	)
+
+	http.Handle(
+		"/api/admin_users",
+			LogHTTP(
+		AllowAllMethods(
+				stoke.WithClaims(
+					UserHandler{ Context: s.Context },
+					s.Context.Issuer,
+					stoke.Claims().Require("srol", "spr").Validator(),
+				),
+			),
+		),
+	)
+
+	http.Handle(
+		"/api/admin/",
 		AllowAllMethods(
 			LogHTTP(
 				stoke.WithClaims(
-					NewEntityAPIHandler(entityPrefix, s.Context),
+					NewEntityAPIHandler("/api/admin/", s.Context),
 					s.Context.Issuer,
 					stoke.Claims().Require("srol", "spr").Validator(),
 				),
