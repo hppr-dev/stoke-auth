@@ -1,5 +1,4 @@
-
-import { User, Claim, Group } from './entityTypes'
+import { User, Claim, Group } from '../util/entityTypes'
 
 export const appActions = {
   login: async function(username : string, password : string) {
@@ -136,7 +135,7 @@ export const appActions = {
     }
   },
   addScratchUser: function() {
-    return this.simplePost("/api/admin/users", "scratchUser")
+    return this.simplePost("/api/admin_users", "scratchUser")
       .then( () => this.scratchUser = {} )
       .then(this.fetchAllUsers)
   },
@@ -162,4 +161,30 @@ export const appActions = {
   resetScratchClaim: function() {
     this.scratchClaim = {}
   },
+  resetCurrentUser: function() {
+    this.currentUser = {}
+    this.currentGroups = []
+  },
+  resetCurrentGroup: function() {
+    this.currentGroup = {}
+    this.currentClaims = []
+  },
+  resetCurrentClaim: function() {
+    this.currentClaim = {}
+  },
+  resetSelections: function() {
+    this.scratchUser = {}
+    this.scratchGroup = {}
+    this.scratchClaim = {}
+
+    this.scratchGroups = []
+    this.scratchClaims = []
+
+    this.currentUser = {}
+    this.currentGroup = {}
+    this.currentClaim = {}
+
+    this.currentGroups = []
+    this.currentClaims = []
+  }
 }

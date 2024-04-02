@@ -1,10 +1,23 @@
 <template>
   <v-sheet class="d-flex flex-column px-4 pt-4 mb-n5" width="60vw" height="65vh">
     <v-row>
-      <v-text-field variant="solo-filled" clearable label="Name" v-model="name" @blur="updateScratchGroup"></v-text-field>
+      <v-text-field
+        variant="solo-filled"
+        label="Name"
+        v-model="name"
+        :rules="[require('Name')]"
+        @blur="updateScratchGroup"
+      ></v-text-field>
     </v-row>
     <v-row>
-      <v-textarea variant="solo-filled" clearable label="Description" v-model="description" no-resize @blur="updateScratchGroup"></v-textarea>
+      <v-textarea
+        variant="solo-filled"
+        label="Description"
+        no-resize
+        v-model="description"
+        :rules="[require('Description')]"
+        @blur="updateScratchGroup"
+      ></v-textarea>
     </v-row>
     <v-row class="mb-5 d-flex flex-grow-1 overflow-auto h-100">
       <ClaimList
@@ -22,7 +35,8 @@
 <script setup lang="ts">
   import { ref, onMounted, defineProps } from "vue"
   import { useAppStore } from "../../stores/app"
-  import { Claim } from "../../stores/entityTypes"
+  import { Claim } from "../../util/entityTypes"
+  import { require } from "../../util/rules"
 
   const props = defineProps<{
     add?: boolean,

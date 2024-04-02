@@ -19,17 +19,18 @@
     <v-divider></v-divider>
 
     <v-list>
-      <v-list-item link title="Monitor" @click="go('/monitor')" prepend-icon="mdi-chart-line"></v-list-item>
-      <v-list-item link title="Users" @click="go('/user')" prepend-icon="mdi-account"></v-list-item>
-      <v-list-item link title="Groups" @click="go('/group')" prepend-icon="mdi-account-multiple"></v-list-item>
-      <v-list-item link title="Keys" @click="go('/key')" prepend-icon="mdi-key-chain"></v-list-item>
+      <v-list-item link title="Users" @click="go('/user')" :prepend-icon="icons.USER"></v-list-item>
+      <v-list-item link title="Groups" @click="go('/group')" :prepend-icon="icons.GROUP"></v-list-item>
+      <v-list-item link title="Claims" @click="go('/claim')" :prepend-icon="icons.CLAIM"></v-list-item>
+      <v-list-item link title="Keys" @click="go('/key')" :prepend-icon="icons.KEYS"></v-list-item>
+      <v-list-item link title="Monitor" @click="go('/monitor')" :prepend-icon="icons.MONITOR"></v-list-item>
     </v-list>
 
     <template #append>
       <v-list>
         <v-list-item>
           <template #prepend>
-            <v-icon icon="mdi-logout" color="info" @click="logoutAndReturn"></v-icon>
+            <v-icon :icon="icons.LOGOUT" color="info" @click="logoutAndReturn"></v-icon>
           </template>
           <template #title>
             <span class="text-h7 text-weight-thin"> {{ store.username }} </span>
@@ -37,7 +38,7 @@
         </v-list-item>
         <v-list-item>
           <template #prepend>
-            <v-icon :icon="pinned? 'mdi-pin-off' : 'mdi-pin'" size="small" @click="pinned = !pinned"></v-icon>
+            <v-icon :icon="pinned? icons.PIN_OFF : icons.PIN_ON" size="small" @click="pinned = !pinned"></v-icon>
           </template>
         </v-list-item>
       </v-list>
@@ -50,6 +51,7 @@
 import { ref } from "vue"
 import { useRouter } from "vue-router"
 import { useAppStore } from "../stores/app"
+import icons from '../util/icons'
 
 const pinned = ref(false)
 const router = useRouter()

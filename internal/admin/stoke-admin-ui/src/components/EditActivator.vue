@@ -1,7 +1,7 @@
 <template>
   <v-tooltip :text="props.tooltipText" location="start">
     <template #activator="{ props }">
-      <v-btn elevation="0" class="float-right" icon="mdi-pencil" size="small" v-bind="props" @click="dialogOpen = true"></v-btn>
+      <v-btn elevation="0" class="float-right" :icon="icons.EDIT" size="small" v-bind="props" @click="dialogOpen = true"></v-btn>
     </template>
   </v-tooltip>
 
@@ -9,6 +9,7 @@
     <v-form v-model="formValid" @submit.prevent="innerOnSave" validate-on="submit">
       <v-card>
         <template #title>
+          <v-icon v-if="props.titleIcon" class="mr-2" :icon="props.titleIcon"></v-icon>
           <span v-if="props.dialogTitle" > {{ props.dialogTitle }} </span>
           <span v-else> {{ props.tooltipText }} </span>
           <v-divider></v-divider>
@@ -34,9 +35,11 @@
 
 <script setup lang="ts">
   import { ref, defineProps } from 'vue'
+  import icons from '../util/icons'
 
  const props = defineProps<{
     tooltipText: string,
+    titleIcon?: string,
     dialogTitle?: string
     onCancel?: () => void,
     onSave?: () => Promise<string>,
@@ -50,11 +53,18 @@
     dialogOpen.value = false
   }
 
-  function innerOnSave() {
+  async function innerOnSave(event : Promise<SubmitEvent>) {
+    await event
+    if ( !formValid.value ) return
+
     if (props.onSave) {
-      props.onSave().
-        then(() => dialogOpen.value = false).
-        catch((d) => { console.log(d) ; errorMessage.value = d })
+      try {
+        await props.onSave()
+        dialogOpen.value = false
+      } catch (err) {
+        console.error(err)
+        errorMessage.value = err
+      }
     } else {
       dialogOpen.value = false
     }

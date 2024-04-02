@@ -9,11 +9,30 @@
       </v-btn>
     </v-row>
     <v-row>
-      <v-text-field class="" variant="solo-filled" clearable label="First Name" v-model="fname" @blur="updateScratchUser"></v-text-field>
-      <v-text-field class="ml-4" variant="solo-filled" clearable label="Last Name" v-model="lname" @blur="updateScratchUser"></v-text-field>
+      <v-text-field
+        variant="solo-filled"
+        label="First Name"
+        v-model="fname"
+        :rules="[require('First Name')]"
+        @blur="updateScratchUser"
+      ></v-text-field>
+      <v-text-field
+        class="ml-4"
+        variant="solo-filled"
+        label="Last Name"
+        v-model="lname"
+        :rules="[require('Last Name')]"
+        @blur="updateScratchUser"
+      ></v-text-field>
     </v-row>
     <v-row>
-      <v-text-field variant="solo-filled" clearable label="Email" v-model="email" no-resize @blur="updateScratchUser"></v-text-field>
+      <v-text-field
+        variant="solo-filled"
+        label="Email"
+        v-model="email"
+        :rules="[require('Email')]"
+        @blur="updateScratchUser"
+      ></v-text-field>
     </v-row>
     <v-row class="mb-5 d-flex flex-grow-1 overflow-auto h-100">
       <GroupList
@@ -32,7 +51,8 @@
 <script setup lang="ts">
   import { ref, onMounted } from "vue"
   import { useAppStore } from "../../stores/app"
-  import { Group } from "../../stores/entityTypes"
+  import { Group } from "../../util/entityTypes"
+  import { require } from "../../util/rules"
 
   const store = useAppStore()
 

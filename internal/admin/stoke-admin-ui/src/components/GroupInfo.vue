@@ -2,12 +2,18 @@
   <v-card class="d-flex flex-column w-100" height="65%" :subtitle="store.currentGroup.description">
     <template #title>
       <div v-if="store.currentGroup.name">
+        <v-icon class="mr-2" size="small" :icon="icons.GROUP"></v-icon>
         <span> {{ store.currentGroup.name }} </span>
-        <EditActivator tooltipText="Edit Group" :onSave="store.saveScratchGroup" :onCancel="store.resetScratchGroup">
+        <EditActivator
+          tooltipText="Edit Group"
+          :titleIcon="icons.GROUP"
+          :onSave="store.saveScratchGroup"
+          :onCancel="store.resetScratchGroup">
           <EditGroupDialog />
         </EditActivator>
       </div>
       <div v-else>
+        <v-icon class="mr-2" size="small" :icon="icons.GROUP"></v-icon>
         <span> Select a group. </span>
       </div>
     </template>
@@ -29,11 +35,16 @@
 <script setup lang="ts">
   import EditGroupDialog from './dialogs/EditGroupDialog.vue'
   import { useAppStore } from '../stores/app'
-  import { Claim } from '../stores/entityTypes'
+  import { Claim } from '../util/entityTypes'
+  import icons from '../util/icons'
 
   const store = useAppStore()
 
   async function setCurrentClaim(_ : PointerEvent, { item } : { item : Claim }) {
+    if ( store.currentClaim.id && store.currentClaim.id === item.id ) {
+      store.resetCurrentClaim()
+      return
+    }
     store.$patch({
       currentClaim: item
     })

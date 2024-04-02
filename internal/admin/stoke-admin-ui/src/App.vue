@@ -20,6 +20,8 @@
     }
   })
 
+  router.afterEach(store.resetSelections)
+
   onMounted(() => {
     let token = sessionStorage.getItem("token")
     let username = sessionStorage.getItem("username")

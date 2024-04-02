@@ -1,7 +1,7 @@
 // Utilities
 import { defineStore } from 'pinia'
 import { appActions } from './app_actions'
-import { User, Group, Claim } from './entityTypes'
+import { User, UserWithCreds, Group, Claim } from '../util/entityTypes'
 
 export const useAppStore = defineStore('app', {
   state: () => ({
@@ -12,7 +12,7 @@ export const useAppStore = defineStore('app', {
     currentGroup: {} as Group,
     currentClaim: {} as Claim,
 
-    scratchUser : {} as User,
+    scratchUser : {} as User | UserWithCreds,
     scratchGroup: {} as Group,
     scratchClaim: {} as Claim,
 

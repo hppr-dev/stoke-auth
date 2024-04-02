@@ -14,7 +14,7 @@
         <v-text-field
           v-model="search"
           label="Search"
-          prepend-inner-icon="mdi-magnify"
+          :prepend-inner-icon="props.searchIcon"
           variant="outlined"
           hide-details
           single-line
@@ -38,11 +38,12 @@
   }
 
   const props = defineProps<{
-    showSearch?: boolean,
-    showFooter?: boolean,
     headers : Headers,
     items: Array<Object>,
     rowClick: Function,
+    searchIcon?: string,
+    showSearch?: boolean,
+    showFooter?: boolean,
     rowProps?: Function | Object,
   }>()
 

@@ -2,17 +2,17 @@
   <Viewport>
     <v-row class="h-screen pb-10 ml-0">
       <v-col class="ml-n3 h-100" lg="7" md="6" sm="12">
-        <GroupList
+        <ClaimList
           showSearch
           showFooter
           addButton
-          :groups="store.allGroups"
-          :rowClick="setCurrentGroup"
+          :claims="store.allClaims"
+          :rowClick="setCurrentClaim"
           :rowProps="highlightSelected"
         />
       </v-col>
       <v-col class="ml-n3 h-100" lg="5" md="6" sm="12">
-        <GroupInfo />
+        <ClaimInfo />
       </v-col>
     </v-row>
   </Viewport>
@@ -21,28 +21,27 @@
 <script lang="ts" setup>
   import { onMounted } from 'vue'
   import { useAppStore } from '../stores/app'
-  import { Group } from '../util/entityTypes'
+  import { Claim } from '../util/entityTypes'
 
   const store = useAppStore()
 
-  async function setCurrentGroup(_ : PointerEvent, { item } : { item : Group } ) {
-    if ( store.currentGroup.id && store.currentGroup.id === item.id ) {
-      store.resetCurrentGroup()
+  async function setCurrentClaim(_ : PointerEvent, { item } : { item : Claim } ) {
+    if ( store.currentClaim.id && store.currentClaim.id === item.id ) {
+      store.resetCurrentClaim()
       return
     }
-    await store.fetchClaimsForGroup(item.id)
     store.$patch({
-      currentGroup: item,
+      currentClaim: item,
     })
   }
 
-  function highlightSelected({ item } : { item : Group }) {
-    if ( item.id === store.currentGroup.id ) {
+  function highlightSelected({ item } : { item : Claim }) {
+    if ( item.id === store.currentClaim.id ) {
       return {
         class : "bg-grey-lighten-1",
       }
     }
   }
 
-  onMounted(store.fetchAllGroups)
+  onMounted(store.fetchAllClaims)
 </script>

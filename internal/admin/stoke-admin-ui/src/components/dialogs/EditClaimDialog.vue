@@ -1,21 +1,46 @@
 <template>
   <v-sheet class="px-4 pt-4 mb-n5" width="40vw">
     <v-row>
-      <v-text-field variant="solo-filled" clearable label="Name" v-model="name" :rules="[rules.nameRequired]" @blur="updateScratchClaim"></v-text-field>
+      <v-text-field
+        variant="solo-filled"
+        label="Name"
+        v-model="name"
+        :rules="[require('Name')]"
+        @blur="updateScratchClaim"
+      ></v-text-field>
     </v-row>
     <v-row class="d-flex justify-center">
       <v-col cols="4">
-        <v-text-field variant="outlined" clearable label="Short Name" v-model="shortName" @blur="updateScratchClaim"></v-text-field>
+        <v-text-field
+          variant="outlined"
+          label="Short Name"
+          v-model="shortName"
+          :rules="[require('Short name')]"
+          @blur="updateScratchClaim"
+        ></v-text-field>
       </v-col>
       <v-col class="mx-n2 mt-2 text-center" cols="1">
         <span class="text-h4"> = </span>
       </v-col>
       <v-col cols="4">
-        <v-text-field variant="outlined" clearable label="Value" v-model="value"></v-text-field @blur="updateScratchClaim">
+        <v-text-field
+          variant="outlined"
+          label="Value"
+          v-model="value"
+          :rules="[require('Value')]"
+          @blur="updateScratchClaim"
+        ></v-text-field>
       </v-col>
     </v-row>
     <v-row>
-      <v-textarea variant="solo-filled" clearable label="Description" v-model="description" no-resize @blur="updateScratchClaim"></v-textarea>
+      <v-textarea
+        variant="solo-filled"
+        label="Description"
+        no-resize
+        v-model="description"
+        :rules="[require('Description')]"
+        @blur="updateScratchClaim"
+      ></v-textarea>
     </v-row>
   </v-sheet>
 </template>
@@ -23,6 +48,7 @@
 <script setup lang="ts">
   import { ref, onMounted, defineProps } from "vue"
   import { useAppStore } from "../../stores/app"
+  import { require } from "../../util/rules"
 
   const props = defineProps<{
     add?: boolean,
@@ -34,10 +60,6 @@
   const shortName = ref(store.currentClaim.short_name)
   const value = ref(store.currentClaim.value)
   const description = ref(store.currentClaim.description)
-
-  const rules = {
-    nameRequired: value => !!value || 'Name is required.',
-  }
 
   if ( props.add ) {
     name.value = ""

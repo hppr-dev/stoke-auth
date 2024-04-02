@@ -4,11 +4,16 @@
       <template #title>
         <div v-if="store.currentUser.fname">
           <span class="text-h3"> {{ store.currentUser.fname }} {{ store.currentUser.lname }} </span>
-          <EditActivator tooltipText="Edit User" :onSave="store.saveScratchUser" :onCancel="store.resetScratchUser">
+          <EditActivator
+            tooltipText="Edit User"
+            :titleIcon="icons.USER"
+            :onSave="store.saveScratchUser"
+            :onCancel="store.resetScratchUser">
             <EditUserDialog />
           </EditActivator>
         </div>
         <div v-else >
+          <v-icon class="mr-2" :icon="icons.USER"></v-icon>
           <span class="text-h6"> Select a user. </span>
         </div>
       </template>
@@ -16,11 +21,11 @@
       <template #subtitle>
         <div v-if="store.currentUser.fname">
           <p>
-            <v-icon icon="mdi-account"></v-icon>
+            <v-icon :icon="icons.USER"></v-icon>
             <span class="ml-2 text-h6 font-weight-light"> {{ store.currentUser.username }} </span>
           </p>
           <p>
-            <v-icon icon="mdi-mail"></v-icon>
+            <v-icon :icon="icons.MAIL"></v-icon>
             <span class="ml-2 text-h6 font-weight-light"> {{ store.currentUser.email }} </span>
           </p>
         </div>
@@ -46,11 +51,16 @@
 <script setup lang="ts">
   import EditUserDialog from './dialogs/EditUserDialog.vue'
   import { useAppStore } from "../stores/app"
-  import { Group } from "../stores/entityTypes"
+  import { Group } from "../util/entityTypes"
+  import icons from '../util/icons'
 
   const store = useAppStore()
 
   async function setCurrentGroup(_ : PointerEvent, { item } : { item : Group }) {
+    if ( store.currentGroup.id && store.currentGroup.id === item.id ) {
+      store.resetCurrentGroup()
+      return
+    }
     await store.fetchClaimsForGroup(item.id)
     store.$patch({
       currentGroup: item

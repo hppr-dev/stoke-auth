@@ -5,6 +5,18 @@ export interface User {
   username: string,
   email: string,
   created_at: string,
+  provider: string,
+}
+
+export interface UserWithCreds {
+  id: number,
+  fname: string,
+  lname: string,
+  username: string,
+  email: string,
+  created_at: string,
+  password: string,
+  provider: string,
 }
 
 export interface Group {
