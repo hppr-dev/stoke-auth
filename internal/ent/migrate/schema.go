@@ -34,7 +34,6 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "name", Type: field.TypeString, Unique: true},
 		{Name: "description", Type: field.TypeString},
-		{Name: "is_user_group", Type: field.TypeBool, Default: false},
 	}
 	// ClaimGroupsTable holds the schema information for the "claim_groups" table.
 	ClaimGroupsTable = &schema.Table{
@@ -68,7 +67,6 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "text", Type: field.TypeString},
 		{Name: "expires", Type: field.TypeTime},
-		{Name: "renews", Type: field.TypeTime},
 	}
 	// PrivateKeysTable holds the schema information for the "private_keys" table.
 	PrivateKeysTable = &schema.Table{

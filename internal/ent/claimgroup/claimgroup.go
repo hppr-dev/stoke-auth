@@ -16,8 +16,6 @@ const (
 	FieldName = "name"
 	// FieldDescription holds the string denoting the description field in the database.
 	FieldDescription = "description"
-	// FieldIsUserGroup holds the string denoting the is_user_group field in the database.
-	FieldIsUserGroup = "is_user_group"
 	// EdgeUsers holds the string denoting the users edge name in mutations.
 	EdgeUsers = "users"
 	// EdgeGroupLinks holds the string denoting the group_links edge name in mutations.
@@ -50,7 +48,6 @@ var Columns = []string{
 	FieldID,
 	FieldName,
 	FieldDescription,
-	FieldIsUserGroup,
 }
 
 var (
@@ -72,11 +69,6 @@ func ValidColumn(column string) bool {
 	return false
 }
 
-var (
-	// DefaultIsUserGroup holds the default value on creation for the "is_user_group" field.
-	DefaultIsUserGroup bool
-)
-
 // OrderOption defines the ordering options for the ClaimGroup queries.
 type OrderOption func(*sql.Selector)
 
@@ -93,11 +85,6 @@ func ByName(opts ...sql.OrderTermOption) OrderOption {
 // ByDescription orders the results by the description field.
 func ByDescription(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDescription, opts...).ToFunc()
-}
-
-// ByIsUserGroup orders the results by the is_user_group field.
-func ByIsUserGroup(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldIsUserGroup, opts...).ToFunc()
 }
 
 // ByUsersCount orders the results by users count.

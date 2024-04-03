@@ -64,11 +64,6 @@ func Expires(v time.Time) predicate.PrivateKey {
 	return predicate.PrivateKey(sql.FieldEQ(FieldExpires, v))
 }
 
-// Renews applies equality check predicate on the "renews" field. It's identical to RenewsEQ.
-func Renews(v time.Time) predicate.PrivateKey {
-	return predicate.PrivateKey(sql.FieldEQ(FieldRenews, v))
-}
-
 // TextEQ applies the EQ predicate on the "text" field.
 func TextEQ(v string) predicate.PrivateKey {
 	return predicate.PrivateKey(sql.FieldEQ(FieldText, v))
@@ -172,46 +167,6 @@ func ExpiresLT(v time.Time) predicate.PrivateKey {
 // ExpiresLTE applies the LTE predicate on the "expires" field.
 func ExpiresLTE(v time.Time) predicate.PrivateKey {
 	return predicate.PrivateKey(sql.FieldLTE(FieldExpires, v))
-}
-
-// RenewsEQ applies the EQ predicate on the "renews" field.
-func RenewsEQ(v time.Time) predicate.PrivateKey {
-	return predicate.PrivateKey(sql.FieldEQ(FieldRenews, v))
-}
-
-// RenewsNEQ applies the NEQ predicate on the "renews" field.
-func RenewsNEQ(v time.Time) predicate.PrivateKey {
-	return predicate.PrivateKey(sql.FieldNEQ(FieldRenews, v))
-}
-
-// RenewsIn applies the In predicate on the "renews" field.
-func RenewsIn(vs ...time.Time) predicate.PrivateKey {
-	return predicate.PrivateKey(sql.FieldIn(FieldRenews, vs...))
-}
-
-// RenewsNotIn applies the NotIn predicate on the "renews" field.
-func RenewsNotIn(vs ...time.Time) predicate.PrivateKey {
-	return predicate.PrivateKey(sql.FieldNotIn(FieldRenews, vs...))
-}
-
-// RenewsGT applies the GT predicate on the "renews" field.
-func RenewsGT(v time.Time) predicate.PrivateKey {
-	return predicate.PrivateKey(sql.FieldGT(FieldRenews, v))
-}
-
-// RenewsGTE applies the GTE predicate on the "renews" field.
-func RenewsGTE(v time.Time) predicate.PrivateKey {
-	return predicate.PrivateKey(sql.FieldGTE(FieldRenews, v))
-}
-
-// RenewsLT applies the LT predicate on the "renews" field.
-func RenewsLT(v time.Time) predicate.PrivateKey {
-	return predicate.PrivateKey(sql.FieldLT(FieldRenews, v))
-}
-
-// RenewsLTE applies the LTE predicate on the "renews" field.
-func RenewsLTE(v time.Time) predicate.PrivateKey {
-	return predicate.PrivateKey(sql.FieldLTE(FieldRenews, v))
 }
 
 // And groups predicates with the AND operator between them.

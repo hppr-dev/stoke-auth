@@ -134,6 +134,12 @@ type Handler interface {
 	//
 	// GET /private-keys/{id}
 	ReadPrivateKey(ctx context.Context, params ReadPrivateKeyParams) (ReadPrivateKeyRes, error)
+	// ReadUser implements readUser operation.
+	//
+	// Finds the User with the requested ID and returns it.
+	//
+	// GET /users/{id}
+	ReadUser(ctx context.Context, params ReadUserParams) (ReadUserRes, error)
 	// UpdateClaim implements updateClaim operation.
 	//
 	// Updates a Claim and persists changes to storage.
@@ -152,6 +158,12 @@ type Handler interface {
 	//
 	// PATCH /group-links/{id}
 	UpdateGroupLink(ctx context.Context, req *UpdateGroupLinkReq, params UpdateGroupLinkParams) (UpdateGroupLinkRes, error)
+	// UpdateUser implements updateUser operation.
+	//
+	// Updates a User and persists changes to storage.
+	//
+	// PATCH /users/{id}
+	UpdateUser(ctx context.Context, req *UpdateUserReq, params UpdateUserParams) (UpdateUserRes, error)
 }
 
 // Server implements http server based on OpenAPI v3 specification and

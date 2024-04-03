@@ -64,11 +64,6 @@ func Description(v string) predicate.ClaimGroup {
 	return predicate.ClaimGroup(sql.FieldEQ(FieldDescription, v))
 }
 
-// IsUserGroup applies equality check predicate on the "is_user_group" field. It's identical to IsUserGroupEQ.
-func IsUserGroup(v bool) predicate.ClaimGroup {
-	return predicate.ClaimGroup(sql.FieldEQ(FieldIsUserGroup, v))
-}
-
 // NameEQ applies the EQ predicate on the "name" field.
 func NameEQ(v string) predicate.ClaimGroup {
 	return predicate.ClaimGroup(sql.FieldEQ(FieldName, v))
@@ -197,16 +192,6 @@ func DescriptionEqualFold(v string) predicate.ClaimGroup {
 // DescriptionContainsFold applies the ContainsFold predicate on the "description" field.
 func DescriptionContainsFold(v string) predicate.ClaimGroup {
 	return predicate.ClaimGroup(sql.FieldContainsFold(FieldDescription, v))
-}
-
-// IsUserGroupEQ applies the EQ predicate on the "is_user_group" field.
-func IsUserGroupEQ(v bool) predicate.ClaimGroup {
-	return predicate.ClaimGroup(sql.FieldEQ(FieldIsUserGroup, v))
-}
-
-// IsUserGroupNEQ applies the NEQ predicate on the "is_user_group" field.
-func IsUserGroupNEQ(v bool) predicate.ClaimGroup {
-	return predicate.ClaimGroup(sql.FieldNEQ(FieldIsUserGroup, v))
 }
 
 // HasUsers applies the HasEdge predicate on the "users" edge.

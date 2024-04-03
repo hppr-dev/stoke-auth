@@ -624,7 +624,6 @@ type ClaimGroupMutation struct {
 	id                 *int
 	name               *string
 	description        *string
-	is_user_group      *bool
 	clearedFields      map[string]struct{}
 	users              map[int]struct{}
 	removedusers       map[int]struct{}
@@ -808,42 +807,6 @@ func (m *ClaimGroupMutation) OldDescription(ctx context.Context) (v string, err 
 // ResetDescription resets all changes to the "description" field.
 func (m *ClaimGroupMutation) ResetDescription() {
 	m.description = nil
-}
-
-// SetIsUserGroup sets the "is_user_group" field.
-func (m *ClaimGroupMutation) SetIsUserGroup(b bool) {
-	m.is_user_group = &b
-}
-
-// IsUserGroup returns the value of the "is_user_group" field in the mutation.
-func (m *ClaimGroupMutation) IsUserGroup() (r bool, exists bool) {
-	v := m.is_user_group
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldIsUserGroup returns the old "is_user_group" field's value of the ClaimGroup entity.
-// If the ClaimGroup object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ClaimGroupMutation) OldIsUserGroup(ctx context.Context) (v bool, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldIsUserGroup is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldIsUserGroup requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldIsUserGroup: %w", err)
-	}
-	return oldValue.IsUserGroup, nil
-}
-
-// ResetIsUserGroup resets all changes to the "is_user_group" field.
-func (m *ClaimGroupMutation) ResetIsUserGroup() {
-	m.is_user_group = nil
 }
 
 // AddUserIDs adds the "users" edge to the User entity by ids.
@@ -1042,15 +1005,12 @@ func (m *ClaimGroupMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ClaimGroupMutation) Fields() []string {
-	fields := make([]string, 0, 3)
+	fields := make([]string, 0, 2)
 	if m.name != nil {
 		fields = append(fields, claimgroup.FieldName)
 	}
 	if m.description != nil {
 		fields = append(fields, claimgroup.FieldDescription)
-	}
-	if m.is_user_group != nil {
-		fields = append(fields, claimgroup.FieldIsUserGroup)
 	}
 	return fields
 }
@@ -1064,8 +1024,6 @@ func (m *ClaimGroupMutation) Field(name string) (ent.Value, bool) {
 		return m.Name()
 	case claimgroup.FieldDescription:
 		return m.Description()
-	case claimgroup.FieldIsUserGroup:
-		return m.IsUserGroup()
 	}
 	return nil, false
 }
@@ -1079,8 +1037,6 @@ func (m *ClaimGroupMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldName(ctx)
 	case claimgroup.FieldDescription:
 		return m.OldDescription(ctx)
-	case claimgroup.FieldIsUserGroup:
-		return m.OldIsUserGroup(ctx)
 	}
 	return nil, fmt.Errorf("unknown ClaimGroup field %s", name)
 }
@@ -1103,13 +1059,6 @@ func (m *ClaimGroupMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetDescription(v)
-		return nil
-	case claimgroup.FieldIsUserGroup:
-		v, ok := value.(bool)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetIsUserGroup(v)
 		return nil
 	}
 	return fmt.Errorf("unknown ClaimGroup field %s", name)
@@ -1165,9 +1114,6 @@ func (m *ClaimGroupMutation) ResetField(name string) error {
 		return nil
 	case claimgroup.FieldDescription:
 		m.ResetDescription()
-		return nil
-	case claimgroup.FieldIsUserGroup:
-		m.ResetIsUserGroup()
 		return nil
 	}
 	return fmt.Errorf("unknown ClaimGroup field %s", name)
@@ -1764,7 +1710,6 @@ type PrivateKeyMutation struct {
 	id            *int
 	text          *string
 	expires       *time.Time
-	renews        *time.Time
 	clearedFields map[string]struct{}
 	done          bool
 	oldValue      func(context.Context) (*PrivateKey, error)
@@ -1941,42 +1886,6 @@ func (m *PrivateKeyMutation) ResetExpires() {
 	m.expires = nil
 }
 
-// SetRenews sets the "renews" field.
-func (m *PrivateKeyMutation) SetRenews(t time.Time) {
-	m.renews = &t
-}
-
-// Renews returns the value of the "renews" field in the mutation.
-func (m *PrivateKeyMutation) Renews() (r time.Time, exists bool) {
-	v := m.renews
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldRenews returns the old "renews" field's value of the PrivateKey entity.
-// If the PrivateKey object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PrivateKeyMutation) OldRenews(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldRenews is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldRenews requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldRenews: %w", err)
-	}
-	return oldValue.Renews, nil
-}
-
-// ResetRenews resets all changes to the "renews" field.
-func (m *PrivateKeyMutation) ResetRenews() {
-	m.renews = nil
-}
-
 // Where appends a list predicates to the PrivateKeyMutation builder.
 func (m *PrivateKeyMutation) Where(ps ...predicate.PrivateKey) {
 	m.predicates = append(m.predicates, ps...)
@@ -2011,15 +1920,12 @@ func (m *PrivateKeyMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *PrivateKeyMutation) Fields() []string {
-	fields := make([]string, 0, 3)
+	fields := make([]string, 0, 2)
 	if m.text != nil {
 		fields = append(fields, privatekey.FieldText)
 	}
 	if m.expires != nil {
 		fields = append(fields, privatekey.FieldExpires)
-	}
-	if m.renews != nil {
-		fields = append(fields, privatekey.FieldRenews)
 	}
 	return fields
 }
@@ -2033,8 +1939,6 @@ func (m *PrivateKeyMutation) Field(name string) (ent.Value, bool) {
 		return m.Text()
 	case privatekey.FieldExpires:
 		return m.Expires()
-	case privatekey.FieldRenews:
-		return m.Renews()
 	}
 	return nil, false
 }
@@ -2048,8 +1952,6 @@ func (m *PrivateKeyMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldText(ctx)
 	case privatekey.FieldExpires:
 		return m.OldExpires(ctx)
-	case privatekey.FieldRenews:
-		return m.OldRenews(ctx)
 	}
 	return nil, fmt.Errorf("unknown PrivateKey field %s", name)
 }
@@ -2072,13 +1974,6 @@ func (m *PrivateKeyMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetExpires(v)
-		return nil
-	case privatekey.FieldRenews:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetRenews(v)
 		return nil
 	}
 	return fmt.Errorf("unknown PrivateKey field %s", name)
@@ -2134,9 +2029,6 @@ func (m *PrivateKeyMutation) ResetField(name string) error {
 		return nil
 	case privatekey.FieldExpires:
 		m.ResetExpires()
-		return nil
-	case privatekey.FieldRenews:
-		m.ResetRenews()
 		return nil
 	}
 	return fmt.Errorf("unknown PrivateKey field %s", name)

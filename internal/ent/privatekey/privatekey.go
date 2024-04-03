@@ -15,8 +15,6 @@ const (
 	FieldText = "text"
 	// FieldExpires holds the string denoting the expires field in the database.
 	FieldExpires = "expires"
-	// FieldRenews holds the string denoting the renews field in the database.
-	FieldRenews = "renews"
 	// Table holds the table name of the privatekey in the database.
 	Table = "private_keys"
 )
@@ -26,7 +24,6 @@ var Columns = []string{
 	FieldID,
 	FieldText,
 	FieldExpires,
-	FieldRenews,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -55,9 +52,4 @@ func ByText(opts ...sql.OrderTermOption) OrderOption {
 // ByExpires orders the results by the expires field.
 func ByExpires(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldExpires, opts...).ToFunc()
-}
-
-// ByRenews orders the results by the renews field.
-func ByRenews(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldRenews, opts...).ToFunc()
 }

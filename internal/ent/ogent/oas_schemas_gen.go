@@ -13,7 +13,6 @@ type ClaimClaimGroupsList struct {
 	ID          int    `json:"id"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
-	IsUserGroup bool   `json:"is_user_group"`
 }
 
 // GetID returns the value of ID.
@@ -31,11 +30,6 @@ func (s *ClaimClaimGroupsList) GetDescription() string {
 	return s.Description
 }
 
-// GetIsUserGroup returns the value of IsUserGroup.
-func (s *ClaimClaimGroupsList) GetIsUserGroup() bool {
-	return s.IsUserGroup
-}
-
 // SetID sets the value of ID.
 func (s *ClaimClaimGroupsList) SetID(val int) {
 	s.ID = val
@@ -49,11 +43,6 @@ func (s *ClaimClaimGroupsList) SetName(val string) {
 // SetDescription sets the value of Description.
 func (s *ClaimClaimGroupsList) SetDescription(val string) {
 	s.Description = val
-}
-
-// SetIsUserGroup sets the value of IsUserGroup.
-func (s *ClaimClaimGroupsList) SetIsUserGroup(val bool) {
-	s.IsUserGroup = val
 }
 
 // Ref: #/components/schemas/ClaimCreate
@@ -181,7 +170,6 @@ type ClaimGroupCreate struct {
 	ID          int    `json:"id"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
-	IsUserGroup bool   `json:"is_user_group"`
 }
 
 // GetID returns the value of ID.
@@ -199,11 +187,6 @@ func (s *ClaimGroupCreate) GetDescription() string {
 	return s.Description
 }
 
-// GetIsUserGroup returns the value of IsUserGroup.
-func (s *ClaimGroupCreate) GetIsUserGroup() bool {
-	return s.IsUserGroup
-}
-
 // SetID sets the value of ID.
 func (s *ClaimGroupCreate) SetID(val int) {
 	s.ID = val
@@ -217,11 +200,6 @@ func (s *ClaimGroupCreate) SetName(val string) {
 // SetDescription sets the value of Description.
 func (s *ClaimGroupCreate) SetDescription(val string) {
 	s.Description = val
-}
-
-// SetIsUserGroup sets the value of IsUserGroup.
-func (s *ClaimGroupCreate) SetIsUserGroup(val bool) {
-	s.IsUserGroup = val
 }
 
 func (*ClaimGroupCreate) createClaimGroupRes() {}
@@ -268,7 +246,6 @@ type ClaimGroupList struct {
 	ID          int    `json:"id"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
-	IsUserGroup bool   `json:"is_user_group"`
 }
 
 // GetID returns the value of ID.
@@ -286,11 +263,6 @@ func (s *ClaimGroupList) GetDescription() string {
 	return s.Description
 }
 
-// GetIsUserGroup returns the value of IsUserGroup.
-func (s *ClaimGroupList) GetIsUserGroup() bool {
-	return s.IsUserGroup
-}
-
 // SetID sets the value of ID.
 func (s *ClaimGroupList) SetID(val int) {
 	s.ID = val
@@ -306,17 +278,11 @@ func (s *ClaimGroupList) SetDescription(val string) {
 	s.Description = val
 }
 
-// SetIsUserGroup sets the value of IsUserGroup.
-func (s *ClaimGroupList) SetIsUserGroup(val bool) {
-	s.IsUserGroup = val
-}
-
 // Ref: #/components/schemas/ClaimGroupRead
 type ClaimGroupRead struct {
 	ID          int    `json:"id"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
-	IsUserGroup bool   `json:"is_user_group"`
 }
 
 // GetID returns the value of ID.
@@ -334,11 +300,6 @@ func (s *ClaimGroupRead) GetDescription() string {
 	return s.Description
 }
 
-// GetIsUserGroup returns the value of IsUserGroup.
-func (s *ClaimGroupRead) GetIsUserGroup() bool {
-	return s.IsUserGroup
-}
-
 // SetID sets the value of ID.
 func (s *ClaimGroupRead) SetID(val int) {
 	s.ID = val
@@ -354,11 +315,6 @@ func (s *ClaimGroupRead) SetDescription(val string) {
 	s.Description = val
 }
 
-// SetIsUserGroup sets the value of IsUserGroup.
-func (s *ClaimGroupRead) SetIsUserGroup(val bool) {
-	s.IsUserGroup = val
-}
-
 func (*ClaimGroupRead) readClaimGroupRes() {}
 
 // Ref: #/components/schemas/ClaimGroupUpdate
@@ -366,7 +322,6 @@ type ClaimGroupUpdate struct {
 	ID          int    `json:"id"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
-	IsUserGroup bool   `json:"is_user_group"`
 }
 
 // GetID returns the value of ID.
@@ -384,11 +339,6 @@ func (s *ClaimGroupUpdate) GetDescription() string {
 	return s.Description
 }
 
-// GetIsUserGroup returns the value of IsUserGroup.
-func (s *ClaimGroupUpdate) GetIsUserGroup() bool {
-	return s.IsUserGroup
-}
-
 // SetID sets the value of ID.
 func (s *ClaimGroupUpdate) SetID(val int) {
 	s.ID = val
@@ -402,11 +352,6 @@ func (s *ClaimGroupUpdate) SetName(val string) {
 // SetDescription sets the value of Description.
 func (s *ClaimGroupUpdate) SetDescription(val string) {
 	s.Description = val
-}
-
-// SetIsUserGroup sets the value of IsUserGroup.
-func (s *ClaimGroupUpdate) SetIsUserGroup(val bool) {
-	s.IsUserGroup = val
 }
 
 func (*ClaimGroupUpdate) updateClaimGroupRes() {}
@@ -665,7 +610,6 @@ func (*ClaimUpdate) updateClaimRes() {}
 type CreateClaimGroupReq struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
-	IsUserGroup bool   `json:"is_user_group"`
 	Users       []int  `json:"users"`
 	GroupLinks  []int  `json:"group_links"`
 	Claims      []int  `json:"claims"`
@@ -679,11 +623,6 @@ func (s *CreateClaimGroupReq) GetName() string {
 // GetDescription returns the value of Description.
 func (s *CreateClaimGroupReq) GetDescription() string {
 	return s.Description
-}
-
-// GetIsUserGroup returns the value of IsUserGroup.
-func (s *CreateClaimGroupReq) GetIsUserGroup() bool {
-	return s.IsUserGroup
 }
 
 // GetUsers returns the value of Users.
@@ -709,11 +648,6 @@ func (s *CreateClaimGroupReq) SetName(val string) {
 // SetDescription sets the value of Description.
 func (s *CreateClaimGroupReq) SetDescription(val string) {
 	s.Description = val
-}
-
-// SetIsUserGroup sets the value of IsUserGroup.
-func (s *CreateClaimGroupReq) SetIsUserGroup(val bool) {
-	s.IsUserGroup = val
 }
 
 // SetUsers sets the value of Users.
@@ -845,7 +779,6 @@ type GroupLinkClaimGroupsRead struct {
 	ID          int    `json:"id"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
-	IsUserGroup bool   `json:"is_user_group"`
 }
 
 // GetID returns the value of ID.
@@ -863,11 +796,6 @@ func (s *GroupLinkClaimGroupsRead) GetDescription() string {
 	return s.Description
 }
 
-// GetIsUserGroup returns the value of IsUserGroup.
-func (s *GroupLinkClaimGroupsRead) GetIsUserGroup() bool {
-	return s.IsUserGroup
-}
-
 // SetID sets the value of ID.
 func (s *GroupLinkClaimGroupsRead) SetID(val int) {
 	s.ID = val
@@ -881,11 +809,6 @@ func (s *GroupLinkClaimGroupsRead) SetName(val string) {
 // SetDescription sets the value of Description.
 func (s *GroupLinkClaimGroupsRead) SetDescription(val string) {
 	s.Description = val
-}
-
-// SetIsUserGroup sets the value of IsUserGroup.
-func (s *GroupLinkClaimGroupsRead) SetIsUserGroup(val bool) {
-	s.IsUserGroup = val
 }
 
 func (*GroupLinkClaimGroupsRead) readGroupLinkClaimGroupsRes() {}
@@ -1084,52 +1007,6 @@ type ListUserOKApplicationJSON []UserList
 
 func (*ListUserOKApplicationJSON) listUserRes() {}
 
-// NewOptBool returns new OptBool with value set to v.
-func NewOptBool(v bool) OptBool {
-	return OptBool{
-		Value: v,
-		Set:   true,
-	}
-}
-
-// OptBool is optional bool.
-type OptBool struct {
-	Value bool
-	Set   bool
-}
-
-// IsSet returns true if OptBool was set.
-func (o OptBool) IsSet() bool { return o.Set }
-
-// Reset unsets value.
-func (o *OptBool) Reset() {
-	var v bool
-	o.Value = v
-	o.Set = false
-}
-
-// SetTo sets value to v.
-func (o *OptBool) SetTo(v bool) {
-	o.Set = true
-	o.Value = v
-}
-
-// Get returns value and boolean that denotes whether value was set.
-func (o OptBool) Get() (v bool, ok bool) {
-	if !o.Set {
-		return v, false
-	}
-	return o.Value, true
-}
-
-// Or returns value if set, or given parameter if does not.
-func (o OptBool) Or(d bool) bool {
-	if v, ok := o.Get(); ok {
-		return v
-	}
-	return d
-}
-
 // NewOptInt returns new OptInt with value set to v.
 func NewOptInt(v int) OptInt {
 	return OptInt{
@@ -1227,7 +1104,6 @@ type PrivateKeyList struct {
 	ID      int       `json:"id"`
 	Text    string    `json:"text"`
 	Expires time.Time `json:"expires"`
-	Renews  time.Time `json:"renews"`
 }
 
 // GetID returns the value of ID.
@@ -1245,11 +1121,6 @@ func (s *PrivateKeyList) GetExpires() time.Time {
 	return s.Expires
 }
 
-// GetRenews returns the value of Renews.
-func (s *PrivateKeyList) GetRenews() time.Time {
-	return s.Renews
-}
-
 // SetID sets the value of ID.
 func (s *PrivateKeyList) SetID(val int) {
 	s.ID = val
@@ -1265,17 +1136,11 @@ func (s *PrivateKeyList) SetExpires(val time.Time) {
 	s.Expires = val
 }
 
-// SetRenews sets the value of Renews.
-func (s *PrivateKeyList) SetRenews(val time.Time) {
-	s.Renews = val
-}
-
 // Ref: #/components/schemas/PrivateKeyRead
 type PrivateKeyRead struct {
 	ID      int       `json:"id"`
 	Text    string    `json:"text"`
 	Expires time.Time `json:"expires"`
-	Renews  time.Time `json:"renews"`
 }
 
 // GetID returns the value of ID.
@@ -1293,11 +1158,6 @@ func (s *PrivateKeyRead) GetExpires() time.Time {
 	return s.Expires
 }
 
-// GetRenews returns the value of Renews.
-func (s *PrivateKeyRead) GetRenews() time.Time {
-	return s.Renews
-}
-
 // SetID sets the value of ID.
 func (s *PrivateKeyRead) SetID(val int) {
 	s.ID = val
@@ -1311,11 +1171,6 @@ func (s *PrivateKeyRead) SetText(val string) {
 // SetExpires sets the value of Expires.
 func (s *PrivateKeyRead) SetExpires(val time.Time) {
 	s.Expires = val
-}
-
-// SetRenews sets the value of Renews.
-func (s *PrivateKeyRead) SetRenews(val time.Time) {
-	s.Renews = val
 }
 
 func (*PrivateKeyRead) readPrivateKeyRes() {}
@@ -1377,9 +1232,11 @@ func (*R400) readClaimRes()                {}
 func (*R400) readGroupLinkClaimGroupsRes() {}
 func (*R400) readGroupLinkRes()            {}
 func (*R400) readPrivateKeyRes()           {}
+func (*R400) readUserRes()                 {}
 func (*R400) updateClaimGroupRes()         {}
 func (*R400) updateClaimRes()              {}
 func (*R400) updateGroupLinkRes()          {}
+func (*R400) updateUserRes()               {}
 
 type R404 struct {
 	Code   int    `json:"code"`
@@ -1435,9 +1292,11 @@ func (*R404) readClaimRes()                {}
 func (*R404) readGroupLinkClaimGroupsRes() {}
 func (*R404) readGroupLinkRes()            {}
 func (*R404) readPrivateKeyRes()           {}
+func (*R404) readUserRes()                 {}
 func (*R404) updateClaimGroupRes()         {}
 func (*R404) updateClaimRes()              {}
 func (*R404) updateGroupLinkRes()          {}
+func (*R404) updateUserRes()               {}
 
 type R409 struct {
 	Code   int    `json:"code"`
@@ -1496,9 +1355,11 @@ func (*R409) readClaimRes()                {}
 func (*R409) readGroupLinkClaimGroupsRes() {}
 func (*R409) readGroupLinkRes()            {}
 func (*R409) readPrivateKeyRes()           {}
+func (*R409) readUserRes()                 {}
 func (*R409) updateClaimGroupRes()         {}
 func (*R409) updateClaimRes()              {}
 func (*R409) updateGroupLinkRes()          {}
+func (*R409) updateUserRes()               {}
 
 type R500 struct {
 	Code   int    `json:"code"`
@@ -1557,14 +1418,15 @@ func (*R500) readClaimRes()                {}
 func (*R500) readGroupLinkClaimGroupsRes() {}
 func (*R500) readGroupLinkRes()            {}
 func (*R500) readPrivateKeyRes()           {}
+func (*R500) readUserRes()                 {}
 func (*R500) updateClaimGroupRes()         {}
 func (*R500) updateClaimRes()              {}
 func (*R500) updateGroupLinkRes()          {}
+func (*R500) updateUserRes()               {}
 
 type UpdateClaimGroupReq struct {
 	Name        OptString `json:"name"`
 	Description OptString `json:"description"`
-	IsUserGroup OptBool   `json:"is_user_group"`
 	Users       []int     `json:"users"`
 	GroupLinks  []int     `json:"group_links"`
 	Claims      []int     `json:"claims"`
@@ -1578,11 +1440,6 @@ func (s *UpdateClaimGroupReq) GetName() OptString {
 // GetDescription returns the value of Description.
 func (s *UpdateClaimGroupReq) GetDescription() OptString {
 	return s.Description
-}
-
-// GetIsUserGroup returns the value of IsUserGroup.
-func (s *UpdateClaimGroupReq) GetIsUserGroup() OptBool {
-	return s.IsUserGroup
 }
 
 // GetUsers returns the value of Users.
@@ -1608,11 +1465,6 @@ func (s *UpdateClaimGroupReq) SetName(val OptString) {
 // SetDescription sets the value of Description.
 func (s *UpdateClaimGroupReq) SetDescription(val OptString) {
 	s.Description = val
-}
-
-// SetIsUserGroup sets the value of IsUserGroup.
-func (s *UpdateClaimGroupReq) SetIsUserGroup(val OptBool) {
-	s.IsUserGroup = val
 }
 
 // SetUsers sets the value of Users.
@@ -1724,12 +1576,69 @@ func (s *UpdateGroupLinkReq) SetClaimGroups(val OptInt) {
 	s.ClaimGroups = val
 }
 
+type UpdateUserReq struct {
+	Fname       OptString `json:"fname"`
+	Lname       OptString `json:"lname"`
+	Email       OptString `json:"email"`
+	Username    OptString `json:"username"`
+	ClaimGroups []int     `json:"claim_groups"`
+}
+
+// GetFname returns the value of Fname.
+func (s *UpdateUserReq) GetFname() OptString {
+	return s.Fname
+}
+
+// GetLname returns the value of Lname.
+func (s *UpdateUserReq) GetLname() OptString {
+	return s.Lname
+}
+
+// GetEmail returns the value of Email.
+func (s *UpdateUserReq) GetEmail() OptString {
+	return s.Email
+}
+
+// GetUsername returns the value of Username.
+func (s *UpdateUserReq) GetUsername() OptString {
+	return s.Username
+}
+
+// GetClaimGroups returns the value of ClaimGroups.
+func (s *UpdateUserReq) GetClaimGroups() []int {
+	return s.ClaimGroups
+}
+
+// SetFname sets the value of Fname.
+func (s *UpdateUserReq) SetFname(val OptString) {
+	s.Fname = val
+}
+
+// SetLname sets the value of Lname.
+func (s *UpdateUserReq) SetLname(val OptString) {
+	s.Lname = val
+}
+
+// SetEmail sets the value of Email.
+func (s *UpdateUserReq) SetEmail(val OptString) {
+	s.Email = val
+}
+
+// SetUsername sets the value of Username.
+func (s *UpdateUserReq) SetUsername(val OptString) {
+	s.Username = val
+}
+
+// SetClaimGroups sets the value of ClaimGroups.
+func (s *UpdateUserReq) SetClaimGroups(val []int) {
+	s.ClaimGroups = val
+}
+
 // Ref: #/components/schemas/User_ClaimGroupsList
 type UserClaimGroupsList struct {
 	ID          int    `json:"id"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
-	IsUserGroup bool   `json:"is_user_group"`
 }
 
 // GetID returns the value of ID.
@@ -1747,11 +1656,6 @@ func (s *UserClaimGroupsList) GetDescription() string {
 	return s.Description
 }
 
-// GetIsUserGroup returns the value of IsUserGroup.
-func (s *UserClaimGroupsList) GetIsUserGroup() bool {
-	return s.IsUserGroup
-}
-
 // SetID sets the value of ID.
 func (s *UserClaimGroupsList) SetID(val int) {
 	s.ID = val
@@ -1765,11 +1669,6 @@ func (s *UserClaimGroupsList) SetName(val string) {
 // SetDescription sets the value of Description.
 func (s *UserClaimGroupsList) SetDescription(val string) {
 	s.Description = val
-}
-
-// SetIsUserGroup sets the value of IsUserGroup.
-func (s *UserClaimGroupsList) SetIsUserGroup(val bool) {
-	s.IsUserGroup = val
 }
 
 // Ref: #/components/schemas/UserList
@@ -1841,3 +1740,147 @@ func (s *UserList) SetUsername(val string) {
 func (s *UserList) SetCreatedAt(val time.Time) {
 	s.CreatedAt = val
 }
+
+// Ref: #/components/schemas/UserRead
+type UserRead struct {
+	ID        int       `json:"id"`
+	Fname     string    `json:"fname"`
+	Lname     string    `json:"lname"`
+	Email     string    `json:"email"`
+	Username  string    `json:"username"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+// GetID returns the value of ID.
+func (s *UserRead) GetID() int {
+	return s.ID
+}
+
+// GetFname returns the value of Fname.
+func (s *UserRead) GetFname() string {
+	return s.Fname
+}
+
+// GetLname returns the value of Lname.
+func (s *UserRead) GetLname() string {
+	return s.Lname
+}
+
+// GetEmail returns the value of Email.
+func (s *UserRead) GetEmail() string {
+	return s.Email
+}
+
+// GetUsername returns the value of Username.
+func (s *UserRead) GetUsername() string {
+	return s.Username
+}
+
+// GetCreatedAt returns the value of CreatedAt.
+func (s *UserRead) GetCreatedAt() time.Time {
+	return s.CreatedAt
+}
+
+// SetID sets the value of ID.
+func (s *UserRead) SetID(val int) {
+	s.ID = val
+}
+
+// SetFname sets the value of Fname.
+func (s *UserRead) SetFname(val string) {
+	s.Fname = val
+}
+
+// SetLname sets the value of Lname.
+func (s *UserRead) SetLname(val string) {
+	s.Lname = val
+}
+
+// SetEmail sets the value of Email.
+func (s *UserRead) SetEmail(val string) {
+	s.Email = val
+}
+
+// SetUsername sets the value of Username.
+func (s *UserRead) SetUsername(val string) {
+	s.Username = val
+}
+
+// SetCreatedAt sets the value of CreatedAt.
+func (s *UserRead) SetCreatedAt(val time.Time) {
+	s.CreatedAt = val
+}
+
+func (*UserRead) readUserRes() {}
+
+// Ref: #/components/schemas/UserUpdate
+type UserUpdate struct {
+	ID        int       `json:"id"`
+	Fname     string    `json:"fname"`
+	Lname     string    `json:"lname"`
+	Email     string    `json:"email"`
+	Username  string    `json:"username"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+// GetID returns the value of ID.
+func (s *UserUpdate) GetID() int {
+	return s.ID
+}
+
+// GetFname returns the value of Fname.
+func (s *UserUpdate) GetFname() string {
+	return s.Fname
+}
+
+// GetLname returns the value of Lname.
+func (s *UserUpdate) GetLname() string {
+	return s.Lname
+}
+
+// GetEmail returns the value of Email.
+func (s *UserUpdate) GetEmail() string {
+	return s.Email
+}
+
+// GetUsername returns the value of Username.
+func (s *UserUpdate) GetUsername() string {
+	return s.Username
+}
+
+// GetCreatedAt returns the value of CreatedAt.
+func (s *UserUpdate) GetCreatedAt() time.Time {
+	return s.CreatedAt
+}
+
+// SetID sets the value of ID.
+func (s *UserUpdate) SetID(val int) {
+	s.ID = val
+}
+
+// SetFname sets the value of Fname.
+func (s *UserUpdate) SetFname(val string) {
+	s.Fname = val
+}
+
+// SetLname sets the value of Lname.
+func (s *UserUpdate) SetLname(val string) {
+	s.Lname = val
+}
+
+// SetEmail sets the value of Email.
+func (s *UserUpdate) SetEmail(val string) {
+	s.Email = val
+}
+
+// SetUsername sets the value of Username.
+func (s *UserUpdate) SetUsername(val string) {
+	s.Username = val
+}
+
+// SetCreatedAt sets the value of CreatedAt.
+func (s *UserUpdate) SetCreatedAt(val time.Time) {
+	s.CreatedAt = val
+}
+
+func (*UserUpdate) updateUserRes() {}

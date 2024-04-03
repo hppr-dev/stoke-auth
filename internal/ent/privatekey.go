@@ -20,9 +20,7 @@ type PrivateKey struct {
 	// Text holds the value of the "text" field.
 	Text string `json:"text,omitempty"`
 	// Expires holds the value of the "expires" field.
-	Expires time.Time `json:"expires,omitempty"`
-	// Renews holds the value of the "renews" field.
-	Renews       time.Time `json:"renews,omitempty"`
+	Expires      time.Time `json:"expires,omitempty"`
 	selectValues sql.SelectValues
 }
 
@@ -35,7 +33,7 @@ func (*PrivateKey) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case privatekey.FieldText:
 			values[i] = new(sql.NullString)
-		case privatekey.FieldExpires, privatekey.FieldRenews:
+		case privatekey.FieldExpires:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -69,12 +67,6 @@ func (pk *PrivateKey) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field expires", values[i])
 			} else if value.Valid {
 				pk.Expires = value.Time
-			}
-		case privatekey.FieldRenews:
-			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field renews", values[i])
-			} else if value.Valid {
-				pk.Renews = value.Time
 			}
 		default:
 			pk.selectValues.Set(columns[i], values[i])
@@ -117,9 +109,6 @@ func (pk *PrivateKey) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("expires=")
 	builder.WriteString(pk.Expires.Format(time.ANSIC))
-	builder.WriteString(", ")
-	builder.WriteString("renews=")
-	builder.WriteString(pk.Renews.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }

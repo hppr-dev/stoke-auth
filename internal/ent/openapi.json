@@ -83,9 +83,6 @@
                   "description": {
                     "type": "string"
                   },
-                  "is_user_group": {
-                    "type": "boolean"
-                  },
                   "users": {
                     "type": "array",
                     "items": {
@@ -107,8 +104,7 @@
                 },
                 "required": [
                   "name",
-                  "description",
-                  "is_user_group"
+                  "description"
                 ]
               }
             }
@@ -248,9 +244,6 @@
                   },
                   "description": {
                     "type": "string"
-                  },
-                  "is_user_group": {
-                    "type": "boolean"
                   },
                   "users": {
                     "type": "array",
@@ -1302,6 +1295,125 @@
         }
       }
     },
+    "/users/{id}": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Find a User by ID",
+        "description": "Finds the User with the requested ID and returns it.",
+        "operationId": "readUser",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID of the User",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User with requested ID was found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserRead"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          },
+          "409": {
+            "$ref": "#/components/responses/409"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Updates a User",
+        "description": "Updates a User and persists changes to storage.",
+        "operationId": "updateUser",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID of the User",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "User properties to update",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "fname": {
+                    "type": "string"
+                  },
+                  "lname": {
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": "string"
+                  },
+                  "username": {
+                    "type": "string"
+                  },
+                  "claim_groups": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "User updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserUpdate"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          },
+          "409": {
+            "$ref": "#/components/responses/409"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          }
+        }
+      }
+    },
     "/users/{id}/claim-groups": {
       "get": {
         "tags": [
@@ -1441,9 +1553,6 @@
           "description": {
             "type": "string"
           },
-          "is_user_group": {
-            "type": "boolean"
-          },
           "users": {
             "type": "array",
             "items": {
@@ -1466,8 +1575,7 @@
         "required": [
           "id",
           "name",
-          "description",
-          "is_user_group"
+          "description"
         ]
       },
       "ClaimGroupCreate": {
@@ -1481,16 +1589,12 @@
           },
           "description": {
             "type": "string"
-          },
-          "is_user_group": {
-            "type": "boolean"
           }
         },
         "required": [
           "id",
           "name",
-          "description",
-          "is_user_group"
+          "description"
         ]
       },
       "ClaimGroupList": {
@@ -1504,16 +1608,12 @@
           },
           "description": {
             "type": "string"
-          },
-          "is_user_group": {
-            "type": "boolean"
           }
         },
         "required": [
           "id",
           "name",
-          "description",
-          "is_user_group"
+          "description"
         ]
       },
       "ClaimGroupRead": {
@@ -1527,16 +1627,12 @@
           },
           "description": {
             "type": "string"
-          },
-          "is_user_group": {
-            "type": "boolean"
           }
         },
         "required": [
           "id",
           "name",
-          "description",
-          "is_user_group"
+          "description"
         ]
       },
       "ClaimGroupUpdate": {
@@ -1550,16 +1646,12 @@
           },
           "description": {
             "type": "string"
-          },
-          "is_user_group": {
-            "type": "boolean"
           }
         },
         "required": [
           "id",
           "name",
-          "description",
-          "is_user_group"
+          "description"
         ]
       },
       "ClaimGroup_ClaimsList": {
@@ -1732,16 +1824,12 @@
           },
           "description": {
             "type": "string"
-          },
-          "is_user_group": {
-            "type": "boolean"
           }
         },
         "required": [
           "id",
           "name",
-          "description",
-          "is_user_group"
+          "description"
         ]
       },
       "GroupLink": {
@@ -1853,16 +1941,12 @@
           },
           "description": {
             "type": "string"
-          },
-          "is_user_group": {
-            "type": "boolean"
           }
         },
         "required": [
           "id",
           "name",
-          "description",
-          "is_user_group"
+          "description"
         ]
       },
       "PrivateKey": {
@@ -1877,17 +1961,12 @@
           "expires": {
             "type": "string",
             "format": "date-time"
-          },
-          "renews": {
-            "type": "string",
-            "format": "date-time"
           }
         },
         "required": [
           "id",
           "text",
-          "expires",
-          "renews"
+          "expires"
         ]
       },
       "PrivateKeyList": {
@@ -1902,17 +1981,12 @@
           "expires": {
             "type": "string",
             "format": "date-time"
-          },
-          "renews": {
-            "type": "string",
-            "format": "date-time"
           }
         },
         "required": [
           "id",
           "text",
-          "expires",
-          "renews"
+          "expires"
         ]
       },
       "PrivateKeyRead": {
@@ -1927,17 +2001,12 @@
           "expires": {
             "type": "string",
             "format": "date-time"
-          },
-          "renews": {
-            "type": "string",
-            "format": "date-time"
           }
         },
         "required": [
           "id",
           "text",
-          "expires",
-          "renews"
+          "expires"
         ]
       },
       "User": {
@@ -2010,6 +2079,70 @@
           "created_at"
         ]
       },
+      "UserRead": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "fname": {
+            "type": "string"
+          },
+          "lname": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "fname",
+          "lname",
+          "email",
+          "username",
+          "created_at"
+        ]
+      },
+      "UserUpdate": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "fname": {
+            "type": "string"
+          },
+          "lname": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "fname",
+          "lname",
+          "email",
+          "username",
+          "created_at"
+        ]
+      },
       "User_ClaimGroupsList": {
         "type": "object",
         "properties": {
@@ -2021,16 +2154,12 @@
           },
           "description": {
             "type": "string"
-          },
-          "is_user_group": {
-            "type": "boolean"
           }
         },
         "required": [
           "id",
           "name",
-          "description",
-          "is_user_group"
+          "description"
         ]
       }
     },

@@ -43,7 +43,6 @@ func NewClaimGroupCreate(e *ent.ClaimGroup) *ClaimGroupCreate {
 	ret.ID = e.ID
 	ret.Name = e.Name
 	ret.Description = e.Description
-	ret.IsUserGroup = e.IsUserGroup
 	return &ret
 }
 
@@ -73,7 +72,6 @@ func NewClaimGroupList(e *ent.ClaimGroup) *ClaimGroupList {
 	ret.ID = e.ID
 	ret.Name = e.Name
 	ret.Description = e.Description
-	ret.IsUserGroup = e.IsUserGroup
 	return &ret
 }
 
@@ -103,7 +101,6 @@ func NewClaimGroupRead(e *ent.ClaimGroup) *ClaimGroupRead {
 	ret.ID = e.ID
 	ret.Name = e.Name
 	ret.Description = e.Description
-	ret.IsUserGroup = e.IsUserGroup
 	return &ret
 }
 
@@ -133,7 +130,6 @@ func NewClaimGroupUpdate(e *ent.ClaimGroup) *ClaimGroupUpdate {
 	ret.ID = e.ID
 	ret.Name = e.Name
 	ret.Description = e.Description
-	ret.IsUserGroup = e.IsUserGroup
 	return &ret
 }
 
@@ -348,7 +344,6 @@ func NewClaimClaimGroupsList(e *ent.ClaimGroup) *ClaimClaimGroupsList {
 	ret.ID = e.ID
 	ret.Name = e.Name
 	ret.Description = e.Description
-	ret.IsUserGroup = e.IsUserGroup
 	return &ret
 }
 
@@ -494,7 +489,6 @@ func NewGroupLinkClaimGroupsRead(e *ent.ClaimGroup) *GroupLinkClaimGroupsRead {
 	ret.ID = e.ID
 	ret.Name = e.Name
 	ret.Description = e.Description
-	ret.IsUserGroup = e.IsUserGroup
 	return &ret
 }
 
@@ -524,7 +518,6 @@ func NewPrivateKeyList(e *ent.PrivateKey) *PrivateKeyList {
 	ret.ID = e.ID
 	ret.Text = e.Text
 	ret.Expires = e.Expires
-	ret.Renews = e.Renews
 	return &ret
 }
 
@@ -554,7 +547,6 @@ func NewPrivateKeyRead(e *ent.PrivateKey) *PrivateKeyRead {
 	ret.ID = e.ID
 	ret.Text = e.Text
 	ret.Expires = e.Expires
-	ret.Renews = e.Renews
 	return &ret
 }
 
@@ -608,6 +600,70 @@ func (u *UserList) Elem() UserList {
 	return *u
 }
 
+func NewUserRead(e *ent.User) *UserRead {
+	if e == nil {
+		return nil
+	}
+	var ret UserRead
+	ret.ID = e.ID
+	ret.Fname = e.Fname
+	ret.Lname = e.Lname
+	ret.Email = e.Email
+	ret.Username = e.Username
+	ret.CreatedAt = e.CreatedAt
+	return &ret
+}
+
+func NewUserReads(es []*ent.User) []UserRead {
+	if len(es) == 0 {
+		return nil
+	}
+	r := make([]UserRead, len(es))
+	for i, e := range es {
+		r[i] = NewUserRead(e).Elem()
+	}
+	return r
+}
+
+func (u *UserRead) Elem() UserRead {
+	if u == nil {
+		return UserRead{}
+	}
+	return *u
+}
+
+func NewUserUpdate(e *ent.User) *UserUpdate {
+	if e == nil {
+		return nil
+	}
+	var ret UserUpdate
+	ret.ID = e.ID
+	ret.Fname = e.Fname
+	ret.Lname = e.Lname
+	ret.Email = e.Email
+	ret.Username = e.Username
+	ret.CreatedAt = e.CreatedAt
+	return &ret
+}
+
+func NewUserUpdates(es []*ent.User) []UserUpdate {
+	if len(es) == 0 {
+		return nil
+	}
+	r := make([]UserUpdate, len(es))
+	for i, e := range es {
+		r[i] = NewUserUpdate(e).Elem()
+	}
+	return r
+}
+
+func (u *UserUpdate) Elem() UserUpdate {
+	if u == nil {
+		return UserUpdate{}
+	}
+	return *u
+}
+
 func NewUserClaimGroupsList(e *ent.ClaimGroup) *UserClaimGroupsList {
 	if e == nil {
 		return nil
@@ -616,7 +672,6 @@ func NewUserClaimGroupsList(e *ent.ClaimGroup) *UserClaimGroupsList {
 	ret.ID = e.ID
 	ret.Name = e.Name
 	ret.Description = e.Description
-	ret.IsUserGroup = e.IsUserGroup
 	return &ret
 }
 

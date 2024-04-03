@@ -32,12 +32,6 @@ func (pkc *PrivateKeyCreate) SetExpires(t time.Time) *PrivateKeyCreate {
 	return pkc
 }
 
-// SetRenews sets the "renews" field.
-func (pkc *PrivateKeyCreate) SetRenews(t time.Time) *PrivateKeyCreate {
-	pkc.mutation.SetRenews(t)
-	return pkc
-}
-
 // Mutation returns the PrivateKeyMutation object of the builder.
 func (pkc *PrivateKeyCreate) Mutation() *PrivateKeyMutation {
 	return pkc.mutation
@@ -78,9 +72,6 @@ func (pkc *PrivateKeyCreate) check() error {
 	if _, ok := pkc.mutation.Expires(); !ok {
 		return &ValidationError{Name: "expires", err: errors.New(`ent: missing required field "PrivateKey.expires"`)}
 	}
-	if _, ok := pkc.mutation.Renews(); !ok {
-		return &ValidationError{Name: "renews", err: errors.New(`ent: missing required field "PrivateKey.renews"`)}
-	}
 	return nil
 }
 
@@ -114,10 +105,6 @@ func (pkc *PrivateKeyCreate) createSpec() (*PrivateKey, *sqlgraph.CreateSpec) {
 	if value, ok := pkc.mutation.Expires(); ok {
 		_spec.SetField(privatekey.FieldExpires, field.TypeTime, value)
 		_node.Expires = value
-	}
-	if value, ok := pkc.mutation.Renews(); ok {
-		_spec.SetField(privatekey.FieldRenews, field.TypeTime, value)
-		_node.Renews = value
 	}
 	return _node, _spec
 }

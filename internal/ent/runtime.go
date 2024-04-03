@@ -3,7 +3,6 @@
 package ent
 
 import (
-	"stoke/internal/ent/claimgroup"
 	"stoke/internal/ent/schema"
 	"stoke/internal/ent/user"
 	"time"
@@ -13,12 +12,6 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
-	claimgroupFields := schema.ClaimGroup{}.Fields()
-	_ = claimgroupFields
-	// claimgroupDescIsUserGroup is the schema descriptor for is_user_group field.
-	claimgroupDescIsUserGroup := claimgroupFields[2].Descriptor()
-	// claimgroup.DefaultIsUserGroup holds the default value on creation for the is_user_group field.
-	claimgroup.DefaultIsUserGroup = claimgroupDescIsUserGroup.Default.(bool)
 	userFields := schema.User{}.Fields()
 	_ = userFields
 	// userDescCreatedAt is the schema descriptor for created_at field.

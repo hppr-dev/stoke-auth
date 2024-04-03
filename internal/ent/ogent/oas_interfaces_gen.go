@@ -85,6 +85,10 @@ type ReadPrivateKeyRes interface {
 	readPrivateKeyRes()
 }
 
+type ReadUserRes interface {
+	readUserRes()
+}
+
 type UpdateClaimGroupRes interface {
 	updateClaimGroupRes()
 }
@@ -95,4 +99,8 @@ type UpdateClaimRes interface {
 
 type UpdateGroupLinkRes interface {
 	updateGroupLinkRes()
+}
+
+type UpdateUserRes interface {
+	updateUserRes()
 }

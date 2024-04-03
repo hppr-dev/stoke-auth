@@ -202,6 +202,15 @@ func (UnimplementedHandler) ReadPrivateKey(ctx context.Context, params ReadPriva
 	return r, ht.ErrNotImplemented
 }
 
+// ReadUser implements readUser operation.
+//
+// Finds the User with the requested ID and returns it.
+//
+// GET /users/{id}
+func (UnimplementedHandler) ReadUser(ctx context.Context, params ReadUserParams) (r ReadUserRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
 // UpdateClaim implements updateClaim operation.
 //
 // Updates a Claim and persists changes to storage.
@@ -226,5 +235,14 @@ func (UnimplementedHandler) UpdateClaimGroup(ctx context.Context, req *UpdateCla
 //
 // PATCH /group-links/{id}
 func (UnimplementedHandler) UpdateGroupLink(ctx context.Context, req *UpdateGroupLinkReq, params UpdateGroupLinkParams) (r UpdateGroupLinkRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
+// UpdateUser implements updateUser operation.
+//
+// Updates a User and persists changes to storage.
+//
+// PATCH /users/{id}
+func (UnimplementedHandler) UpdateUser(ctx context.Context, req *UpdateUserReq, params UpdateUserParams) (r UpdateUserRes, _ error) {
 	return r, ht.ErrNotImplemented
 }

@@ -433,7 +433,20 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 					elem = elem[idx:]
 
 					if len(elem) == 0 {
-						break
+						switch r.Method {
+						case "GET":
+							s.handleReadUserRequest([1]string{
+								args[0],
+							}, w, r)
+						case "PATCH":
+							s.handleUpdateUserRequest([1]string{
+								args[0],
+							}, w, r)
+						default:
+							s.notAllowed(w, r, "GET,PATCH")
+						}
+
+						return
 					}
 					switch elem[0] {
 					case '/': // Prefix: "/claim-groups"
@@ -976,7 +989,24 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 					elem = elem[idx:]
 
 					if len(elem) == 0 {
-						break
+						switch method {
+						case "GET":
+							r.name = "ReadUser"
+							r.operationID = "readUser"
+							r.pathPattern = "/users/{id}"
+							r.args = args
+							r.count = 1
+							return r, true
+						case "PATCH":
+							r.name = "UpdateUser"
+							r.operationID = "updateUser"
+							r.pathPattern = "/users/{id}"
+							r.args = args
+							r.count = 1
+							return r, true
+						default:
+							return
+						}
 					}
 					switch elem[0] {
 					case '/': // Prefix: "/claim-groups"

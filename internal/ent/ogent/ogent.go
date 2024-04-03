@@ -254,7 +254,6 @@ func (h *OgentHandler) CreateClaimGroup(ctx context.Context, req *CreateClaimGro
 	// Add all fields.
 	b.SetName(req.Name)
 	b.SetDescription(req.Description)
-	b.SetIsUserGroup(req.IsUserGroup)
 	// Add all edges.
 	b.AddUserIDs(req.Users...)
 	b.AddGroupLinkIDs(req.GroupLinks...)
@@ -325,9 +324,6 @@ func (h *OgentHandler) UpdateClaimGroup(ctx context.Context, req *UpdateClaimGro
 	}
 	if v, ok := req.Description.Get(); ok {
 		b.SetDescription(v)
-	}
-	if v, ok := req.IsUserGroup.Get(); ok {
-		b.SetIsUserGroup(v)
 	}
 	// Add all edges.
 	if req.Users != nil {
@@ -840,6 +836,83 @@ func (h *OgentHandler) ListUser(ctx context.Context, params ListUserParams) (Lis
 	}
 	r := NewUserLists(es)
 	return (*ListUserOKApplicationJSON)(&r), nil
+}
+
+// ReadUser handles GET /users/{id} requests.
+func (h *OgentHandler) ReadUser(ctx context.Context, params ReadUserParams) (ReadUserRes, error) {
+	q := h.client.User.Query().Where(user.IDEQ(params.ID))
+	e, err := q.Only(ctx)
+	if err != nil {
+		switch {
+		case ent.IsNotFound(err):
+			return &R404{
+				Code:   http.StatusNotFound,
+				Status: http.StatusText(http.StatusNotFound),
+				Errors: rawError(err),
+			}, nil
+		case ent.IsNotSingular(err):
+			return &R409{
+				Code:   http.StatusConflict,
+				Status: http.StatusText(http.StatusConflict),
+				Errors: rawError(err),
+			}, nil
+		default:
+			// Let the server handle the error.
+			return nil, err
+		}
+	}
+	return NewUserRead(e), nil
+}
+
+// UpdateUser handles PATCH /users/{id} requests.
+func (h *OgentHandler) UpdateUser(ctx context.Context, req *UpdateUserReq, params UpdateUserParams) (UpdateUserRes, error) {
+	b := h.client.User.UpdateOneID(params.ID)
+	// Add all fields.
+	if v, ok := req.Fname.Get(); ok {
+		b.SetFname(v)
+	}
+	if v, ok := req.Lname.Get(); ok {
+		b.SetLname(v)
+	}
+	if v, ok := req.Email.Get(); ok {
+		b.SetEmail(v)
+	}
+	if v, ok := req.Username.Get(); ok {
+		b.SetUsername(v)
+	}
+	// Add all edges.
+	if req.ClaimGroups != nil {
+		b.ClearClaimGroups().AddClaimGroupIDs(req.ClaimGroups...)
+	}
+	// Persist to storage.
+	e, err := b.Save(ctx)
+	if err != nil {
+		switch {
+		case ent.IsNotFound(err):
+			return &R404{
+				Code:   http.StatusNotFound,
+				Status: http.StatusText(http.StatusNotFound),
+				Errors: rawError(err),
+			}, nil
+		case ent.IsConstraintError(err):
+			return &R409{
+				Code:   http.StatusConflict,
+				Status: http.StatusText(http.StatusConflict),
+				Errors: rawError(err),
+			}, nil
+		default:
+			// Let the server handle the error.
+			return nil, err
+		}
+	}
+	// Reload the entity to attach all eager-loaded edges.
+	q := h.client.User.Query().Where(user.ID(e.ID))
+	e, err = q.Only(ctx)
+	if err != nil {
+		// This should never happen.
+		return nil, err
+	}
+	return NewUserUpdate(e), nil
 }
 
 // ListUserClaimGroups handles GET /users/{id}/claim-groups requests.
