@@ -16,7 +16,7 @@ var ProviderTypeNotSupported = errors.New("Provider type not supported")
 
 type Provider interface {
 	Init() error
-	GetUserClaims(user, pass string) (ent.Claims, error)
+	GetUserClaims(user, pass string) (*ent.User, ent.Claims, error)
   AddUser(provider ProviderType, fname, lname, email, username, password string, superUser bool) error
   UpdateUser(provider ProviderType, fname, lname, email, username, password string) error
 }
@@ -59,17 +59,21 @@ func (m MultiProvider) UpdateUser(provider ProviderType, fname, lname, email, us
 	return p.UpdateUser(provider, fname, lname, email, username, password)
 }
 
-func (m MultiProvider) GetUserClaims(username, password string) (ent.Claims, error) {
+func (m MultiProvider) GetUserClaims(username, password string) (*ent.User, ent.Claims, error) {
 	var claims ent.Claims
+	var user *ent.User
 	for _, p := range m.providers {
-		provClaims, _ := p.GetUserClaims(username, password)
+		provUser, provClaims, _ := p.GetUserClaims(username, password)
 		claims = append(claims, provClaims...)
+		if provUser != nil {
+			user = provUser
+		}
 	}
 	if len(claims) == 0 {
 		logger.Debug().
 			Str("username", username).
 			Msg("No claims found")
-		return nil, errors.New("No claims found")
+		return nil, nil, errors.New("No claims found")
 	}
-	return claims, nil
+	return user, claims, nil
 }

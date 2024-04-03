@@ -8,6 +8,8 @@ export const useAppStore = defineStore('app', {
     api_url: import.meta.env.DEV? import.meta.env.VITE_API_URL : "",
     username: "",
     token: "",
+    refreshToken: "",
+    refreshTimeout: 0,
     currentUser : {} as User,
     currentGroup: {} as Group,
     currentClaim: {} as Claim,

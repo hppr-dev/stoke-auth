@@ -4,12 +4,9 @@ import (
 	"crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/rsa"
-	"regexp"
 	"stoke/internal/cfg"
 	"stoke/internal/ent"
 	"stoke/internal/key"
-	"strconv"
-	"time"
 )
 
 func createTokenIssuer(conf cfg.Config, dbClient *ent.Client) key.TokenIssuer {
@@ -24,14 +21,13 @@ func createTokenIssuer(conf cfg.Config, dbClient *ent.Client) key.TokenIssuer {
 		return createRSAIssuer(conf, dbClient)
 	}
 	logger.Fatal().Str("algorithm", conf.Tokens.Algorithm).Msg("Unsupported algorithm")
-	panic("Unrecoverable")
 	return nil
 }
 
 func createECDSAIssuer(conf cfg.Config, dbClient *ent.Client) key.TokenIssuer {
 	cache := key.KeyCache[*ecdsa.PrivateKey]{
-		KeyDuration:   strToDuration(conf.Tokens.KeyDuration),
-		TokenDuration: strToDuration(conf.Tokens.TokenDuration),
+		KeyDuration:   conf.Tokens.KeyDuration,
+		TokenDuration: conf.Tokens.TokenDuration,
 	}
 	pair := &key.ECDSAKeyPair{
 		NumBits : conf.Tokens.NumBits,
@@ -41,7 +37,6 @@ func createECDSAIssuer(conf cfg.Config, dbClient *ent.Client) key.TokenIssuer {
 
 	if err != nil {
 		logger.Fatal().Err(err).Msg("Could not bootstrap key cache")
-		panic("Unrecoverable")
 	}
 
 	return &key.AsymetricTokenIssuer[*ecdsa.PrivateKey]{
@@ -51,8 +46,8 @@ func createECDSAIssuer(conf cfg.Config, dbClient *ent.Client) key.TokenIssuer {
 
 func createEdDSAIssuer(conf cfg.Config, dbClient *ent.Client) key.TokenIssuer {
 	cache := key.KeyCache[ed25519.PrivateKey]{
-		KeyDuration:   strToDuration(conf.Tokens.KeyDuration),
-		TokenDuration: strToDuration(conf.Tokens.TokenDuration),
+		KeyDuration:   conf.Tokens.KeyDuration,
+		TokenDuration: conf.Tokens.TokenDuration,
 	}
 	pair := &key.EdDSAKeyPair{}
 
@@ -60,7 +55,6 @@ func createEdDSAIssuer(conf cfg.Config, dbClient *ent.Client) key.TokenIssuer {
 
 	if err != nil {
 		logger.Fatal().Err(err).Msg("Could not bootstrap key cache")
-		panic("Unrecoverable")
 	}
 
 	return &key.AsymetricTokenIssuer[ed25519.PrivateKey]{
@@ -70,8 +64,8 @@ func createEdDSAIssuer(conf cfg.Config, dbClient *ent.Client) key.TokenIssuer {
 
 func createRSAIssuer(conf cfg.Config, dbClient *ent.Client) key.TokenIssuer {
 	cache := key.KeyCache[*rsa.PrivateKey]{
-		KeyDuration:   strToDuration(conf.Tokens.KeyDuration),
-		TokenDuration: strToDuration(conf.Tokens.TokenDuration),
+		KeyDuration:   conf.Tokens.KeyDuration,
+		TokenDuration: conf.Tokens.TokenDuration,
 	}
 	pair := &key.RSAKeyPair{}
 
@@ -79,7 +73,6 @@ func createRSAIssuer(conf cfg.Config, dbClient *ent.Client) key.TokenIssuer {
 
 	if err != nil {
 		logger.Fatal().Err(err).Msg("Could not bootstrap key cache")
-		panic("Unrecoverable")
 	}
 
 	return &key.AsymetricTokenIssuer[*rsa.PrivateKey]{
@@ -87,27 +80,4 @@ func createRSAIssuer(conf cfg.Config, dbClient *ent.Client) key.TokenIssuer {
 	}
 }
 
-var durationRegex *regexp.Regexp = regexp.MustCompile(`(\d+)([sSmMhHdDyY])`)
 
-func strToDuration(s string) time.Duration {
-	matches := durationRegex.FindStringSubmatch(s)
-	if len(matches) != 3 {
-		logger.Fatal().Str("durationString", s).Msg("Was not parsable")
-		panic("Unrecoverable")
-	}
-	num, _ := strconv.Atoi(matches[1])
-	dur := time.Duration(num)
-	switch matches[2] {
-	case "s", "S":
-		return time.Second * dur
-	case "m", "M":
-		return time.Minute * dur
-	case "h", "H":
-		return time.Hour * dur
-	case "d", "D":
-		return time.Hour * 24 * dur
-	case "y", "Y":
-		return time.Hour * 24 * 265 * dur
-	}
-	panic("Unreachable. If it reaches here, it means that durationRegex is broken.")
-}

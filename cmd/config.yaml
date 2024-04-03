@@ -21,6 +21,15 @@ tokens:
   key_duration: 3h
   token_duration: 30m
   issuer: "stk"
-  subject: "ath"
+#  subject: "ath"
+#  audience: ["users"]
+#  include_issued_at: yes
+#  include_not_before: yes
+  user_info:
+    full_name: "n"
+    username: "u"
+    email: "e"
+#    first_name: "fn"
+#    last_name: "ln"
 
 users:

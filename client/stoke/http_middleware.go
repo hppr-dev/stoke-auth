@@ -1,13 +1,14 @@
 package stoke
 
 import (
+	"context"
 	"net/http"
 	"strings"
 
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func WithClaims(handler http.Handler, store PublicKeyStore, claims *ClaimsValidator, parserOpts ...jwt.ParserOption) http.Handler {
+func Auth(handler http.Handler, store PublicKeyStore, claims *Claims, parserOpts ...jwt.ParserOption) http.Handler {
 	return authWrapper{
 		inner:      handler.ServeHTTP,
 		store:      store,
@@ -16,7 +17,7 @@ func WithClaims(handler http.Handler, store PublicKeyStore, claims *ClaimsValida
 	}
 }
 
-func WithClaimsFunc(handler http.HandlerFunc, store PublicKeyStore, claims *ClaimsValidator, parserOpts ...jwt.ParserOption) http.Handler {
+func AuthFunc(handler http.HandlerFunc, store PublicKeyStore, claims *Claims, parserOpts ...jwt.ParserOption) http.Handler {
 	return authWrapper{
 		inner:      handler,
 		store:      store,
@@ -28,17 +29,30 @@ func WithClaimsFunc(handler http.HandlerFunc, store PublicKeyStore, claims *Clai
 type authWrapper struct {
 	store PublicKeyStore
 	inner http.HandlerFunc
-	reqClaims *ClaimsValidator
+	reqClaims *Claims
 	parserOpts []jwt.ParserOption
 }
 
 func (w authWrapper) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	token := req.Header.Get("Authorization")
-	if token == "" || !strings.HasPrefix(token, "Token ") || !w.store.ValidateClaims(strings.TrimPrefix(token, "Token "), w.reqClaims, w.parserOpts...) {
-		res.WriteHeader(http.StatusUnauthorized)
-		res.Write([]byte("{'message' : 'Unauthorized'}"))
+	if token == "" || !strings.HasPrefix(token, "Token ") {
+		res.WriteHeader(http.StatusUnprocessableEntity)
+		res.Write([]byte(`{"message" : "Token is required"}`))
 		return
 	}
-	w.inner(res, req)
+
+	trimToken := strings.TrimPrefix(token, "Token ")
+
+	jwtToken, err := w.store.ParseClaims(trimToken, w.reqClaims, w.parserOpts...)
+	if err != nil  || !jwtToken.Valid {
+		res.WriteHeader(http.StatusUnauthorized)
+		res.Write([]byte(`{"message" : "Unauthorized"}`))
+		return
+	}
+
+	reqContext := context.WithValue(req.Context(), "token", trimToken)
+	reqContext = context.WithValue(reqContext, "jwt.Token", jwtToken)
+
+	w.inner(res, req.WithContext(reqContext))
 }
 

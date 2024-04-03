@@ -17,8 +17,6 @@ func (PrivateKey) Fields() []ent.Field {
 				Immutable(),
 			field.Time("expires").
 				Immutable(),
-			field.Time("renews").
-				Immutable(),
 		}
 }
 

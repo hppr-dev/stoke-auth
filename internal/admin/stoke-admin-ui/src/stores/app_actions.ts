@@ -11,6 +11,9 @@ export const appActions = {
         body: JSON.stringify({
           username: username,
           password: password,
+          required_claims: {
+            srol: "spr",
+          },
         }),
       })
 
@@ -21,18 +24,77 @@ export const appActions = {
 
       this.username = username
       this.token = result.token
+      this.refreshToken = result.refresh
       sessionStorage.setItem("token", result.token)
+      sessionStorage.setItem("refresh", result.refresh)
       sessionStorage.setItem("username", username)
 
+      this.scheduleRefresh()
+
     } catch (err) {
+
+      this.username = ""
+      this.token = ""
+      this.refreshToken = ""
+      this.refreshTimeout = 0
+      sessionStorage.setItem("token", "")
+      sessionStorage.setItem("refresh", "")
+      sessionStorage.setItem("username", "")
+
       throw err
     }
+  },
+  refreshSession: async function() {
+    try {
+      const resp = await fetch(`${this.api_url}/api/refresh`, {
+        method: "POST",
+        headers: {
+          "Content-Type" : "application/json",
+          "Authorization" : `Token ${this.token}`,
+        },
+        body: JSON.stringify({
+          refresh: this.refreshToken,
+        }),
+      })
+
+      const result = await resp.json();
+      if ( result.message ) {
+        throw new Error(result.message);
+      }
+
+      this.token = result.token
+      this.refreshToken = result.refresh
+      sessionStorage.setItem("token", result.token)
+      sessionStorage.setItem("refresh", result.refresh)
+
+      this.scheduleRefresh()
+
+    } catch (err) {
+      console.error(err)
+
+      this.username = ""
+      this.token = ""
+      this.refreshToken = ""
+      this.refreshTimeout = 0
+      sessionStorage.setItem("token", "")
+      sessionStorage.setItem("refresh", "")
+      sessionStorage.setItem("username", "")
+
+      throw err
+    }
+  },
+  scheduleRefresh: function() {
+    this.refreshTimeout = window.setTimeout(this.refreshSession, this.tokenExpiration.getTime() - Date.now() - 10000)
   },
   logout: function() {
     this.username = ""
     this.token = ""
+    this.refreshToken = ""
     sessionStorage.setItem("token", "")
+    sessionStorage.setItem("refresh", "")
     sessionStorage.setItem("username", "")
+
+    clearTimeout(this.refreshTimeout)
   },
   simpleGet: async function(endpoint : string, stateName : string, refresh? : boolean) {
     if ( !refresh ) {

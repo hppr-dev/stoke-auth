@@ -37,6 +37,7 @@
     <v-row class="pb-3">
       <v-text-field
         label="Password"
+        type="password"
         v-model="password"
         :rules="[require('Password')]"
         @blur="updateScratchUser"
@@ -46,7 +47,7 @@
         type="password"
         label="Repeat Password"
         v-model="passwordCheck"
-        :rules="[require('Repeat password')]"
+        :rules="[require('Repeat password'), matchPasswords]"
       > </v-text-field>
     </v-row>
   </v-sheet>
@@ -66,6 +67,10 @@
   const email = ref("")
   const password = ref("")
   const passwordCheck = ref("")
+
+  function matchPasswords(v : string) : boolean | string {
+    return v == password.value || "Repeat password does not match."
+  }
 
   function updateScratchUser() {
     store.$patch({

@@ -53,21 +53,6 @@ func (l LocalProvider) AddUser(provider ProviderType, fname, lname, email, usern
 		return err
 	}
 	
-	_, err = l.DB.ClaimGroup.Create().
-		AddUsers(userInfo).
-		SetName(username).
-		SetDescription(fmt.Sprintf("%s's group", username)).
-		SetIsUserGroup(true).
-		Save(context.Background())
-	if err != nil {
-		logger.Error().
-			Err(err).
-			Str("username", username).
-			Str("email", email).
-			Msg("Could not create user claim group")
-		return err
-	}
-
 	if superUser {
 		superGroup, err := l.getOrCreateSuperGroup()
 		if err != nil {
@@ -93,7 +78,7 @@ func (l LocalProvider) AddUser(provider ProviderType, fname, lname, email, usern
 	return nil
 }
 
-func (l LocalProvider) GetUserClaims(username, password string) (ent.Claims, error) {
+func (l LocalProvider) GetUserClaims(username, password string) (*ent.User, ent.Claims, error) {
 	logger.Debug().
 		Str("username", username).
 		Msg("Getting user claims")
@@ -114,12 +99,12 @@ func (l LocalProvider) GetUserClaims(username, password string) (ent.Claims, err
 			Err(err).
 			Str("username", username).
 			Msg("Could not find user")
-		return nil, err
+		return nil, nil, err
 	}
 
 	if l.hashPass(password, usr.Salt) != usr.Password {
 		logger.Debug().Str("username", username).Msg("User password did not match")
-		return nil, fmt.Errorf("Bad Password")
+		return nil, nil, fmt.Errorf("Bad Password")
 	}
 
 	var allClaims ent.Claims
@@ -136,7 +121,7 @@ func (l LocalProvider) GetUserClaims(username, password string) (ent.Claims, err
 			e.Strs("claims", values)
 		}).
 		Msg("Claims found")
-	return allClaims, nil
+	return usr, allClaims, nil
 }
 
 func (l LocalProvider) hashPass(pass, salt string) string {

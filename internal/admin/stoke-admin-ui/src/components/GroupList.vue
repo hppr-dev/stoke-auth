@@ -39,7 +39,6 @@
     { key : "id", title: "ID" },
     { key : "name", title: "Group Name" },
     { key : "description", title: "Description"},
-    { key : "is_user_group", title: "For User?"},
   ]
 
   const store = useAppStore()

@@ -47,13 +47,26 @@ func (s *Server) Init() error {
 	)
 
 	http.Handle(
-		"/api/admin_users",
-			LogHTTP(
+		"/api/refresh",
 		AllowAllMethods(
-				stoke.WithClaims(
+			LogHTTP(
+				stoke.Auth(
+					RefreshApiHandler{ Context: s.Context },
+					s.Context.Issuer,
+					stoke.Token().ForAccess(),
+				),
+			),
+		),
+	)
+
+	http.Handle(
+		"/api/admin_users",
+		AllowAllMethods(
+			LogHTTP(
+				stoke.Auth(
 					UserHandler{ Context: s.Context },
 					s.Context.Issuer,
-					stoke.Claims().Require("srol", "spr").Validator(),
+					stoke.Token().Requires("srol", "spr").ForAccess(),
 				),
 			),
 		),
@@ -63,10 +76,10 @@ func (s *Server) Init() error {
 		"/api/admin/",
 		AllowAllMethods(
 			LogHTTP(
-				stoke.WithClaims(
+				stoke.Auth(
 					NewEntityAPIHandler("/api/admin/", s.Context),
 					s.Context.Issuer,
-					stoke.Claims().Require("srol", "spr").Validator(),
+					stoke.Token().Requires("srol", "spr").ForAccess(),
 				),
 			),
 		),

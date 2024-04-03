@@ -17,7 +17,7 @@ type RSAKeyPair struct {
 	KeyMeta
 }
 
-func (k *RSAKeyPair) Generate() error {
+func (k *RSAKeyPair) Generate() (KeyPair[*rsa.PrivateKey], error) {
 	logger.Info().Msg("Generating RSA key...")
 
 	if k.NumBits != 256 && k.NumBits != 384 && k.NumBits != 512 {
@@ -28,11 +28,13 @@ func (k *RSAKeyPair) Generate() error {
 	priv, err := rsa.GenerateKey(rand.Reader, k.NumBits)
 	if err != nil {
 		logger.Error().Err(err).Msg("Failed to generate key")
-		return err
+		return nil, err
 	}
 
-	k.PrivateKey = priv
-	return nil
+	return &RSAKeyPair{
+		NumBits: k.NumBits,
+		PrivateKey: priv,
+	}, err
 }
 
 func (k *RSAKeyPair) PublicString() string {

@@ -17,17 +17,19 @@ type ECDSAKeyPair struct {
 	KeyMeta
 }
 
-func (k *ECDSAKeyPair) Generate() error {
+func (k *ECDSAKeyPair) Generate() (KeyPair[*ecdsa.PrivateKey], error) {
 	logger.Info().Msg("Generating new ECDSA keypair...")
 
 	priv, err := ecdsa.GenerateKey(k.getCurve(), rand.Reader)
 	if err != nil {
-		logger.Error().Err(err).Msg("Could not genrate ECDSA key")
-		return err
+		logger.Error().Err(err).Msg("Could not generate ECDSA key")
+		return nil, err
 	}
 
-	k.PrivateKey = priv
-	return nil
+	return &ECDSAKeyPair{
+		NumBits: k.NumBits,
+		PrivateKey: priv,
+	}, err
 }
 
 func (k *ECDSAKeyPair) PublicString() string {

@@ -15,8 +15,6 @@ func (ClaimGroup) Fields() []ent.Field {
 		field.String("name").
 			Unique(),
 		field.String("description"),
-		field.Bool("is_user_group").
-			Default(false),
 	}
 }
 

@@ -4,7 +4,7 @@ import "github.com/golang-jwt/jwt/v5"
 
 type PublicKeyStore interface {
 	Init() error
-	ValidateClaims(string, *ClaimsValidator, ...jwt.ParserOption) bool
+	ParseClaims(string, *Claims, ...jwt.ParserOption) (*jwt.Token, error)
 }
 
 func DefaultPublicKeyStore(endpoint string) PublicKeyStore {

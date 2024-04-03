@@ -24,5 +24,6 @@ func FromFile(filename string) *Config {
 	if err = yaml.Unmarshal(content, conf); err != nil {
 		panic(fmt.Sprintf("Could not read config yaml: %s, %v", filename, err))
 	}
+	conf.Tokens.ParseDurations()
 	return conf
 }

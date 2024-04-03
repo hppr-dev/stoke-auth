@@ -28,7 +28,8 @@ func (User) Fields() []ent.Field {
 					Annotations(entoas.Skip(true)),
 				field.Time("created_at").
 					Immutable().
-					Default(time.Now),
+					Default(time.Now).
+					Annotations(entoas.ReadOnly(true)),
 		}
 }
 
@@ -41,10 +42,8 @@ func (User) Edges() []ent.Edge {
 
 func (User) Annotations() []schema.Annotation {
 	return []schema.Annotation{
-		entoas.ReadOperation(entoas.OperationPolicy(entoas.PolicyExclude)),
 		entoas.CreateOperation(entoas.OperationPolicy(entoas.PolicyExclude)),
 		entoas.DeleteOperation(entoas.OperationPolicy(entoas.PolicyExclude)),
-		entoas.UpdateOperation(entoas.OperationPolicy(entoas.PolicyExclude)),
 	}
 }
 

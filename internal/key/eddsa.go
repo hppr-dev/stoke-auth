@@ -14,10 +14,11 @@ type EdDSAKeyPair struct {
 	KeyMeta
 }
 
-func (k *EdDSAKeyPair) Generate() error {
+func (k *EdDSAKeyPair) Generate() (KeyPair[ed25519.PrivateKey], error) {
 	_, priv, err := ed25519.GenerateKey(rand.Reader)
-	k.PrivateKey = priv
-	return err
+	return &EdDSAKeyPair{
+		PrivateKey: priv,
+	}, err
 }
 
 func (k *EdDSAKeyPair) PublicString() string {

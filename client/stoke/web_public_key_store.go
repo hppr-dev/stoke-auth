@@ -1,11 +1,11 @@
 package stoke
 
 import (
-	"crypto/x509"
+	"encoding/json"
+	"io"
 	"net/http"
 	"time"
 
-	"github.com/go-faster/jx"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -32,12 +32,8 @@ func (s *WebPublicKeyStore) goManage(){
 	}
 }
 
-func (s *WebPublicKeyStore) ValidateClaims(token string, reqClaims *ClaimsValidator, parserOpts ...jwt.ParserOption) bool {
-	jwtToken, err := jwt.ParseWithClaims(token, reqClaims, s.keyFunc, parserOpts...)
-	if err != nil {
-		return false
-	}
-	return jwtToken.Valid
+func (s *WebPublicKeyStore) ParseClaims(token string, reqClaims *Claims, parserOpts ...jwt.ParserOption) (*jwt.Token, error) {
+	return jwt.ParseWithClaims(token, reqClaims, s.keyFunc, parserOpts...)
 }
 
 func (s *WebPublicKeyStore) keyFunc(token *jwt.Token) (interface{}, error) {
@@ -50,63 +46,28 @@ func (s *WebPublicKeyStore) refreshPublicKeys() error {
 	if err != nil {
 		return err
 	}
-	decoder := jx.Decode(resp.Body, 256)
 
-	var pkeys []jwt.VerificationKey
-	var nextUpdate time.Time
-
-	err = decoder.Arr(
-		func (d *jx.Decoder) error {
-			return d.Obj(
-				func (d *jx.Decoder, key string) error {
-					var objErr error
-					var keyBytes []uint8
-					var parsedKey jwt.VerificationKey
-					var t time.Time
-					switch key {
-					case "text":
-						keyBytes, objErr = d.Base64()
-						if objErr != nil {
-							return objErr
-						}
-						parsedKey, objErr = x509.ParsePKIXPublicKey(keyBytes)
-						pkeys = append(pkeys, parsedKey)
-
-					case "renews", "expires":
-						t, objErr = parseTime(d)
-						if t.Before(nextUpdate) {
-							nextUpdate = t
-						}
-					}
-					return objErr
-				},
-			)
-		},
-	)
+	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return err
 	}
+
+	jwks := &JWKSet{}
+	if err := json.Unmarshal(bodyBytes, jwks); err != nil {
+		return err
+	}
+
+	pkeys := make([]jwt.VerificationKey, len(jwks.Keys))
+	for i, k := range jwks.Keys {
+		pkeys[i], err = k.ToPublicKey()
+		if err != nil {
+			return err
+		}
+	}
+
 	s.keySet = jwt.VerificationKeySet {
 		Keys : pkeys,
 	}
-	s.nextUpdate = nextUpdate
+	s.nextUpdate = jwks.Expires
 	return nil
-}
-
-func parseTime(d *jx.Decoder) (time.Time, error) {
-	i, err := d.Int()
-	return time.Unix(int64(i), 0), err
-}
-
-func bytesToPublicKey(method string, pkeys [][]byte) ([]jwt.VerificationKey, error) {
-	var vKeys []jwt.VerificationKey
-
-	for _, keyBytes := range pkeys {
-		key, err := x509.ParsePKIXPublicKey(keyBytes)
-		if err != nil {
-			return nil, err
-		}
-		vKeys = append(vKeys, key)
-	}
-	return vKeys, nil
 }

@@ -26,6 +26,10 @@ func main() {
 		UserProvider: createUserProvider(*config, dbClient),
 	}
 
+	if err := appContext.Issuer.Init() ; err != nil {
+		logger.Fatal().Err(err).Msg("Could not initialize token issuer")
+	}
+
 	server := web.Server {
 		Context: appContext,
 	}

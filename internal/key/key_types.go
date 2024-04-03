@@ -15,7 +15,7 @@ type PrivateKey interface {
 }
 
 type KeyPair[P PrivateKey] interface {
-	Generate() error
+	Generate() (KeyPair[P], error)
 	PublicString() string
 	Encode() string
 	Decode(string) error
@@ -24,6 +24,4 @@ type KeyPair[P PrivateKey] interface {
 	SigningMethod() jwt.SigningMethod
 	SetExpires(time.Time)
 	ExpiresAt() time.Time
-	SetRenews(time.Time)
-	RenewsAt() time.Time
 }
