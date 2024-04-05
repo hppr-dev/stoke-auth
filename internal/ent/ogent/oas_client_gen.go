@@ -5,11 +5,14 @@ package ogent
 import (
 	"context"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/go-faster/errors"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/metric"
+	semconv "go.opentelemetry.io/otel/semconv/v1.19.0"
 	"go.opentelemetry.io/otel/trace"
 
 	"github.com/ogen-go/ogen/conv"
@@ -17,6 +20,166 @@ import (
 	"github.com/ogen-go/ogen/otelogen"
 	"github.com/ogen-go/ogen/uri"
 )
+
+// Invoker invokes operations described by OpenAPI v3 specification.
+type Invoker interface {
+	// CreateClaim invokes createClaim operation.
+	//
+	// Creates a new Claim and persists it to storage.
+	//
+	// POST /claims
+	CreateClaim(ctx context.Context, request *CreateClaimReq) (CreateClaimRes, error)
+	// CreateClaimGroup invokes createClaimGroup operation.
+	//
+	// Creates a new ClaimGroup and persists it to storage.
+	//
+	// POST /claim-groups
+	CreateClaimGroup(ctx context.Context, request *CreateClaimGroupReq) (CreateClaimGroupRes, error)
+	// CreateGroupLink invokes createGroupLink operation.
+	//
+	// Creates a new GroupLink and persists it to storage.
+	//
+	// POST /group-links
+	CreateGroupLink(ctx context.Context, request *CreateGroupLinkReq) (CreateGroupLinkRes, error)
+	// DeleteClaim invokes deleteClaim operation.
+	//
+	// Deletes the Claim with the requested ID.
+	//
+	// DELETE /claims/{id}
+	DeleteClaim(ctx context.Context, params DeleteClaimParams) (DeleteClaimRes, error)
+	// DeleteClaimGroup invokes deleteClaimGroup operation.
+	//
+	// Deletes the ClaimGroup with the requested ID.
+	//
+	// DELETE /claim-groups/{id}
+	DeleteClaimGroup(ctx context.Context, params DeleteClaimGroupParams) (DeleteClaimGroupRes, error)
+	// DeleteGroupLink invokes deleteGroupLink operation.
+	//
+	// Deletes the GroupLink with the requested ID.
+	//
+	// DELETE /group-links/{id}
+	DeleteGroupLink(ctx context.Context, params DeleteGroupLinkParams) (DeleteGroupLinkRes, error)
+	// ListClaim invokes listClaim operation.
+	//
+	// List Claims.
+	//
+	// GET /claims
+	ListClaim(ctx context.Context, params ListClaimParams) (ListClaimRes, error)
+	// ListClaimClaimGroups invokes listClaimClaimGroups operation.
+	//
+	// List attached ClaimGroups.
+	//
+	// GET /claims/{id}/claim-groups
+	ListClaimClaimGroups(ctx context.Context, params ListClaimClaimGroupsParams) (ListClaimClaimGroupsRes, error)
+	// ListClaimGroup invokes listClaimGroup operation.
+	//
+	// List ClaimGroups.
+	//
+	// GET /claim-groups
+	ListClaimGroup(ctx context.Context, params ListClaimGroupParams) (ListClaimGroupRes, error)
+	// ListClaimGroupClaims invokes listClaimGroupClaims operation.
+	//
+	// List attached Claims.
+	//
+	// GET /claim-groups/{id}/claims
+	ListClaimGroupClaims(ctx context.Context, params ListClaimGroupClaimsParams) (ListClaimGroupClaimsRes, error)
+	// ListClaimGroupGroupLinks invokes listClaimGroupGroupLinks operation.
+	//
+	// List attached GroupLinks.
+	//
+	// GET /claim-groups/{id}/group-links
+	ListClaimGroupGroupLinks(ctx context.Context, params ListClaimGroupGroupLinksParams) (ListClaimGroupGroupLinksRes, error)
+	// ListClaimGroupUsers invokes listClaimGroupUsers operation.
+	//
+	// List attached Users.
+	//
+	// GET /claim-groups/{id}/users
+	ListClaimGroupUsers(ctx context.Context, params ListClaimGroupUsersParams) (ListClaimGroupUsersRes, error)
+	// ListGroupLink invokes listGroupLink operation.
+	//
+	// List GroupLinks.
+	//
+	// GET /group-links
+	ListGroupLink(ctx context.Context, params ListGroupLinkParams) (ListGroupLinkRes, error)
+	// ListPrivateKey invokes listPrivateKey operation.
+	//
+	// List PrivateKeys.
+	//
+	// GET /private-keys
+	ListPrivateKey(ctx context.Context, params ListPrivateKeyParams) (ListPrivateKeyRes, error)
+	// ListUser invokes listUser operation.
+	//
+	// List Users.
+	//
+	// GET /users
+	ListUser(ctx context.Context, params ListUserParams) (ListUserRes, error)
+	// ListUserClaimGroups invokes listUserClaimGroups operation.
+	//
+	// List attached ClaimGroups.
+	//
+	// GET /users/{id}/claim-groups
+	ListUserClaimGroups(ctx context.Context, params ListUserClaimGroupsParams) (ListUserClaimGroupsRes, error)
+	// ReadClaim invokes readClaim operation.
+	//
+	// Finds the Claim with the requested ID and returns it.
+	//
+	// GET /claims/{id}
+	ReadClaim(ctx context.Context, params ReadClaimParams) (ReadClaimRes, error)
+	// ReadClaimGroup invokes readClaimGroup operation.
+	//
+	// Finds the ClaimGroup with the requested ID and returns it.
+	//
+	// GET /claim-groups/{id}
+	ReadClaimGroup(ctx context.Context, params ReadClaimGroupParams) (ReadClaimGroupRes, error)
+	// ReadGroupLink invokes readGroupLink operation.
+	//
+	// Finds the GroupLink with the requested ID and returns it.
+	//
+	// GET /group-links/{id}
+	ReadGroupLink(ctx context.Context, params ReadGroupLinkParams) (ReadGroupLinkRes, error)
+	// ReadGroupLinkClaimGroups invokes readGroupLinkClaimGroups operation.
+	//
+	// Find the attached ClaimGroup of the GroupLink with the given ID.
+	//
+	// GET /group-links/{id}/claim-groups
+	ReadGroupLinkClaimGroups(ctx context.Context, params ReadGroupLinkClaimGroupsParams) (ReadGroupLinkClaimGroupsRes, error)
+	// ReadPrivateKey invokes readPrivateKey operation.
+	//
+	// Finds the PrivateKey with the requested ID and returns it.
+	//
+	// GET /private-keys/{id}
+	ReadPrivateKey(ctx context.Context, params ReadPrivateKeyParams) (ReadPrivateKeyRes, error)
+	// ReadUser invokes readUser operation.
+	//
+	// Finds the User with the requested ID and returns it.
+	//
+	// GET /users/{id}
+	ReadUser(ctx context.Context, params ReadUserParams) (ReadUserRes, error)
+	// UpdateClaim invokes updateClaim operation.
+	//
+	// Updates a Claim and persists changes to storage.
+	//
+	// PATCH /claims/{id}
+	UpdateClaim(ctx context.Context, request *UpdateClaimReq, params UpdateClaimParams) (UpdateClaimRes, error)
+	// UpdateClaimGroup invokes updateClaimGroup operation.
+	//
+	// Updates a ClaimGroup and persists changes to storage.
+	//
+	// PATCH /claim-groups/{id}
+	UpdateClaimGroup(ctx context.Context, request *UpdateClaimGroupReq, params UpdateClaimGroupParams) (UpdateClaimGroupRes, error)
+	// UpdateGroupLink invokes updateGroupLink operation.
+	//
+	// Updates a GroupLink and persists changes to storage.
+	//
+	// PATCH /group-links/{id}
+	UpdateGroupLink(ctx context.Context, request *UpdateGroupLinkReq, params UpdateGroupLinkParams) (UpdateGroupLinkRes, error)
+	// UpdateUser invokes updateUser operation.
+	//
+	// Updates a User and persists changes to storage.
+	//
+	// PATCH /users/{id}
+	UpdateUser(ctx context.Context, request *UpdateUserReq, params UpdateUserParams) (UpdateUserRes, error)
+}
 
 // Client implements OAS client.
 type Client struct {
@@ -28,12 +191,19 @@ var _ Handler = struct {
 	*Client
 }{}
 
+func trimTrailingSlashes(u *url.URL) {
+	u.Path = strings.TrimRight(u.Path, "/")
+	u.RawPath = strings.TrimRight(u.RawPath, "/")
+}
+
 // NewClient initializes new Client defined by OAS.
 func NewClient(serverURL string, opts ...ClientOption) (*Client, error) {
 	u, err := url.Parse(serverURL)
 	if err != nil {
 		return nil, err
 	}
+	trimTrailingSlashes(u)
+
 	c, err := newClientConfig(opts...).baseClient()
 	if err != nil {
 		return nil, err
@@ -66,24 +236,26 @@ func (c *Client) requestURL(ctx context.Context) *url.URL {
 // POST /claims
 func (c *Client) CreateClaim(ctx context.Context, request *CreateClaimReq) (CreateClaimRes, error) {
 	res, err := c.sendCreateClaim(ctx, request)
-	_ = res
 	return res, err
 }
 
 func (c *Client) sendCreateClaim(ctx context.Context, request *CreateClaimReq) (res CreateClaimRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("createClaim"),
+		semconv.HTTPMethodKey.String("POST"),
+		semconv.HTTPRouteKey.String("/claims"),
 	}
 
 	// Run stopwatch.
 	startTime := time.Now()
 	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
 		elapsedDuration := time.Since(startTime)
-		c.duration.Record(ctx, elapsedDuration.Microseconds(), otelAttrs...)
+		c.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
 	}()
 
 	// Increment request counter.
-	c.requests.Add(ctx, 1, otelAttrs...)
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
 	ctx, span := c.cfg.Tracer.Start(ctx, "CreateClaim",
@@ -96,17 +268,19 @@ func (c *Client) sendCreateClaim(ctx context.Context, request *CreateClaimReq) (
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, stage)
-			c.errors.Add(ctx, 1, otelAttrs...)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 		}
 		span.End()
 	}()
 
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
-	u.Path += "/claims"
+	var pathParts [1]string
+	pathParts[0] = "/claims"
+	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeRequest"
-	r, err := ht.NewRequest(ctx, "POST", u, nil)
+	r, err := ht.NewRequest(ctx, "POST", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
@@ -137,24 +311,26 @@ func (c *Client) sendCreateClaim(ctx context.Context, request *CreateClaimReq) (
 // POST /claim-groups
 func (c *Client) CreateClaimGroup(ctx context.Context, request *CreateClaimGroupReq) (CreateClaimGroupRes, error) {
 	res, err := c.sendCreateClaimGroup(ctx, request)
-	_ = res
 	return res, err
 }
 
 func (c *Client) sendCreateClaimGroup(ctx context.Context, request *CreateClaimGroupReq) (res CreateClaimGroupRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("createClaimGroup"),
+		semconv.HTTPMethodKey.String("POST"),
+		semconv.HTTPRouteKey.String("/claim-groups"),
 	}
 
 	// Run stopwatch.
 	startTime := time.Now()
 	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
 		elapsedDuration := time.Since(startTime)
-		c.duration.Record(ctx, elapsedDuration.Microseconds(), otelAttrs...)
+		c.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
 	}()
 
 	// Increment request counter.
-	c.requests.Add(ctx, 1, otelAttrs...)
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
 	ctx, span := c.cfg.Tracer.Start(ctx, "CreateClaimGroup",
@@ -167,17 +343,19 @@ func (c *Client) sendCreateClaimGroup(ctx context.Context, request *CreateClaimG
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, stage)
-			c.errors.Add(ctx, 1, otelAttrs...)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 		}
 		span.End()
 	}()
 
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
-	u.Path += "/claim-groups"
+	var pathParts [1]string
+	pathParts[0] = "/claim-groups"
+	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeRequest"
-	r, err := ht.NewRequest(ctx, "POST", u, nil)
+	r, err := ht.NewRequest(ctx, "POST", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
@@ -208,24 +386,26 @@ func (c *Client) sendCreateClaimGroup(ctx context.Context, request *CreateClaimG
 // POST /group-links
 func (c *Client) CreateGroupLink(ctx context.Context, request *CreateGroupLinkReq) (CreateGroupLinkRes, error) {
 	res, err := c.sendCreateGroupLink(ctx, request)
-	_ = res
 	return res, err
 }
 
 func (c *Client) sendCreateGroupLink(ctx context.Context, request *CreateGroupLinkReq) (res CreateGroupLinkRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("createGroupLink"),
+		semconv.HTTPMethodKey.String("POST"),
+		semconv.HTTPRouteKey.String("/group-links"),
 	}
 
 	// Run stopwatch.
 	startTime := time.Now()
 	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
 		elapsedDuration := time.Since(startTime)
-		c.duration.Record(ctx, elapsedDuration.Microseconds(), otelAttrs...)
+		c.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
 	}()
 
 	// Increment request counter.
-	c.requests.Add(ctx, 1, otelAttrs...)
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
 	ctx, span := c.cfg.Tracer.Start(ctx, "CreateGroupLink",
@@ -238,17 +418,19 @@ func (c *Client) sendCreateGroupLink(ctx context.Context, request *CreateGroupLi
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, stage)
-			c.errors.Add(ctx, 1, otelAttrs...)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 		}
 		span.End()
 	}()
 
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
-	u.Path += "/group-links"
+	var pathParts [1]string
+	pathParts[0] = "/group-links"
+	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeRequest"
-	r, err := ht.NewRequest(ctx, "POST", u, nil)
+	r, err := ht.NewRequest(ctx, "POST", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
@@ -279,24 +461,26 @@ func (c *Client) sendCreateGroupLink(ctx context.Context, request *CreateGroupLi
 // DELETE /claims/{id}
 func (c *Client) DeleteClaim(ctx context.Context, params DeleteClaimParams) (DeleteClaimRes, error) {
 	res, err := c.sendDeleteClaim(ctx, params)
-	_ = res
 	return res, err
 }
 
 func (c *Client) sendDeleteClaim(ctx context.Context, params DeleteClaimParams) (res DeleteClaimRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("deleteClaim"),
+		semconv.HTTPMethodKey.String("DELETE"),
+		semconv.HTTPRouteKey.String("/claims/{id}"),
 	}
 
 	// Run stopwatch.
 	startTime := time.Now()
 	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
 		elapsedDuration := time.Since(startTime)
-		c.duration.Record(ctx, elapsedDuration.Microseconds(), otelAttrs...)
+		c.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
 	}()
 
 	// Increment request counter.
-	c.requests.Add(ctx, 1, otelAttrs...)
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
 	ctx, span := c.cfg.Tracer.Start(ctx, "DeleteClaim",
@@ -309,14 +493,15 @@ func (c *Client) sendDeleteClaim(ctx context.Context, params DeleteClaimParams) 
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, stage)
-			c.errors.Add(ctx, 1, otelAttrs...)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 		}
 		span.End()
 	}()
 
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
-	u.Path += "/claims/"
+	var pathParts [2]string
+	pathParts[0] = "/claims/"
 	{
 		// Encode "id" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -329,11 +514,16 @@ func (c *Client) sendDeleteClaim(ctx context.Context, params DeleteClaimParams) 
 		}(); err != nil {
 			return res, errors.Wrap(err, "encode path")
 		}
-		u.Path += e.Result()
+		encoded, err := e.Result()
+		if err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		pathParts[1] = encoded
 	}
+	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeRequest"
-	r, err := ht.NewRequest(ctx, "DELETE", u, nil)
+	r, err := ht.NewRequest(ctx, "DELETE", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
@@ -361,24 +551,26 @@ func (c *Client) sendDeleteClaim(ctx context.Context, params DeleteClaimParams) 
 // DELETE /claim-groups/{id}
 func (c *Client) DeleteClaimGroup(ctx context.Context, params DeleteClaimGroupParams) (DeleteClaimGroupRes, error) {
 	res, err := c.sendDeleteClaimGroup(ctx, params)
-	_ = res
 	return res, err
 }
 
 func (c *Client) sendDeleteClaimGroup(ctx context.Context, params DeleteClaimGroupParams) (res DeleteClaimGroupRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("deleteClaimGroup"),
+		semconv.HTTPMethodKey.String("DELETE"),
+		semconv.HTTPRouteKey.String("/claim-groups/{id}"),
 	}
 
 	// Run stopwatch.
 	startTime := time.Now()
 	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
 		elapsedDuration := time.Since(startTime)
-		c.duration.Record(ctx, elapsedDuration.Microseconds(), otelAttrs...)
+		c.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
 	}()
 
 	// Increment request counter.
-	c.requests.Add(ctx, 1, otelAttrs...)
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
 	ctx, span := c.cfg.Tracer.Start(ctx, "DeleteClaimGroup",
@@ -391,14 +583,15 @@ func (c *Client) sendDeleteClaimGroup(ctx context.Context, params DeleteClaimGro
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, stage)
-			c.errors.Add(ctx, 1, otelAttrs...)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 		}
 		span.End()
 	}()
 
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
-	u.Path += "/claim-groups/"
+	var pathParts [2]string
+	pathParts[0] = "/claim-groups/"
 	{
 		// Encode "id" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -411,11 +604,16 @@ func (c *Client) sendDeleteClaimGroup(ctx context.Context, params DeleteClaimGro
 		}(); err != nil {
 			return res, errors.Wrap(err, "encode path")
 		}
-		u.Path += e.Result()
+		encoded, err := e.Result()
+		if err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		pathParts[1] = encoded
 	}
+	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeRequest"
-	r, err := ht.NewRequest(ctx, "DELETE", u, nil)
+	r, err := ht.NewRequest(ctx, "DELETE", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
@@ -443,24 +641,26 @@ func (c *Client) sendDeleteClaimGroup(ctx context.Context, params DeleteClaimGro
 // DELETE /group-links/{id}
 func (c *Client) DeleteGroupLink(ctx context.Context, params DeleteGroupLinkParams) (DeleteGroupLinkRes, error) {
 	res, err := c.sendDeleteGroupLink(ctx, params)
-	_ = res
 	return res, err
 }
 
 func (c *Client) sendDeleteGroupLink(ctx context.Context, params DeleteGroupLinkParams) (res DeleteGroupLinkRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("deleteGroupLink"),
+		semconv.HTTPMethodKey.String("DELETE"),
+		semconv.HTTPRouteKey.String("/group-links/{id}"),
 	}
 
 	// Run stopwatch.
 	startTime := time.Now()
 	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
 		elapsedDuration := time.Since(startTime)
-		c.duration.Record(ctx, elapsedDuration.Microseconds(), otelAttrs...)
+		c.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
 	}()
 
 	// Increment request counter.
-	c.requests.Add(ctx, 1, otelAttrs...)
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
 	ctx, span := c.cfg.Tracer.Start(ctx, "DeleteGroupLink",
@@ -473,14 +673,15 @@ func (c *Client) sendDeleteGroupLink(ctx context.Context, params DeleteGroupLink
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, stage)
-			c.errors.Add(ctx, 1, otelAttrs...)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 		}
 		span.End()
 	}()
 
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
-	u.Path += "/group-links/"
+	var pathParts [2]string
+	pathParts[0] = "/group-links/"
 	{
 		// Encode "id" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -493,11 +694,16 @@ func (c *Client) sendDeleteGroupLink(ctx context.Context, params DeleteGroupLink
 		}(); err != nil {
 			return res, errors.Wrap(err, "encode path")
 		}
-		u.Path += e.Result()
+		encoded, err := e.Result()
+		if err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		pathParts[1] = encoded
 	}
+	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeRequest"
-	r, err := ht.NewRequest(ctx, "DELETE", u, nil)
+	r, err := ht.NewRequest(ctx, "DELETE", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
@@ -525,24 +731,26 @@ func (c *Client) sendDeleteGroupLink(ctx context.Context, params DeleteGroupLink
 // GET /claims
 func (c *Client) ListClaim(ctx context.Context, params ListClaimParams) (ListClaimRes, error) {
 	res, err := c.sendListClaim(ctx, params)
-	_ = res
 	return res, err
 }
 
 func (c *Client) sendListClaim(ctx context.Context, params ListClaimParams) (res ListClaimRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("listClaim"),
+		semconv.HTTPMethodKey.String("GET"),
+		semconv.HTTPRouteKey.String("/claims"),
 	}
 
 	// Run stopwatch.
 	startTime := time.Now()
 	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
 		elapsedDuration := time.Since(startTime)
-		c.duration.Record(ctx, elapsedDuration.Microseconds(), otelAttrs...)
+		c.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
 	}()
 
 	// Increment request counter.
-	c.requests.Add(ctx, 1, otelAttrs...)
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
 	ctx, span := c.cfg.Tracer.Start(ctx, "ListClaim",
@@ -555,14 +763,16 @@ func (c *Client) sendListClaim(ctx context.Context, params ListClaimParams) (res
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, stage)
-			c.errors.Add(ctx, 1, otelAttrs...)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 		}
 		span.End()
 	}()
 
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
-	u.Path += "/claims"
+	var pathParts [1]string
+	pathParts[0] = "/claims"
+	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeQueryParams"
 	q := uri.NewQueryEncoder()
@@ -603,7 +813,7 @@ func (c *Client) sendListClaim(ctx context.Context, params ListClaimParams) (res
 	u.RawQuery = q.Values().Encode()
 
 	stage = "EncodeRequest"
-	r, err := ht.NewRequest(ctx, "GET", u, nil)
+	r, err := ht.NewRequest(ctx, "GET", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
@@ -631,24 +841,26 @@ func (c *Client) sendListClaim(ctx context.Context, params ListClaimParams) (res
 // GET /claims/{id}/claim-groups
 func (c *Client) ListClaimClaimGroups(ctx context.Context, params ListClaimClaimGroupsParams) (ListClaimClaimGroupsRes, error) {
 	res, err := c.sendListClaimClaimGroups(ctx, params)
-	_ = res
 	return res, err
 }
 
 func (c *Client) sendListClaimClaimGroups(ctx context.Context, params ListClaimClaimGroupsParams) (res ListClaimClaimGroupsRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("listClaimClaimGroups"),
+		semconv.HTTPMethodKey.String("GET"),
+		semconv.HTTPRouteKey.String("/claims/{id}/claim-groups"),
 	}
 
 	// Run stopwatch.
 	startTime := time.Now()
 	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
 		elapsedDuration := time.Since(startTime)
-		c.duration.Record(ctx, elapsedDuration.Microseconds(), otelAttrs...)
+		c.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
 	}()
 
 	// Increment request counter.
-	c.requests.Add(ctx, 1, otelAttrs...)
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
 	ctx, span := c.cfg.Tracer.Start(ctx, "ListClaimClaimGroups",
@@ -661,14 +873,15 @@ func (c *Client) sendListClaimClaimGroups(ctx context.Context, params ListClaimC
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, stage)
-			c.errors.Add(ctx, 1, otelAttrs...)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 		}
 		span.End()
 	}()
 
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
-	u.Path += "/claims/"
+	var pathParts [3]string
+	pathParts[0] = "/claims/"
 	{
 		// Encode "id" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -681,9 +894,14 @@ func (c *Client) sendListClaimClaimGroups(ctx context.Context, params ListClaimC
 		}(); err != nil {
 			return res, errors.Wrap(err, "encode path")
 		}
-		u.Path += e.Result()
+		encoded, err := e.Result()
+		if err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		pathParts[1] = encoded
 	}
-	u.Path += "/claim-groups"
+	pathParts[2] = "/claim-groups"
+	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeQueryParams"
 	q := uri.NewQueryEncoder()
@@ -724,7 +942,7 @@ func (c *Client) sendListClaimClaimGroups(ctx context.Context, params ListClaimC
 	u.RawQuery = q.Values().Encode()
 
 	stage = "EncodeRequest"
-	r, err := ht.NewRequest(ctx, "GET", u, nil)
+	r, err := ht.NewRequest(ctx, "GET", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
@@ -752,24 +970,26 @@ func (c *Client) sendListClaimClaimGroups(ctx context.Context, params ListClaimC
 // GET /claim-groups
 func (c *Client) ListClaimGroup(ctx context.Context, params ListClaimGroupParams) (ListClaimGroupRes, error) {
 	res, err := c.sendListClaimGroup(ctx, params)
-	_ = res
 	return res, err
 }
 
 func (c *Client) sendListClaimGroup(ctx context.Context, params ListClaimGroupParams) (res ListClaimGroupRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("listClaimGroup"),
+		semconv.HTTPMethodKey.String("GET"),
+		semconv.HTTPRouteKey.String("/claim-groups"),
 	}
 
 	// Run stopwatch.
 	startTime := time.Now()
 	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
 		elapsedDuration := time.Since(startTime)
-		c.duration.Record(ctx, elapsedDuration.Microseconds(), otelAttrs...)
+		c.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
 	}()
 
 	// Increment request counter.
-	c.requests.Add(ctx, 1, otelAttrs...)
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
 	ctx, span := c.cfg.Tracer.Start(ctx, "ListClaimGroup",
@@ -782,14 +1002,16 @@ func (c *Client) sendListClaimGroup(ctx context.Context, params ListClaimGroupPa
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, stage)
-			c.errors.Add(ctx, 1, otelAttrs...)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 		}
 		span.End()
 	}()
 
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
-	u.Path += "/claim-groups"
+	var pathParts [1]string
+	pathParts[0] = "/claim-groups"
+	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeQueryParams"
 	q := uri.NewQueryEncoder()
@@ -830,7 +1052,7 @@ func (c *Client) sendListClaimGroup(ctx context.Context, params ListClaimGroupPa
 	u.RawQuery = q.Values().Encode()
 
 	stage = "EncodeRequest"
-	r, err := ht.NewRequest(ctx, "GET", u, nil)
+	r, err := ht.NewRequest(ctx, "GET", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
@@ -858,24 +1080,26 @@ func (c *Client) sendListClaimGroup(ctx context.Context, params ListClaimGroupPa
 // GET /claim-groups/{id}/claims
 func (c *Client) ListClaimGroupClaims(ctx context.Context, params ListClaimGroupClaimsParams) (ListClaimGroupClaimsRes, error) {
 	res, err := c.sendListClaimGroupClaims(ctx, params)
-	_ = res
 	return res, err
 }
 
 func (c *Client) sendListClaimGroupClaims(ctx context.Context, params ListClaimGroupClaimsParams) (res ListClaimGroupClaimsRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("listClaimGroupClaims"),
+		semconv.HTTPMethodKey.String("GET"),
+		semconv.HTTPRouteKey.String("/claim-groups/{id}/claims"),
 	}
 
 	// Run stopwatch.
 	startTime := time.Now()
 	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
 		elapsedDuration := time.Since(startTime)
-		c.duration.Record(ctx, elapsedDuration.Microseconds(), otelAttrs...)
+		c.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
 	}()
 
 	// Increment request counter.
-	c.requests.Add(ctx, 1, otelAttrs...)
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
 	ctx, span := c.cfg.Tracer.Start(ctx, "ListClaimGroupClaims",
@@ -888,14 +1112,15 @@ func (c *Client) sendListClaimGroupClaims(ctx context.Context, params ListClaimG
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, stage)
-			c.errors.Add(ctx, 1, otelAttrs...)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 		}
 		span.End()
 	}()
 
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
-	u.Path += "/claim-groups/"
+	var pathParts [3]string
+	pathParts[0] = "/claim-groups/"
 	{
 		// Encode "id" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -908,9 +1133,14 @@ func (c *Client) sendListClaimGroupClaims(ctx context.Context, params ListClaimG
 		}(); err != nil {
 			return res, errors.Wrap(err, "encode path")
 		}
-		u.Path += e.Result()
+		encoded, err := e.Result()
+		if err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		pathParts[1] = encoded
 	}
-	u.Path += "/claims"
+	pathParts[2] = "/claims"
+	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeQueryParams"
 	q := uri.NewQueryEncoder()
@@ -951,7 +1181,7 @@ func (c *Client) sendListClaimGroupClaims(ctx context.Context, params ListClaimG
 	u.RawQuery = q.Values().Encode()
 
 	stage = "EncodeRequest"
-	r, err := ht.NewRequest(ctx, "GET", u, nil)
+	r, err := ht.NewRequest(ctx, "GET", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
@@ -979,24 +1209,26 @@ func (c *Client) sendListClaimGroupClaims(ctx context.Context, params ListClaimG
 // GET /claim-groups/{id}/group-links
 func (c *Client) ListClaimGroupGroupLinks(ctx context.Context, params ListClaimGroupGroupLinksParams) (ListClaimGroupGroupLinksRes, error) {
 	res, err := c.sendListClaimGroupGroupLinks(ctx, params)
-	_ = res
 	return res, err
 }
 
 func (c *Client) sendListClaimGroupGroupLinks(ctx context.Context, params ListClaimGroupGroupLinksParams) (res ListClaimGroupGroupLinksRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("listClaimGroupGroupLinks"),
+		semconv.HTTPMethodKey.String("GET"),
+		semconv.HTTPRouteKey.String("/claim-groups/{id}/group-links"),
 	}
 
 	// Run stopwatch.
 	startTime := time.Now()
 	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
 		elapsedDuration := time.Since(startTime)
-		c.duration.Record(ctx, elapsedDuration.Microseconds(), otelAttrs...)
+		c.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
 	}()
 
 	// Increment request counter.
-	c.requests.Add(ctx, 1, otelAttrs...)
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
 	ctx, span := c.cfg.Tracer.Start(ctx, "ListClaimGroupGroupLinks",
@@ -1009,14 +1241,15 @@ func (c *Client) sendListClaimGroupGroupLinks(ctx context.Context, params ListCl
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, stage)
-			c.errors.Add(ctx, 1, otelAttrs...)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 		}
 		span.End()
 	}()
 
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
-	u.Path += "/claim-groups/"
+	var pathParts [3]string
+	pathParts[0] = "/claim-groups/"
 	{
 		// Encode "id" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -1029,9 +1262,14 @@ func (c *Client) sendListClaimGroupGroupLinks(ctx context.Context, params ListCl
 		}(); err != nil {
 			return res, errors.Wrap(err, "encode path")
 		}
-		u.Path += e.Result()
+		encoded, err := e.Result()
+		if err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		pathParts[1] = encoded
 	}
-	u.Path += "/group-links"
+	pathParts[2] = "/group-links"
+	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeQueryParams"
 	q := uri.NewQueryEncoder()
@@ -1072,7 +1310,7 @@ func (c *Client) sendListClaimGroupGroupLinks(ctx context.Context, params ListCl
 	u.RawQuery = q.Values().Encode()
 
 	stage = "EncodeRequest"
-	r, err := ht.NewRequest(ctx, "GET", u, nil)
+	r, err := ht.NewRequest(ctx, "GET", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
@@ -1100,24 +1338,26 @@ func (c *Client) sendListClaimGroupGroupLinks(ctx context.Context, params ListCl
 // GET /claim-groups/{id}/users
 func (c *Client) ListClaimGroupUsers(ctx context.Context, params ListClaimGroupUsersParams) (ListClaimGroupUsersRes, error) {
 	res, err := c.sendListClaimGroupUsers(ctx, params)
-	_ = res
 	return res, err
 }
 
 func (c *Client) sendListClaimGroupUsers(ctx context.Context, params ListClaimGroupUsersParams) (res ListClaimGroupUsersRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("listClaimGroupUsers"),
+		semconv.HTTPMethodKey.String("GET"),
+		semconv.HTTPRouteKey.String("/claim-groups/{id}/users"),
 	}
 
 	// Run stopwatch.
 	startTime := time.Now()
 	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
 		elapsedDuration := time.Since(startTime)
-		c.duration.Record(ctx, elapsedDuration.Microseconds(), otelAttrs...)
+		c.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
 	}()
 
 	// Increment request counter.
-	c.requests.Add(ctx, 1, otelAttrs...)
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
 	ctx, span := c.cfg.Tracer.Start(ctx, "ListClaimGroupUsers",
@@ -1130,14 +1370,15 @@ func (c *Client) sendListClaimGroupUsers(ctx context.Context, params ListClaimGr
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, stage)
-			c.errors.Add(ctx, 1, otelAttrs...)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 		}
 		span.End()
 	}()
 
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
-	u.Path += "/claim-groups/"
+	var pathParts [3]string
+	pathParts[0] = "/claim-groups/"
 	{
 		// Encode "id" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -1150,9 +1391,14 @@ func (c *Client) sendListClaimGroupUsers(ctx context.Context, params ListClaimGr
 		}(); err != nil {
 			return res, errors.Wrap(err, "encode path")
 		}
-		u.Path += e.Result()
+		encoded, err := e.Result()
+		if err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		pathParts[1] = encoded
 	}
-	u.Path += "/users"
+	pathParts[2] = "/users"
+	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeQueryParams"
 	q := uri.NewQueryEncoder()
@@ -1193,7 +1439,7 @@ func (c *Client) sendListClaimGroupUsers(ctx context.Context, params ListClaimGr
 	u.RawQuery = q.Values().Encode()
 
 	stage = "EncodeRequest"
-	r, err := ht.NewRequest(ctx, "GET", u, nil)
+	r, err := ht.NewRequest(ctx, "GET", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
@@ -1221,24 +1467,26 @@ func (c *Client) sendListClaimGroupUsers(ctx context.Context, params ListClaimGr
 // GET /group-links
 func (c *Client) ListGroupLink(ctx context.Context, params ListGroupLinkParams) (ListGroupLinkRes, error) {
 	res, err := c.sendListGroupLink(ctx, params)
-	_ = res
 	return res, err
 }
 
 func (c *Client) sendListGroupLink(ctx context.Context, params ListGroupLinkParams) (res ListGroupLinkRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("listGroupLink"),
+		semconv.HTTPMethodKey.String("GET"),
+		semconv.HTTPRouteKey.String("/group-links"),
 	}
 
 	// Run stopwatch.
 	startTime := time.Now()
 	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
 		elapsedDuration := time.Since(startTime)
-		c.duration.Record(ctx, elapsedDuration.Microseconds(), otelAttrs...)
+		c.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
 	}()
 
 	// Increment request counter.
-	c.requests.Add(ctx, 1, otelAttrs...)
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
 	ctx, span := c.cfg.Tracer.Start(ctx, "ListGroupLink",
@@ -1251,14 +1499,16 @@ func (c *Client) sendListGroupLink(ctx context.Context, params ListGroupLinkPara
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, stage)
-			c.errors.Add(ctx, 1, otelAttrs...)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 		}
 		span.End()
 	}()
 
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
-	u.Path += "/group-links"
+	var pathParts [1]string
+	pathParts[0] = "/group-links"
+	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeQueryParams"
 	q := uri.NewQueryEncoder()
@@ -1299,7 +1549,7 @@ func (c *Client) sendListGroupLink(ctx context.Context, params ListGroupLinkPara
 	u.RawQuery = q.Values().Encode()
 
 	stage = "EncodeRequest"
-	r, err := ht.NewRequest(ctx, "GET", u, nil)
+	r, err := ht.NewRequest(ctx, "GET", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
@@ -1327,24 +1577,26 @@ func (c *Client) sendListGroupLink(ctx context.Context, params ListGroupLinkPara
 // GET /private-keys
 func (c *Client) ListPrivateKey(ctx context.Context, params ListPrivateKeyParams) (ListPrivateKeyRes, error) {
 	res, err := c.sendListPrivateKey(ctx, params)
-	_ = res
 	return res, err
 }
 
 func (c *Client) sendListPrivateKey(ctx context.Context, params ListPrivateKeyParams) (res ListPrivateKeyRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("listPrivateKey"),
+		semconv.HTTPMethodKey.String("GET"),
+		semconv.HTTPRouteKey.String("/private-keys"),
 	}
 
 	// Run stopwatch.
 	startTime := time.Now()
 	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
 		elapsedDuration := time.Since(startTime)
-		c.duration.Record(ctx, elapsedDuration.Microseconds(), otelAttrs...)
+		c.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
 	}()
 
 	// Increment request counter.
-	c.requests.Add(ctx, 1, otelAttrs...)
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
 	ctx, span := c.cfg.Tracer.Start(ctx, "ListPrivateKey",
@@ -1357,14 +1609,16 @@ func (c *Client) sendListPrivateKey(ctx context.Context, params ListPrivateKeyPa
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, stage)
-			c.errors.Add(ctx, 1, otelAttrs...)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 		}
 		span.End()
 	}()
 
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
-	u.Path += "/private-keys"
+	var pathParts [1]string
+	pathParts[0] = "/private-keys"
+	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeQueryParams"
 	q := uri.NewQueryEncoder()
@@ -1405,7 +1659,7 @@ func (c *Client) sendListPrivateKey(ctx context.Context, params ListPrivateKeyPa
 	u.RawQuery = q.Values().Encode()
 
 	stage = "EncodeRequest"
-	r, err := ht.NewRequest(ctx, "GET", u, nil)
+	r, err := ht.NewRequest(ctx, "GET", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
@@ -1433,24 +1687,26 @@ func (c *Client) sendListPrivateKey(ctx context.Context, params ListPrivateKeyPa
 // GET /users
 func (c *Client) ListUser(ctx context.Context, params ListUserParams) (ListUserRes, error) {
 	res, err := c.sendListUser(ctx, params)
-	_ = res
 	return res, err
 }
 
 func (c *Client) sendListUser(ctx context.Context, params ListUserParams) (res ListUserRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("listUser"),
+		semconv.HTTPMethodKey.String("GET"),
+		semconv.HTTPRouteKey.String("/users"),
 	}
 
 	// Run stopwatch.
 	startTime := time.Now()
 	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
 		elapsedDuration := time.Since(startTime)
-		c.duration.Record(ctx, elapsedDuration.Microseconds(), otelAttrs...)
+		c.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
 	}()
 
 	// Increment request counter.
-	c.requests.Add(ctx, 1, otelAttrs...)
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
 	ctx, span := c.cfg.Tracer.Start(ctx, "ListUser",
@@ -1463,14 +1719,16 @@ func (c *Client) sendListUser(ctx context.Context, params ListUserParams) (res L
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, stage)
-			c.errors.Add(ctx, 1, otelAttrs...)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 		}
 		span.End()
 	}()
 
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
-	u.Path += "/users"
+	var pathParts [1]string
+	pathParts[0] = "/users"
+	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeQueryParams"
 	q := uri.NewQueryEncoder()
@@ -1511,7 +1769,7 @@ func (c *Client) sendListUser(ctx context.Context, params ListUserParams) (res L
 	u.RawQuery = q.Values().Encode()
 
 	stage = "EncodeRequest"
-	r, err := ht.NewRequest(ctx, "GET", u, nil)
+	r, err := ht.NewRequest(ctx, "GET", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
@@ -1539,24 +1797,26 @@ func (c *Client) sendListUser(ctx context.Context, params ListUserParams) (res L
 // GET /users/{id}/claim-groups
 func (c *Client) ListUserClaimGroups(ctx context.Context, params ListUserClaimGroupsParams) (ListUserClaimGroupsRes, error) {
 	res, err := c.sendListUserClaimGroups(ctx, params)
-	_ = res
 	return res, err
 }
 
 func (c *Client) sendListUserClaimGroups(ctx context.Context, params ListUserClaimGroupsParams) (res ListUserClaimGroupsRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("listUserClaimGroups"),
+		semconv.HTTPMethodKey.String("GET"),
+		semconv.HTTPRouteKey.String("/users/{id}/claim-groups"),
 	}
 
 	// Run stopwatch.
 	startTime := time.Now()
 	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
 		elapsedDuration := time.Since(startTime)
-		c.duration.Record(ctx, elapsedDuration.Microseconds(), otelAttrs...)
+		c.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
 	}()
 
 	// Increment request counter.
-	c.requests.Add(ctx, 1, otelAttrs...)
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
 	ctx, span := c.cfg.Tracer.Start(ctx, "ListUserClaimGroups",
@@ -1569,14 +1829,15 @@ func (c *Client) sendListUserClaimGroups(ctx context.Context, params ListUserCla
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, stage)
-			c.errors.Add(ctx, 1, otelAttrs...)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 		}
 		span.End()
 	}()
 
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
-	u.Path += "/users/"
+	var pathParts [3]string
+	pathParts[0] = "/users/"
 	{
 		// Encode "id" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -1589,9 +1850,14 @@ func (c *Client) sendListUserClaimGroups(ctx context.Context, params ListUserCla
 		}(); err != nil {
 			return res, errors.Wrap(err, "encode path")
 		}
-		u.Path += e.Result()
+		encoded, err := e.Result()
+		if err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		pathParts[1] = encoded
 	}
-	u.Path += "/claim-groups"
+	pathParts[2] = "/claim-groups"
+	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeQueryParams"
 	q := uri.NewQueryEncoder()
@@ -1632,7 +1898,7 @@ func (c *Client) sendListUserClaimGroups(ctx context.Context, params ListUserCla
 	u.RawQuery = q.Values().Encode()
 
 	stage = "EncodeRequest"
-	r, err := ht.NewRequest(ctx, "GET", u, nil)
+	r, err := ht.NewRequest(ctx, "GET", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
@@ -1660,24 +1926,26 @@ func (c *Client) sendListUserClaimGroups(ctx context.Context, params ListUserCla
 // GET /claims/{id}
 func (c *Client) ReadClaim(ctx context.Context, params ReadClaimParams) (ReadClaimRes, error) {
 	res, err := c.sendReadClaim(ctx, params)
-	_ = res
 	return res, err
 }
 
 func (c *Client) sendReadClaim(ctx context.Context, params ReadClaimParams) (res ReadClaimRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("readClaim"),
+		semconv.HTTPMethodKey.String("GET"),
+		semconv.HTTPRouteKey.String("/claims/{id}"),
 	}
 
 	// Run stopwatch.
 	startTime := time.Now()
 	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
 		elapsedDuration := time.Since(startTime)
-		c.duration.Record(ctx, elapsedDuration.Microseconds(), otelAttrs...)
+		c.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
 	}()
 
 	// Increment request counter.
-	c.requests.Add(ctx, 1, otelAttrs...)
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
 	ctx, span := c.cfg.Tracer.Start(ctx, "ReadClaim",
@@ -1690,14 +1958,15 @@ func (c *Client) sendReadClaim(ctx context.Context, params ReadClaimParams) (res
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, stage)
-			c.errors.Add(ctx, 1, otelAttrs...)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 		}
 		span.End()
 	}()
 
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
-	u.Path += "/claims/"
+	var pathParts [2]string
+	pathParts[0] = "/claims/"
 	{
 		// Encode "id" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -1710,11 +1979,16 @@ func (c *Client) sendReadClaim(ctx context.Context, params ReadClaimParams) (res
 		}(); err != nil {
 			return res, errors.Wrap(err, "encode path")
 		}
-		u.Path += e.Result()
+		encoded, err := e.Result()
+		if err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		pathParts[1] = encoded
 	}
+	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeRequest"
-	r, err := ht.NewRequest(ctx, "GET", u, nil)
+	r, err := ht.NewRequest(ctx, "GET", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
@@ -1742,24 +2016,26 @@ func (c *Client) sendReadClaim(ctx context.Context, params ReadClaimParams) (res
 // GET /claim-groups/{id}
 func (c *Client) ReadClaimGroup(ctx context.Context, params ReadClaimGroupParams) (ReadClaimGroupRes, error) {
 	res, err := c.sendReadClaimGroup(ctx, params)
-	_ = res
 	return res, err
 }
 
 func (c *Client) sendReadClaimGroup(ctx context.Context, params ReadClaimGroupParams) (res ReadClaimGroupRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("readClaimGroup"),
+		semconv.HTTPMethodKey.String("GET"),
+		semconv.HTTPRouteKey.String("/claim-groups/{id}"),
 	}
 
 	// Run stopwatch.
 	startTime := time.Now()
 	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
 		elapsedDuration := time.Since(startTime)
-		c.duration.Record(ctx, elapsedDuration.Microseconds(), otelAttrs...)
+		c.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
 	}()
 
 	// Increment request counter.
-	c.requests.Add(ctx, 1, otelAttrs...)
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
 	ctx, span := c.cfg.Tracer.Start(ctx, "ReadClaimGroup",
@@ -1772,14 +2048,15 @@ func (c *Client) sendReadClaimGroup(ctx context.Context, params ReadClaimGroupPa
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, stage)
-			c.errors.Add(ctx, 1, otelAttrs...)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 		}
 		span.End()
 	}()
 
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
-	u.Path += "/claim-groups/"
+	var pathParts [2]string
+	pathParts[0] = "/claim-groups/"
 	{
 		// Encode "id" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -1792,11 +2069,16 @@ func (c *Client) sendReadClaimGroup(ctx context.Context, params ReadClaimGroupPa
 		}(); err != nil {
 			return res, errors.Wrap(err, "encode path")
 		}
-		u.Path += e.Result()
+		encoded, err := e.Result()
+		if err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		pathParts[1] = encoded
 	}
+	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeRequest"
-	r, err := ht.NewRequest(ctx, "GET", u, nil)
+	r, err := ht.NewRequest(ctx, "GET", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
@@ -1824,24 +2106,26 @@ func (c *Client) sendReadClaimGroup(ctx context.Context, params ReadClaimGroupPa
 // GET /group-links/{id}
 func (c *Client) ReadGroupLink(ctx context.Context, params ReadGroupLinkParams) (ReadGroupLinkRes, error) {
 	res, err := c.sendReadGroupLink(ctx, params)
-	_ = res
 	return res, err
 }
 
 func (c *Client) sendReadGroupLink(ctx context.Context, params ReadGroupLinkParams) (res ReadGroupLinkRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("readGroupLink"),
+		semconv.HTTPMethodKey.String("GET"),
+		semconv.HTTPRouteKey.String("/group-links/{id}"),
 	}
 
 	// Run stopwatch.
 	startTime := time.Now()
 	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
 		elapsedDuration := time.Since(startTime)
-		c.duration.Record(ctx, elapsedDuration.Microseconds(), otelAttrs...)
+		c.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
 	}()
 
 	// Increment request counter.
-	c.requests.Add(ctx, 1, otelAttrs...)
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
 	ctx, span := c.cfg.Tracer.Start(ctx, "ReadGroupLink",
@@ -1854,14 +2138,15 @@ func (c *Client) sendReadGroupLink(ctx context.Context, params ReadGroupLinkPara
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, stage)
-			c.errors.Add(ctx, 1, otelAttrs...)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 		}
 		span.End()
 	}()
 
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
-	u.Path += "/group-links/"
+	var pathParts [2]string
+	pathParts[0] = "/group-links/"
 	{
 		// Encode "id" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -1874,11 +2159,16 @@ func (c *Client) sendReadGroupLink(ctx context.Context, params ReadGroupLinkPara
 		}(); err != nil {
 			return res, errors.Wrap(err, "encode path")
 		}
-		u.Path += e.Result()
+		encoded, err := e.Result()
+		if err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		pathParts[1] = encoded
 	}
+	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeRequest"
-	r, err := ht.NewRequest(ctx, "GET", u, nil)
+	r, err := ht.NewRequest(ctx, "GET", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
@@ -1906,24 +2196,26 @@ func (c *Client) sendReadGroupLink(ctx context.Context, params ReadGroupLinkPara
 // GET /group-links/{id}/claim-groups
 func (c *Client) ReadGroupLinkClaimGroups(ctx context.Context, params ReadGroupLinkClaimGroupsParams) (ReadGroupLinkClaimGroupsRes, error) {
 	res, err := c.sendReadGroupLinkClaimGroups(ctx, params)
-	_ = res
 	return res, err
 }
 
 func (c *Client) sendReadGroupLinkClaimGroups(ctx context.Context, params ReadGroupLinkClaimGroupsParams) (res ReadGroupLinkClaimGroupsRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("readGroupLinkClaimGroups"),
+		semconv.HTTPMethodKey.String("GET"),
+		semconv.HTTPRouteKey.String("/group-links/{id}/claim-groups"),
 	}
 
 	// Run stopwatch.
 	startTime := time.Now()
 	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
 		elapsedDuration := time.Since(startTime)
-		c.duration.Record(ctx, elapsedDuration.Microseconds(), otelAttrs...)
+		c.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
 	}()
 
 	// Increment request counter.
-	c.requests.Add(ctx, 1, otelAttrs...)
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
 	ctx, span := c.cfg.Tracer.Start(ctx, "ReadGroupLinkClaimGroups",
@@ -1936,14 +2228,15 @@ func (c *Client) sendReadGroupLinkClaimGroups(ctx context.Context, params ReadGr
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, stage)
-			c.errors.Add(ctx, 1, otelAttrs...)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 		}
 		span.End()
 	}()
 
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
-	u.Path += "/group-links/"
+	var pathParts [3]string
+	pathParts[0] = "/group-links/"
 	{
 		// Encode "id" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -1956,12 +2249,17 @@ func (c *Client) sendReadGroupLinkClaimGroups(ctx context.Context, params ReadGr
 		}(); err != nil {
 			return res, errors.Wrap(err, "encode path")
 		}
-		u.Path += e.Result()
+		encoded, err := e.Result()
+		if err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		pathParts[1] = encoded
 	}
-	u.Path += "/claim-groups"
+	pathParts[2] = "/claim-groups"
+	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeRequest"
-	r, err := ht.NewRequest(ctx, "GET", u, nil)
+	r, err := ht.NewRequest(ctx, "GET", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
@@ -1989,24 +2287,26 @@ func (c *Client) sendReadGroupLinkClaimGroups(ctx context.Context, params ReadGr
 // GET /private-keys/{id}
 func (c *Client) ReadPrivateKey(ctx context.Context, params ReadPrivateKeyParams) (ReadPrivateKeyRes, error) {
 	res, err := c.sendReadPrivateKey(ctx, params)
-	_ = res
 	return res, err
 }
 
 func (c *Client) sendReadPrivateKey(ctx context.Context, params ReadPrivateKeyParams) (res ReadPrivateKeyRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("readPrivateKey"),
+		semconv.HTTPMethodKey.String("GET"),
+		semconv.HTTPRouteKey.String("/private-keys/{id}"),
 	}
 
 	// Run stopwatch.
 	startTime := time.Now()
 	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
 		elapsedDuration := time.Since(startTime)
-		c.duration.Record(ctx, elapsedDuration.Microseconds(), otelAttrs...)
+		c.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
 	}()
 
 	// Increment request counter.
-	c.requests.Add(ctx, 1, otelAttrs...)
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
 	ctx, span := c.cfg.Tracer.Start(ctx, "ReadPrivateKey",
@@ -2019,14 +2319,15 @@ func (c *Client) sendReadPrivateKey(ctx context.Context, params ReadPrivateKeyPa
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, stage)
-			c.errors.Add(ctx, 1, otelAttrs...)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 		}
 		span.End()
 	}()
 
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
-	u.Path += "/private-keys/"
+	var pathParts [2]string
+	pathParts[0] = "/private-keys/"
 	{
 		// Encode "id" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -2039,11 +2340,16 @@ func (c *Client) sendReadPrivateKey(ctx context.Context, params ReadPrivateKeyPa
 		}(); err != nil {
 			return res, errors.Wrap(err, "encode path")
 		}
-		u.Path += e.Result()
+		encoded, err := e.Result()
+		if err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		pathParts[1] = encoded
 	}
+	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeRequest"
-	r, err := ht.NewRequest(ctx, "GET", u, nil)
+	r, err := ht.NewRequest(ctx, "GET", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
@@ -2071,24 +2377,26 @@ func (c *Client) sendReadPrivateKey(ctx context.Context, params ReadPrivateKeyPa
 // GET /users/{id}
 func (c *Client) ReadUser(ctx context.Context, params ReadUserParams) (ReadUserRes, error) {
 	res, err := c.sendReadUser(ctx, params)
-	_ = res
 	return res, err
 }
 
 func (c *Client) sendReadUser(ctx context.Context, params ReadUserParams) (res ReadUserRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("readUser"),
+		semconv.HTTPMethodKey.String("GET"),
+		semconv.HTTPRouteKey.String("/users/{id}"),
 	}
 
 	// Run stopwatch.
 	startTime := time.Now()
 	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
 		elapsedDuration := time.Since(startTime)
-		c.duration.Record(ctx, elapsedDuration.Microseconds(), otelAttrs...)
+		c.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
 	}()
 
 	// Increment request counter.
-	c.requests.Add(ctx, 1, otelAttrs...)
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
 	ctx, span := c.cfg.Tracer.Start(ctx, "ReadUser",
@@ -2101,14 +2409,15 @@ func (c *Client) sendReadUser(ctx context.Context, params ReadUserParams) (res R
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, stage)
-			c.errors.Add(ctx, 1, otelAttrs...)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 		}
 		span.End()
 	}()
 
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
-	u.Path += "/users/"
+	var pathParts [2]string
+	pathParts[0] = "/users/"
 	{
 		// Encode "id" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -2121,11 +2430,16 @@ func (c *Client) sendReadUser(ctx context.Context, params ReadUserParams) (res R
 		}(); err != nil {
 			return res, errors.Wrap(err, "encode path")
 		}
-		u.Path += e.Result()
+		encoded, err := e.Result()
+		if err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		pathParts[1] = encoded
 	}
+	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeRequest"
-	r, err := ht.NewRequest(ctx, "GET", u, nil)
+	r, err := ht.NewRequest(ctx, "GET", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
@@ -2153,24 +2467,26 @@ func (c *Client) sendReadUser(ctx context.Context, params ReadUserParams) (res R
 // PATCH /claims/{id}
 func (c *Client) UpdateClaim(ctx context.Context, request *UpdateClaimReq, params UpdateClaimParams) (UpdateClaimRes, error) {
 	res, err := c.sendUpdateClaim(ctx, request, params)
-	_ = res
 	return res, err
 }
 
 func (c *Client) sendUpdateClaim(ctx context.Context, request *UpdateClaimReq, params UpdateClaimParams) (res UpdateClaimRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("updateClaim"),
+		semconv.HTTPMethodKey.String("PATCH"),
+		semconv.HTTPRouteKey.String("/claims/{id}"),
 	}
 
 	// Run stopwatch.
 	startTime := time.Now()
 	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
 		elapsedDuration := time.Since(startTime)
-		c.duration.Record(ctx, elapsedDuration.Microseconds(), otelAttrs...)
+		c.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
 	}()
 
 	// Increment request counter.
-	c.requests.Add(ctx, 1, otelAttrs...)
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
 	ctx, span := c.cfg.Tracer.Start(ctx, "UpdateClaim",
@@ -2183,14 +2499,15 @@ func (c *Client) sendUpdateClaim(ctx context.Context, request *UpdateClaimReq, p
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, stage)
-			c.errors.Add(ctx, 1, otelAttrs...)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 		}
 		span.End()
 	}()
 
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
-	u.Path += "/claims/"
+	var pathParts [2]string
+	pathParts[0] = "/claims/"
 	{
 		// Encode "id" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -2203,11 +2520,16 @@ func (c *Client) sendUpdateClaim(ctx context.Context, request *UpdateClaimReq, p
 		}(); err != nil {
 			return res, errors.Wrap(err, "encode path")
 		}
-		u.Path += e.Result()
+		encoded, err := e.Result()
+		if err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		pathParts[1] = encoded
 	}
+	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeRequest"
-	r, err := ht.NewRequest(ctx, "PATCH", u, nil)
+	r, err := ht.NewRequest(ctx, "PATCH", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
@@ -2238,24 +2560,26 @@ func (c *Client) sendUpdateClaim(ctx context.Context, request *UpdateClaimReq, p
 // PATCH /claim-groups/{id}
 func (c *Client) UpdateClaimGroup(ctx context.Context, request *UpdateClaimGroupReq, params UpdateClaimGroupParams) (UpdateClaimGroupRes, error) {
 	res, err := c.sendUpdateClaimGroup(ctx, request, params)
-	_ = res
 	return res, err
 }
 
 func (c *Client) sendUpdateClaimGroup(ctx context.Context, request *UpdateClaimGroupReq, params UpdateClaimGroupParams) (res UpdateClaimGroupRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("updateClaimGroup"),
+		semconv.HTTPMethodKey.String("PATCH"),
+		semconv.HTTPRouteKey.String("/claim-groups/{id}"),
 	}
 
 	// Run stopwatch.
 	startTime := time.Now()
 	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
 		elapsedDuration := time.Since(startTime)
-		c.duration.Record(ctx, elapsedDuration.Microseconds(), otelAttrs...)
+		c.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
 	}()
 
 	// Increment request counter.
-	c.requests.Add(ctx, 1, otelAttrs...)
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
 	ctx, span := c.cfg.Tracer.Start(ctx, "UpdateClaimGroup",
@@ -2268,14 +2592,15 @@ func (c *Client) sendUpdateClaimGroup(ctx context.Context, request *UpdateClaimG
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, stage)
-			c.errors.Add(ctx, 1, otelAttrs...)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 		}
 		span.End()
 	}()
 
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
-	u.Path += "/claim-groups/"
+	var pathParts [2]string
+	pathParts[0] = "/claim-groups/"
 	{
 		// Encode "id" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -2288,11 +2613,16 @@ func (c *Client) sendUpdateClaimGroup(ctx context.Context, request *UpdateClaimG
 		}(); err != nil {
 			return res, errors.Wrap(err, "encode path")
 		}
-		u.Path += e.Result()
+		encoded, err := e.Result()
+		if err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		pathParts[1] = encoded
 	}
+	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeRequest"
-	r, err := ht.NewRequest(ctx, "PATCH", u, nil)
+	r, err := ht.NewRequest(ctx, "PATCH", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
@@ -2323,24 +2653,26 @@ func (c *Client) sendUpdateClaimGroup(ctx context.Context, request *UpdateClaimG
 // PATCH /group-links/{id}
 func (c *Client) UpdateGroupLink(ctx context.Context, request *UpdateGroupLinkReq, params UpdateGroupLinkParams) (UpdateGroupLinkRes, error) {
 	res, err := c.sendUpdateGroupLink(ctx, request, params)
-	_ = res
 	return res, err
 }
 
 func (c *Client) sendUpdateGroupLink(ctx context.Context, request *UpdateGroupLinkReq, params UpdateGroupLinkParams) (res UpdateGroupLinkRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("updateGroupLink"),
+		semconv.HTTPMethodKey.String("PATCH"),
+		semconv.HTTPRouteKey.String("/group-links/{id}"),
 	}
 
 	// Run stopwatch.
 	startTime := time.Now()
 	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
 		elapsedDuration := time.Since(startTime)
-		c.duration.Record(ctx, elapsedDuration.Microseconds(), otelAttrs...)
+		c.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
 	}()
 
 	// Increment request counter.
-	c.requests.Add(ctx, 1, otelAttrs...)
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
 	ctx, span := c.cfg.Tracer.Start(ctx, "UpdateGroupLink",
@@ -2353,14 +2685,15 @@ func (c *Client) sendUpdateGroupLink(ctx context.Context, request *UpdateGroupLi
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, stage)
-			c.errors.Add(ctx, 1, otelAttrs...)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 		}
 		span.End()
 	}()
 
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
-	u.Path += "/group-links/"
+	var pathParts [2]string
+	pathParts[0] = "/group-links/"
 	{
 		// Encode "id" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -2373,11 +2706,16 @@ func (c *Client) sendUpdateGroupLink(ctx context.Context, request *UpdateGroupLi
 		}(); err != nil {
 			return res, errors.Wrap(err, "encode path")
 		}
-		u.Path += e.Result()
+		encoded, err := e.Result()
+		if err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		pathParts[1] = encoded
 	}
+	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeRequest"
-	r, err := ht.NewRequest(ctx, "PATCH", u, nil)
+	r, err := ht.NewRequest(ctx, "PATCH", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
@@ -2408,24 +2746,26 @@ func (c *Client) sendUpdateGroupLink(ctx context.Context, request *UpdateGroupLi
 // PATCH /users/{id}
 func (c *Client) UpdateUser(ctx context.Context, request *UpdateUserReq, params UpdateUserParams) (UpdateUserRes, error) {
 	res, err := c.sendUpdateUser(ctx, request, params)
-	_ = res
 	return res, err
 }
 
 func (c *Client) sendUpdateUser(ctx context.Context, request *UpdateUserReq, params UpdateUserParams) (res UpdateUserRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("updateUser"),
+		semconv.HTTPMethodKey.String("PATCH"),
+		semconv.HTTPRouteKey.String("/users/{id}"),
 	}
 
 	// Run stopwatch.
 	startTime := time.Now()
 	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
 		elapsedDuration := time.Since(startTime)
-		c.duration.Record(ctx, elapsedDuration.Microseconds(), otelAttrs...)
+		c.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
 	}()
 
 	// Increment request counter.
-	c.requests.Add(ctx, 1, otelAttrs...)
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
 	ctx, span := c.cfg.Tracer.Start(ctx, "UpdateUser",
@@ -2438,14 +2778,15 @@ func (c *Client) sendUpdateUser(ctx context.Context, request *UpdateUserReq, par
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, stage)
-			c.errors.Add(ctx, 1, otelAttrs...)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 		}
 		span.End()
 	}()
 
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
-	u.Path += "/users/"
+	var pathParts [2]string
+	pathParts[0] = "/users/"
 	{
 		// Encode "id" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -2458,11 +2799,16 @@ func (c *Client) sendUpdateUser(ctx context.Context, request *UpdateUserReq, par
 		}(); err != nil {
 			return res, errors.Wrap(err, "encode path")
 		}
-		u.Path += e.Result()
+		encoded, err := e.Result()
+		if err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		pathParts[1] = encoded
 	}
+	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeRequest"
-	r, err := ht.NewRequest(ctx, "PATCH", u, nil)
+	r, err := ht.NewRequest(ctx, "PATCH", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}

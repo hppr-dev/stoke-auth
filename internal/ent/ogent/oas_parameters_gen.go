@@ -32,12 +32,16 @@ func unpackDeleteClaimParams(packed middleware.Parameters) (params DeleteClaimPa
 	return params
 }
 
-func decodeDeleteClaimParams(args [1]string, r *http.Request) (params DeleteClaimParams, _ error) {
+func decodeDeleteClaimParams(args [1]string, argsEscaped bool, r *http.Request) (params DeleteClaimParams, _ error) {
 	// Decode path: id.
 	if err := func() error {
-		param, err := url.PathUnescape(args[0])
-		if err != nil {
-			return errors.Wrap(err, "unescape path")
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
 		}
 		if len(param) > 0 {
 			d := uri.NewPathDecoder(uri.PathDecoderConfig{
@@ -94,12 +98,16 @@ func unpackDeleteClaimGroupParams(packed middleware.Parameters) (params DeleteCl
 	return params
 }
 
-func decodeDeleteClaimGroupParams(args [1]string, r *http.Request) (params DeleteClaimGroupParams, _ error) {
+func decodeDeleteClaimGroupParams(args [1]string, argsEscaped bool, r *http.Request) (params DeleteClaimGroupParams, _ error) {
 	// Decode path: id.
 	if err := func() error {
-		param, err := url.PathUnescape(args[0])
-		if err != nil {
-			return errors.Wrap(err, "unescape path")
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
 		}
 		if len(param) > 0 {
 			d := uri.NewPathDecoder(uri.PathDecoderConfig{
@@ -156,12 +164,16 @@ func unpackDeleteGroupLinkParams(packed middleware.Parameters) (params DeleteGro
 	return params
 }
 
-func decodeDeleteGroupLinkParams(args [1]string, r *http.Request) (params DeleteGroupLinkParams, _ error) {
+func decodeDeleteGroupLinkParams(args [1]string, argsEscaped bool, r *http.Request) (params DeleteGroupLinkParams, _ error) {
 	// Decode path: id.
 	if err := func() error {
-		param, err := url.PathUnescape(args[0])
-		if err != nil {
-			return errors.Wrap(err, "unescape path")
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
 		}
 		if len(param) > 0 {
 			d := uri.NewPathDecoder(uri.PathDecoderConfig{
@@ -231,7 +243,7 @@ func unpackListClaimParams(packed middleware.Parameters) (params ListClaimParams
 	return params
 }
 
-func decodeListClaimParams(args [0]string, r *http.Request) (params ListClaimParams, _ error) {
+func decodeListClaimParams(args [0]string, argsEscaped bool, r *http.Request) (params ListClaimParams, _ error) {
 	q := uri.NewQueryDecoder(r.URL.Query())
 	// Decode query: page.
 	if err := func() error {
@@ -266,7 +278,7 @@ func decodeListClaimParams(args [0]string, r *http.Request) (params ListClaimPar
 				return err
 			}
 			if err := func() error {
-				if params.Page.Set {
+				if value, ok := params.Page.Get(); ok {
 					if err := func() error {
 						if err := (validate.Int{
 							MinSet:        true,
@@ -277,7 +289,7 @@ func decodeListClaimParams(args [0]string, r *http.Request) (params ListClaimPar
 							MaxExclusive:  false,
 							MultipleOfSet: false,
 							MultipleOf:    0,
-						}).Validate(int64(params.Page.Value)); err != nil {
+						}).Validate(int64(value)); err != nil {
 							return errors.Wrap(err, "int")
 						}
 						return nil
@@ -331,7 +343,7 @@ func decodeListClaimParams(args [0]string, r *http.Request) (params ListClaimPar
 				return err
 			}
 			if err := func() error {
-				if params.ItemsPerPage.Set {
+				if value, ok := params.ItemsPerPage.Get(); ok {
 					if err := func() error {
 						if err := (validate.Int{
 							MinSet:        true,
@@ -342,7 +354,7 @@ func decodeListClaimParams(args [0]string, r *http.Request) (params ListClaimPar
 							MaxExclusive:  false,
 							MultipleOfSet: false,
 							MultipleOf:    0,
-						}).Validate(int64(params.ItemsPerPage.Value)); err != nil {
+						}).Validate(int64(value)); err != nil {
 							return errors.Wrap(err, "int")
 						}
 						return nil
@@ -405,13 +417,17 @@ func unpackListClaimClaimGroupsParams(packed middleware.Parameters) (params List
 	return params
 }
 
-func decodeListClaimClaimGroupsParams(args [1]string, r *http.Request) (params ListClaimClaimGroupsParams, _ error) {
+func decodeListClaimClaimGroupsParams(args [1]string, argsEscaped bool, r *http.Request) (params ListClaimClaimGroupsParams, _ error) {
 	q := uri.NewQueryDecoder(r.URL.Query())
 	// Decode path: id.
 	if err := func() error {
-		param, err := url.PathUnescape(args[0])
-		if err != nil {
-			return errors.Wrap(err, "unescape path")
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
 		}
 		if len(param) > 0 {
 			d := uri.NewPathDecoder(uri.PathDecoderConfig{
@@ -563,7 +579,7 @@ func unpackListClaimGroupParams(packed middleware.Parameters) (params ListClaimG
 	return params
 }
 
-func decodeListClaimGroupParams(args [0]string, r *http.Request) (params ListClaimGroupParams, _ error) {
+func decodeListClaimGroupParams(args [0]string, argsEscaped bool, r *http.Request) (params ListClaimGroupParams, _ error) {
 	q := uri.NewQueryDecoder(r.URL.Query())
 	// Decode query: page.
 	if err := func() error {
@@ -598,7 +614,7 @@ func decodeListClaimGroupParams(args [0]string, r *http.Request) (params ListCla
 				return err
 			}
 			if err := func() error {
-				if params.Page.Set {
+				if value, ok := params.Page.Get(); ok {
 					if err := func() error {
 						if err := (validate.Int{
 							MinSet:        true,
@@ -609,7 +625,7 @@ func decodeListClaimGroupParams(args [0]string, r *http.Request) (params ListCla
 							MaxExclusive:  false,
 							MultipleOfSet: false,
 							MultipleOf:    0,
-						}).Validate(int64(params.Page.Value)); err != nil {
+						}).Validate(int64(value)); err != nil {
 							return errors.Wrap(err, "int")
 						}
 						return nil
@@ -663,7 +679,7 @@ func decodeListClaimGroupParams(args [0]string, r *http.Request) (params ListCla
 				return err
 			}
 			if err := func() error {
-				if params.ItemsPerPage.Set {
+				if value, ok := params.ItemsPerPage.Get(); ok {
 					if err := func() error {
 						if err := (validate.Int{
 							MinSet:        true,
@@ -674,7 +690,7 @@ func decodeListClaimGroupParams(args [0]string, r *http.Request) (params ListCla
 							MaxExclusive:  false,
 							MultipleOfSet: false,
 							MultipleOf:    0,
-						}).Validate(int64(params.ItemsPerPage.Value)); err != nil {
+						}).Validate(int64(value)); err != nil {
 							return errors.Wrap(err, "int")
 						}
 						return nil
@@ -737,13 +753,17 @@ func unpackListClaimGroupClaimsParams(packed middleware.Parameters) (params List
 	return params
 }
 
-func decodeListClaimGroupClaimsParams(args [1]string, r *http.Request) (params ListClaimGroupClaimsParams, _ error) {
+func decodeListClaimGroupClaimsParams(args [1]string, argsEscaped bool, r *http.Request) (params ListClaimGroupClaimsParams, _ error) {
 	q := uri.NewQueryDecoder(r.URL.Query())
 	// Decode path: id.
 	if err := func() error {
-		param, err := url.PathUnescape(args[0])
-		if err != nil {
-			return errors.Wrap(err, "unescape path")
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
 		}
 		if len(param) > 0 {
 			d := uri.NewPathDecoder(uri.PathDecoderConfig{
@@ -904,13 +924,17 @@ func unpackListClaimGroupGroupLinksParams(packed middleware.Parameters) (params 
 	return params
 }
 
-func decodeListClaimGroupGroupLinksParams(args [1]string, r *http.Request) (params ListClaimGroupGroupLinksParams, _ error) {
+func decodeListClaimGroupGroupLinksParams(args [1]string, argsEscaped bool, r *http.Request) (params ListClaimGroupGroupLinksParams, _ error) {
 	q := uri.NewQueryDecoder(r.URL.Query())
 	// Decode path: id.
 	if err := func() error {
-		param, err := url.PathUnescape(args[0])
-		if err != nil {
-			return errors.Wrap(err, "unescape path")
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
 		}
 		if len(param) > 0 {
 			d := uri.NewPathDecoder(uri.PathDecoderConfig{
@@ -1071,13 +1095,17 @@ func unpackListClaimGroupUsersParams(packed middleware.Parameters) (params ListC
 	return params
 }
 
-func decodeListClaimGroupUsersParams(args [1]string, r *http.Request) (params ListClaimGroupUsersParams, _ error) {
+func decodeListClaimGroupUsersParams(args [1]string, argsEscaped bool, r *http.Request) (params ListClaimGroupUsersParams, _ error) {
 	q := uri.NewQueryDecoder(r.URL.Query())
 	// Decode path: id.
 	if err := func() error {
-		param, err := url.PathUnescape(args[0])
-		if err != nil {
-			return errors.Wrap(err, "unescape path")
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
 		}
 		if len(param) > 0 {
 			d := uri.NewPathDecoder(uri.PathDecoderConfig{
@@ -1229,7 +1257,7 @@ func unpackListGroupLinkParams(packed middleware.Parameters) (params ListGroupLi
 	return params
 }
 
-func decodeListGroupLinkParams(args [0]string, r *http.Request) (params ListGroupLinkParams, _ error) {
+func decodeListGroupLinkParams(args [0]string, argsEscaped bool, r *http.Request) (params ListGroupLinkParams, _ error) {
 	q := uri.NewQueryDecoder(r.URL.Query())
 	// Decode query: page.
 	if err := func() error {
@@ -1264,7 +1292,7 @@ func decodeListGroupLinkParams(args [0]string, r *http.Request) (params ListGrou
 				return err
 			}
 			if err := func() error {
-				if params.Page.Set {
+				if value, ok := params.Page.Get(); ok {
 					if err := func() error {
 						if err := (validate.Int{
 							MinSet:        true,
@@ -1275,7 +1303,7 @@ func decodeListGroupLinkParams(args [0]string, r *http.Request) (params ListGrou
 							MaxExclusive:  false,
 							MultipleOfSet: false,
 							MultipleOf:    0,
-						}).Validate(int64(params.Page.Value)); err != nil {
+						}).Validate(int64(value)); err != nil {
 							return errors.Wrap(err, "int")
 						}
 						return nil
@@ -1329,7 +1357,7 @@ func decodeListGroupLinkParams(args [0]string, r *http.Request) (params ListGrou
 				return err
 			}
 			if err := func() error {
-				if params.ItemsPerPage.Set {
+				if value, ok := params.ItemsPerPage.Get(); ok {
 					if err := func() error {
 						if err := (validate.Int{
 							MinSet:        true,
@@ -1340,7 +1368,7 @@ func decodeListGroupLinkParams(args [0]string, r *http.Request) (params ListGrou
 							MaxExclusive:  false,
 							MultipleOfSet: false,
 							MultipleOf:    0,
-						}).Validate(int64(params.ItemsPerPage.Value)); err != nil {
+						}).Validate(int64(value)); err != nil {
 							return errors.Wrap(err, "int")
 						}
 						return nil
@@ -1394,7 +1422,7 @@ func unpackListPrivateKeyParams(packed middleware.Parameters) (params ListPrivat
 	return params
 }
 
-func decodeListPrivateKeyParams(args [0]string, r *http.Request) (params ListPrivateKeyParams, _ error) {
+func decodeListPrivateKeyParams(args [0]string, argsEscaped bool, r *http.Request) (params ListPrivateKeyParams, _ error) {
 	q := uri.NewQueryDecoder(r.URL.Query())
 	// Decode query: page.
 	if err := func() error {
@@ -1429,7 +1457,7 @@ func decodeListPrivateKeyParams(args [0]string, r *http.Request) (params ListPri
 				return err
 			}
 			if err := func() error {
-				if params.Page.Set {
+				if value, ok := params.Page.Get(); ok {
 					if err := func() error {
 						if err := (validate.Int{
 							MinSet:        true,
@@ -1440,7 +1468,7 @@ func decodeListPrivateKeyParams(args [0]string, r *http.Request) (params ListPri
 							MaxExclusive:  false,
 							MultipleOfSet: false,
 							MultipleOf:    0,
-						}).Validate(int64(params.Page.Value)); err != nil {
+						}).Validate(int64(value)); err != nil {
 							return errors.Wrap(err, "int")
 						}
 						return nil
@@ -1494,7 +1522,7 @@ func decodeListPrivateKeyParams(args [0]string, r *http.Request) (params ListPri
 				return err
 			}
 			if err := func() error {
-				if params.ItemsPerPage.Set {
+				if value, ok := params.ItemsPerPage.Get(); ok {
 					if err := func() error {
 						if err := (validate.Int{
 							MinSet:        true,
@@ -1505,7 +1533,7 @@ func decodeListPrivateKeyParams(args [0]string, r *http.Request) (params ListPri
 							MaxExclusive:  false,
 							MultipleOfSet: false,
 							MultipleOf:    0,
-						}).Validate(int64(params.ItemsPerPage.Value)); err != nil {
+						}).Validate(int64(value)); err != nil {
 							return errors.Wrap(err, "int")
 						}
 						return nil
@@ -1559,7 +1587,7 @@ func unpackListUserParams(packed middleware.Parameters) (params ListUserParams) 
 	return params
 }
 
-func decodeListUserParams(args [0]string, r *http.Request) (params ListUserParams, _ error) {
+func decodeListUserParams(args [0]string, argsEscaped bool, r *http.Request) (params ListUserParams, _ error) {
 	q := uri.NewQueryDecoder(r.URL.Query())
 	// Decode query: page.
 	if err := func() error {
@@ -1594,7 +1622,7 @@ func decodeListUserParams(args [0]string, r *http.Request) (params ListUserParam
 				return err
 			}
 			if err := func() error {
-				if params.Page.Set {
+				if value, ok := params.Page.Get(); ok {
 					if err := func() error {
 						if err := (validate.Int{
 							MinSet:        true,
@@ -1605,7 +1633,7 @@ func decodeListUserParams(args [0]string, r *http.Request) (params ListUserParam
 							MaxExclusive:  false,
 							MultipleOfSet: false,
 							MultipleOf:    0,
-						}).Validate(int64(params.Page.Value)); err != nil {
+						}).Validate(int64(value)); err != nil {
 							return errors.Wrap(err, "int")
 						}
 						return nil
@@ -1659,7 +1687,7 @@ func decodeListUserParams(args [0]string, r *http.Request) (params ListUserParam
 				return err
 			}
 			if err := func() error {
-				if params.ItemsPerPage.Set {
+				if value, ok := params.ItemsPerPage.Get(); ok {
 					if err := func() error {
 						if err := (validate.Int{
 							MinSet:        true,
@@ -1670,7 +1698,7 @@ func decodeListUserParams(args [0]string, r *http.Request) (params ListUserParam
 							MaxExclusive:  false,
 							MultipleOfSet: false,
 							MultipleOf:    0,
-						}).Validate(int64(params.ItemsPerPage.Value)); err != nil {
+						}).Validate(int64(value)); err != nil {
 							return errors.Wrap(err, "int")
 						}
 						return nil
@@ -1733,13 +1761,17 @@ func unpackListUserClaimGroupsParams(packed middleware.Parameters) (params ListU
 	return params
 }
 
-func decodeListUserClaimGroupsParams(args [1]string, r *http.Request) (params ListUserClaimGroupsParams, _ error) {
+func decodeListUserClaimGroupsParams(args [1]string, argsEscaped bool, r *http.Request) (params ListUserClaimGroupsParams, _ error) {
 	q := uri.NewQueryDecoder(r.URL.Query())
 	// Decode path: id.
 	if err := func() error {
-		param, err := url.PathUnescape(args[0])
-		if err != nil {
-			return errors.Wrap(err, "unescape path")
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
 		}
 		if len(param) > 0 {
 			d := uri.NewPathDecoder(uri.PathDecoderConfig{
@@ -1878,12 +1910,16 @@ func unpackReadClaimParams(packed middleware.Parameters) (params ReadClaimParams
 	return params
 }
 
-func decodeReadClaimParams(args [1]string, r *http.Request) (params ReadClaimParams, _ error) {
+func decodeReadClaimParams(args [1]string, argsEscaped bool, r *http.Request) (params ReadClaimParams, _ error) {
 	// Decode path: id.
 	if err := func() error {
-		param, err := url.PathUnescape(args[0])
-		if err != nil {
-			return errors.Wrap(err, "unescape path")
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
 		}
 		if len(param) > 0 {
 			d := uri.NewPathDecoder(uri.PathDecoderConfig{
@@ -1940,12 +1976,16 @@ func unpackReadClaimGroupParams(packed middleware.Parameters) (params ReadClaimG
 	return params
 }
 
-func decodeReadClaimGroupParams(args [1]string, r *http.Request) (params ReadClaimGroupParams, _ error) {
+func decodeReadClaimGroupParams(args [1]string, argsEscaped bool, r *http.Request) (params ReadClaimGroupParams, _ error) {
 	// Decode path: id.
 	if err := func() error {
-		param, err := url.PathUnescape(args[0])
-		if err != nil {
-			return errors.Wrap(err, "unescape path")
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
 		}
 		if len(param) > 0 {
 			d := uri.NewPathDecoder(uri.PathDecoderConfig{
@@ -2002,12 +2042,16 @@ func unpackReadGroupLinkParams(packed middleware.Parameters) (params ReadGroupLi
 	return params
 }
 
-func decodeReadGroupLinkParams(args [1]string, r *http.Request) (params ReadGroupLinkParams, _ error) {
+func decodeReadGroupLinkParams(args [1]string, argsEscaped bool, r *http.Request) (params ReadGroupLinkParams, _ error) {
 	// Decode path: id.
 	if err := func() error {
-		param, err := url.PathUnescape(args[0])
-		if err != nil {
-			return errors.Wrap(err, "unescape path")
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
 		}
 		if len(param) > 0 {
 			d := uri.NewPathDecoder(uri.PathDecoderConfig{
@@ -2064,12 +2108,16 @@ func unpackReadGroupLinkClaimGroupsParams(packed middleware.Parameters) (params 
 	return params
 }
 
-func decodeReadGroupLinkClaimGroupsParams(args [1]string, r *http.Request) (params ReadGroupLinkClaimGroupsParams, _ error) {
+func decodeReadGroupLinkClaimGroupsParams(args [1]string, argsEscaped bool, r *http.Request) (params ReadGroupLinkClaimGroupsParams, _ error) {
 	// Decode path: id.
 	if err := func() error {
-		param, err := url.PathUnescape(args[0])
-		if err != nil {
-			return errors.Wrap(err, "unescape path")
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
 		}
 		if len(param) > 0 {
 			d := uri.NewPathDecoder(uri.PathDecoderConfig{
@@ -2126,12 +2174,16 @@ func unpackReadPrivateKeyParams(packed middleware.Parameters) (params ReadPrivat
 	return params
 }
 
-func decodeReadPrivateKeyParams(args [1]string, r *http.Request) (params ReadPrivateKeyParams, _ error) {
+func decodeReadPrivateKeyParams(args [1]string, argsEscaped bool, r *http.Request) (params ReadPrivateKeyParams, _ error) {
 	// Decode path: id.
 	if err := func() error {
-		param, err := url.PathUnescape(args[0])
-		if err != nil {
-			return errors.Wrap(err, "unescape path")
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
 		}
 		if len(param) > 0 {
 			d := uri.NewPathDecoder(uri.PathDecoderConfig{
@@ -2188,12 +2240,16 @@ func unpackReadUserParams(packed middleware.Parameters) (params ReadUserParams) 
 	return params
 }
 
-func decodeReadUserParams(args [1]string, r *http.Request) (params ReadUserParams, _ error) {
+func decodeReadUserParams(args [1]string, argsEscaped bool, r *http.Request) (params ReadUserParams, _ error) {
 	// Decode path: id.
 	if err := func() error {
-		param, err := url.PathUnescape(args[0])
-		if err != nil {
-			return errors.Wrap(err, "unescape path")
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
 		}
 		if len(param) > 0 {
 			d := uri.NewPathDecoder(uri.PathDecoderConfig{
@@ -2250,12 +2306,16 @@ func unpackUpdateClaimParams(packed middleware.Parameters) (params UpdateClaimPa
 	return params
 }
 
-func decodeUpdateClaimParams(args [1]string, r *http.Request) (params UpdateClaimParams, _ error) {
+func decodeUpdateClaimParams(args [1]string, argsEscaped bool, r *http.Request) (params UpdateClaimParams, _ error) {
 	// Decode path: id.
 	if err := func() error {
-		param, err := url.PathUnescape(args[0])
-		if err != nil {
-			return errors.Wrap(err, "unescape path")
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
 		}
 		if len(param) > 0 {
 			d := uri.NewPathDecoder(uri.PathDecoderConfig{
@@ -2312,12 +2372,16 @@ func unpackUpdateClaimGroupParams(packed middleware.Parameters) (params UpdateCl
 	return params
 }
 
-func decodeUpdateClaimGroupParams(args [1]string, r *http.Request) (params UpdateClaimGroupParams, _ error) {
+func decodeUpdateClaimGroupParams(args [1]string, argsEscaped bool, r *http.Request) (params UpdateClaimGroupParams, _ error) {
 	// Decode path: id.
 	if err := func() error {
-		param, err := url.PathUnescape(args[0])
-		if err != nil {
-			return errors.Wrap(err, "unescape path")
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
 		}
 		if len(param) > 0 {
 			d := uri.NewPathDecoder(uri.PathDecoderConfig{
@@ -2374,12 +2438,16 @@ func unpackUpdateGroupLinkParams(packed middleware.Parameters) (params UpdateGro
 	return params
 }
 
-func decodeUpdateGroupLinkParams(args [1]string, r *http.Request) (params UpdateGroupLinkParams, _ error) {
+func decodeUpdateGroupLinkParams(args [1]string, argsEscaped bool, r *http.Request) (params UpdateGroupLinkParams, _ error) {
 	// Decode path: id.
 	if err := func() error {
-		param, err := url.PathUnescape(args[0])
-		if err != nil {
-			return errors.Wrap(err, "unescape path")
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
 		}
 		if len(param) > 0 {
 			d := uri.NewPathDecoder(uri.PathDecoderConfig{
@@ -2436,12 +2504,16 @@ func unpackUpdateUserParams(packed middleware.Parameters) (params UpdateUserPara
 	return params
 }
 
-func decodeUpdateUserParams(args [1]string, r *http.Request) (params UpdateUserParams, _ error) {
+func decodeUpdateUserParams(args [1]string, argsEscaped bool, r *http.Request) (params UpdateUserParams, _ error) {
 	// Decode path: id.
 	if err := func() error {
-		param, err := url.PathUnescape(args[0])
-		if err != nil {
-			return errors.Wrap(err, "unescape path")
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
 		}
 		if len(param) > 0 {
 			d := uri.NewPathDecoder(uri.PathDecoderConfig{

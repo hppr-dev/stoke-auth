@@ -1,9 +1,11 @@
 package main
 
 import (
+	"context"
 	"stoke/internal/cfg"
 	"stoke/internal/ctx"
 	"stoke/internal/ent"
+	"stoke/internal/tel"
 	"stoke/internal/usr"
 	"stoke/internal/web"
 )
@@ -18,28 +20,42 @@ func main() {
 	logger.Info().Msg("Starting Stoke Server...")
 
 	dbClient := createDBClient(*config)
+	issuer := createTokenIssuer(*config, dbClient)
+	usrProvider := createUserProvider(*config, dbClient)
 
-	appContext := &ctx.Context{
+	globalContext := &ctx.Context{
 		Config:       *config,
-		Issuer:       createTokenIssuer(*config, dbClient),
+		Issuer:       issuer,
 		DB:           dbClient,
-		UserProvider: createUserProvider(*config, dbClient),
+		UserProvider: usrProvider,
+		AppContext:   context.Background(),
 	}
-
-	if err := appContext.Issuer.Init() ; err != nil {
-		logger.Fatal().Err(err).Msg("Could not initialize token issuer")
+	
+	otel := &tel.OTEL{
+		Context: globalContext,
 	}
 
 	server := web.Server {
-		Context: appContext,
+		Context: globalContext,
+		OTEL: otel,
 	}
 
-	server.Init()
-	if err := server.Run(); err != nil {
-		logger.Error().Err(err).Msg("An error stopped the server")
+	globalContext.OnStartup(otel.Init)
+	globalContext.OnStartup(usrProvider.Init)
+	globalContext.OnStartup(issuer.Init)
+	globalContext.OnStartup(server.Init)
+
+	if err := globalContext.Startup() ; err != nil {
+		shutdownErr := globalContext.GracefulShutdown()
+		logger.Fatal().Err(err).AnErr("shutdownErr", shutdownErr).Msg("Could not initialize context")
 	}
-	
-	logger.Info().Msg("Stoke Server Terminated.")
+
+	if err := server.Run(); err != nil {
+		logger.Error().Err(err).Msg("Error stopped the server")
+	}
+
+	err := globalContext.GracefulShutdown()
+	logger.Info().Err(err).Msg("Stoke Server Terminated.")
 }
 
 

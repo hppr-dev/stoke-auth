@@ -23,17 +23,14 @@ func (s *ClaimClaimGroupsList) Encode(e *jx.Encoder) {
 // encodeFields encodes fields.
 func (s *ClaimClaimGroupsList) encodeFields(e *jx.Encoder) {
 	{
-
 		e.FieldStart("id")
 		e.Int(s.ID)
 	}
 	{
-
 		e.FieldStart("name")
 		e.Str(s.Name)
 	}
 	{
-
 		e.FieldStart("description")
 		e.Str(s.Description)
 	}
@@ -156,27 +153,22 @@ func (s *ClaimCreate) Encode(e *jx.Encoder) {
 // encodeFields encodes fields.
 func (s *ClaimCreate) encodeFields(e *jx.Encoder) {
 	{
-
 		e.FieldStart("id")
 		e.Int(s.ID)
 	}
 	{
-
 		e.FieldStart("name")
 		e.Str(s.Name)
 	}
 	{
-
 		e.FieldStart("short_name")
 		e.Str(s.ShortName)
 	}
 	{
-
 		e.FieldStart("value")
 		e.Str(s.Value)
 	}
 	{
-
 		e.FieldStart("description")
 		e.Str(s.Description)
 	}
@@ -325,27 +317,22 @@ func (s *ClaimGroupClaimsList) Encode(e *jx.Encoder) {
 // encodeFields encodes fields.
 func (s *ClaimGroupClaimsList) encodeFields(e *jx.Encoder) {
 	{
-
 		e.FieldStart("id")
 		e.Int(s.ID)
 	}
 	{
-
 		e.FieldStart("name")
 		e.Str(s.Name)
 	}
 	{
-
 		e.FieldStart("short_name")
 		e.Str(s.ShortName)
 	}
 	{
-
 		e.FieldStart("value")
 		e.Str(s.Value)
 	}
 	{
-
 		e.FieldStart("description")
 		e.Str(s.Description)
 	}
@@ -494,17 +481,14 @@ func (s *ClaimGroupCreate) Encode(e *jx.Encoder) {
 // encodeFields encodes fields.
 func (s *ClaimGroupCreate) encodeFields(e *jx.Encoder) {
 	{
-
 		e.FieldStart("id")
 		e.Int(s.ID)
 	}
 	{
-
 		e.FieldStart("name")
 		e.Str(s.Name)
 	}
 	{
-
 		e.FieldStart("description")
 		e.Str(s.Description)
 	}
@@ -627,17 +611,14 @@ func (s *ClaimGroupGroupLinksList) Encode(e *jx.Encoder) {
 // encodeFields encodes fields.
 func (s *ClaimGroupGroupLinksList) encodeFields(e *jx.Encoder) {
 	{
-
 		e.FieldStart("id")
 		e.Int(s.ID)
 	}
 	{
-
 		e.FieldStart("type")
 		e.Str(s.Type)
 	}
 	{
-
 		e.FieldStart("resource_spec")
 		e.Str(s.ResourceSpec)
 	}
@@ -760,17 +741,14 @@ func (s *ClaimGroupList) Encode(e *jx.Encoder) {
 // encodeFields encodes fields.
 func (s *ClaimGroupList) encodeFields(e *jx.Encoder) {
 	{
-
 		e.FieldStart("id")
 		e.Int(s.ID)
 	}
 	{
-
 		e.FieldStart("name")
 		e.Str(s.Name)
 	}
 	{
-
 		e.FieldStart("description")
 		e.Str(s.Description)
 	}
@@ -893,17 +871,14 @@ func (s *ClaimGroupRead) Encode(e *jx.Encoder) {
 // encodeFields encodes fields.
 func (s *ClaimGroupRead) encodeFields(e *jx.Encoder) {
 	{
-
 		e.FieldStart("id")
 		e.Int(s.ID)
 	}
 	{
-
 		e.FieldStart("name")
 		e.Str(s.Name)
 	}
 	{
-
 		e.FieldStart("description")
 		e.Str(s.Description)
 	}
@@ -1026,17 +1001,14 @@ func (s *ClaimGroupUpdate) Encode(e *jx.Encoder) {
 // encodeFields encodes fields.
 func (s *ClaimGroupUpdate) encodeFields(e *jx.Encoder) {
 	{
-
 		e.FieldStart("id")
 		e.Int(s.ID)
 	}
 	{
-
 		e.FieldStart("name")
 		e.Str(s.Name)
 	}
 	{
-
 		e.FieldStart("description")
 		e.Str(s.Description)
 	}
@@ -1159,38 +1131,32 @@ func (s *ClaimGroupUsersList) Encode(e *jx.Encoder) {
 // encodeFields encodes fields.
 func (s *ClaimGroupUsersList) encodeFields(e *jx.Encoder) {
 	{
-
 		e.FieldStart("id")
 		e.Int(s.ID)
 	}
 	{
-
 		e.FieldStart("fname")
 		e.Str(s.Fname)
 	}
 	{
-
 		e.FieldStart("lname")
 		e.Str(s.Lname)
 	}
 	{
-
 		e.FieldStart("email")
 		e.Str(s.Email)
 	}
 	{
-
 		e.FieldStart("username")
 		e.Str(s.Username)
 	}
 	{
-
 		e.FieldStart("created_at")
 		json.EncodeDateTime(e, s.CreatedAt)
 	}
 }
 
-var jsonFieldsNameOfClaimGroupUsersList = [6]string{
+var jsonFieldsNameOfClaimGroupUsersList = [8]string{
 	0: "id",
 	1: "fname",
 	2: "lname",
@@ -1269,7 +1235,7 @@ func (s *ClaimGroupUsersList) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"username\"")
 			}
 		case "created_at":
-			requiredBitSet[0] |= 1 << 5
+			requiredBitSet[0] |= 1 << 7
 			if err := func() error {
 				v, err := json.DecodeDateTime(d)
 				s.CreatedAt = v
@@ -1290,7 +1256,7 @@ func (s *ClaimGroupUsersList) Decode(d *jx.Decoder) error {
 	// Validate required fields.
 	var failures []validate.FieldError
 	for i, mask := range [1]uint8{
-		0b00111111,
+		0b11111111,
 	} {
 		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
 			// Mask only required fields and check equality to mask using XOR.
@@ -1346,27 +1312,22 @@ func (s *ClaimList) Encode(e *jx.Encoder) {
 // encodeFields encodes fields.
 func (s *ClaimList) encodeFields(e *jx.Encoder) {
 	{
-
 		e.FieldStart("id")
 		e.Int(s.ID)
 	}
 	{
-
 		e.FieldStart("name")
 		e.Str(s.Name)
 	}
 	{
-
 		e.FieldStart("short_name")
 		e.Str(s.ShortName)
 	}
 	{
-
 		e.FieldStart("value")
 		e.Str(s.Value)
 	}
 	{
-
 		e.FieldStart("description")
 		e.Str(s.Description)
 	}
@@ -1515,27 +1476,22 @@ func (s *ClaimRead) Encode(e *jx.Encoder) {
 // encodeFields encodes fields.
 func (s *ClaimRead) encodeFields(e *jx.Encoder) {
 	{
-
 		e.FieldStart("id")
 		e.Int(s.ID)
 	}
 	{
-
 		e.FieldStart("name")
 		e.Str(s.Name)
 	}
 	{
-
 		e.FieldStart("short_name")
 		e.Str(s.ShortName)
 	}
 	{
-
 		e.FieldStart("value")
 		e.Str(s.Value)
 	}
 	{
-
 		e.FieldStart("description")
 		e.Str(s.Description)
 	}
@@ -1684,27 +1640,22 @@ func (s *ClaimUpdate) Encode(e *jx.Encoder) {
 // encodeFields encodes fields.
 func (s *ClaimUpdate) encodeFields(e *jx.Encoder) {
 	{
-
 		e.FieldStart("id")
 		e.Int(s.ID)
 	}
 	{
-
 		e.FieldStart("name")
 		e.Str(s.Name)
 	}
 	{
-
 		e.FieldStart("short_name")
 		e.Str(s.ShortName)
 	}
 	{
-
 		e.FieldStart("value")
 		e.Str(s.Value)
 	}
 	{
-
 		e.FieldStart("description")
 		e.Str(s.Description)
 	}
@@ -1853,12 +1804,10 @@ func (s *CreateClaimGroupReq) Encode(e *jx.Encoder) {
 // encodeFields encodes fields.
 func (s *CreateClaimGroupReq) encodeFields(e *jx.Encoder) {
 	{
-
 		e.FieldStart("name")
 		e.Str(s.Name)
 	}
 	{
-
 		e.FieldStart("description")
 		e.Str(s.Description)
 	}
@@ -2058,22 +2007,18 @@ func (s *CreateClaimReq) Encode(e *jx.Encoder) {
 // encodeFields encodes fields.
 func (s *CreateClaimReq) encodeFields(e *jx.Encoder) {
 	{
-
 		e.FieldStart("name")
 		e.Str(s.Name)
 	}
 	{
-
 		e.FieldStart("short_name")
 		e.Str(s.ShortName)
 	}
 	{
-
 		e.FieldStart("value")
 		e.Str(s.Value)
 	}
 	{
-
 		e.FieldStart("description")
 		e.Str(s.Description)
 	}
@@ -2239,12 +2184,10 @@ func (s *CreateGroupLinkReq) Encode(e *jx.Encoder) {
 // encodeFields encodes fields.
 func (s *CreateGroupLinkReq) encodeFields(e *jx.Encoder) {
 	{
-
 		e.FieldStart("type")
 		e.Str(s.Type)
 	}
 	{
-
 		e.FieldStart("resource_spec")
 		e.Str(s.ResourceSpec)
 	}
@@ -2371,17 +2314,14 @@ func (s *GroupLinkClaimGroupsRead) Encode(e *jx.Encoder) {
 // encodeFields encodes fields.
 func (s *GroupLinkClaimGroupsRead) encodeFields(e *jx.Encoder) {
 	{
-
 		e.FieldStart("id")
 		e.Int(s.ID)
 	}
 	{
-
 		e.FieldStart("name")
 		e.Str(s.Name)
 	}
 	{
-
 		e.FieldStart("description")
 		e.Str(s.Description)
 	}
@@ -2504,17 +2444,14 @@ func (s *GroupLinkCreate) Encode(e *jx.Encoder) {
 // encodeFields encodes fields.
 func (s *GroupLinkCreate) encodeFields(e *jx.Encoder) {
 	{
-
 		e.FieldStart("id")
 		e.Int(s.ID)
 	}
 	{
-
 		e.FieldStart("type")
 		e.Str(s.Type)
 	}
 	{
-
 		e.FieldStart("resource_spec")
 		e.Str(s.ResourceSpec)
 	}
@@ -2637,17 +2574,14 @@ func (s *GroupLinkList) Encode(e *jx.Encoder) {
 // encodeFields encodes fields.
 func (s *GroupLinkList) encodeFields(e *jx.Encoder) {
 	{
-
 		e.FieldStart("id")
 		e.Int(s.ID)
 	}
 	{
-
 		e.FieldStart("type")
 		e.Str(s.Type)
 	}
 	{
-
 		e.FieldStart("resource_spec")
 		e.Str(s.ResourceSpec)
 	}
@@ -2770,17 +2704,14 @@ func (s *GroupLinkRead) Encode(e *jx.Encoder) {
 // encodeFields encodes fields.
 func (s *GroupLinkRead) encodeFields(e *jx.Encoder) {
 	{
-
 		e.FieldStart("id")
 		e.Int(s.ID)
 	}
 	{
-
 		e.FieldStart("type")
 		e.Str(s.Type)
 	}
 	{
-
 		e.FieldStart("resource_spec")
 		e.Str(s.ResourceSpec)
 	}
@@ -2903,17 +2834,14 @@ func (s *GroupLinkUpdate) Encode(e *jx.Encoder) {
 // encodeFields encodes fields.
 func (s *GroupLinkUpdate) encodeFields(e *jx.Encoder) {
 	{
-
 		e.FieldStart("id")
 		e.Int(s.ID)
 	}
 	{
-
 		e.FieldStart("type")
 		e.Str(s.Type)
 	}
 	{
-
 		e.FieldStart("resource_spec")
 		e.Str(s.ResourceSpec)
 	}
@@ -3606,17 +3534,14 @@ func (s *PrivateKeyList) Encode(e *jx.Encoder) {
 // encodeFields encodes fields.
 func (s *PrivateKeyList) encodeFields(e *jx.Encoder) {
 	{
-
 		e.FieldStart("id")
 		e.Int(s.ID)
 	}
 	{
-
 		e.FieldStart("text")
 		e.Str(s.Text)
 	}
 	{
-
 		e.FieldStart("expires")
 		json.EncodeDateTime(e, s.Expires)
 	}
@@ -3739,17 +3664,14 @@ func (s *PrivateKeyRead) Encode(e *jx.Encoder) {
 // encodeFields encodes fields.
 func (s *PrivateKeyRead) encodeFields(e *jx.Encoder) {
 	{
-
 		e.FieldStart("id")
 		e.Int(s.ID)
 	}
 	{
-
 		e.FieldStart("text")
 		e.Str(s.Text)
 	}
 	{
-
 		e.FieldStart("expires")
 		json.EncodeDateTime(e, s.Expires)
 	}
@@ -3872,17 +3794,14 @@ func (s *R400) Encode(e *jx.Encoder) {
 // encodeFields encodes fields.
 func (s *R400) encodeFields(e *jx.Encoder) {
 	{
-
 		e.FieldStart("code")
 		e.Int(s.Code)
 	}
 	{
-
 		e.FieldStart("status")
 		e.Str(s.Status)
 	}
 	{
-
 		if len(s.Errors) != 0 {
 			e.FieldStart("errors")
 			e.Raw(s.Errors)
@@ -4006,17 +3925,14 @@ func (s *R404) Encode(e *jx.Encoder) {
 // encodeFields encodes fields.
 func (s *R404) encodeFields(e *jx.Encoder) {
 	{
-
 		e.FieldStart("code")
 		e.Int(s.Code)
 	}
 	{
-
 		e.FieldStart("status")
 		e.Str(s.Status)
 	}
 	{
-
 		if len(s.Errors) != 0 {
 			e.FieldStart("errors")
 			e.Raw(s.Errors)
@@ -4140,17 +4056,14 @@ func (s *R409) Encode(e *jx.Encoder) {
 // encodeFields encodes fields.
 func (s *R409) encodeFields(e *jx.Encoder) {
 	{
-
 		e.FieldStart("code")
 		e.Int(s.Code)
 	}
 	{
-
 		e.FieldStart("status")
 		e.Str(s.Status)
 	}
 	{
-
 		if len(s.Errors) != 0 {
 			e.FieldStart("errors")
 			e.Raw(s.Errors)
@@ -4274,17 +4187,14 @@ func (s *R500) Encode(e *jx.Encoder) {
 // encodeFields encodes fields.
 func (s *R500) encodeFields(e *jx.Encoder) {
 	{
-
 		e.FieldStart("code")
 		e.Int(s.Code)
 	}
 	{
-
 		e.FieldStart("status")
 		e.Str(s.Status)
 	}
 	{
-
 		if len(s.Errors) != 0 {
 			e.FieldStart("errors")
 			e.Raw(s.Errors)
@@ -4854,7 +4764,7 @@ func (s *UpdateUserReq) encodeFields(e *jx.Encoder) {
 	}
 }
 
-var jsonFieldsNameOfUpdateUserReq = [5]string{
+var jsonFieldsNameOfUpdateUserReq = [7]string{
 	0: "fname",
 	1: "lname",
 	2: "email",
@@ -4963,17 +4873,14 @@ func (s *UserClaimGroupsList) Encode(e *jx.Encoder) {
 // encodeFields encodes fields.
 func (s *UserClaimGroupsList) encodeFields(e *jx.Encoder) {
 	{
-
 		e.FieldStart("id")
 		e.Int(s.ID)
 	}
 	{
-
 		e.FieldStart("name")
 		e.Str(s.Name)
 	}
 	{
-
 		e.FieldStart("description")
 		e.Str(s.Description)
 	}
@@ -5096,38 +5003,32 @@ func (s *UserList) Encode(e *jx.Encoder) {
 // encodeFields encodes fields.
 func (s *UserList) encodeFields(e *jx.Encoder) {
 	{
-
 		e.FieldStart("id")
 		e.Int(s.ID)
 	}
 	{
-
 		e.FieldStart("fname")
 		e.Str(s.Fname)
 	}
 	{
-
 		e.FieldStart("lname")
 		e.Str(s.Lname)
 	}
 	{
-
 		e.FieldStart("email")
 		e.Str(s.Email)
 	}
 	{
-
 		e.FieldStart("username")
 		e.Str(s.Username)
 	}
 	{
-
 		e.FieldStart("created_at")
 		json.EncodeDateTime(e, s.CreatedAt)
 	}
 }
 
-var jsonFieldsNameOfUserList = [6]string{
+var jsonFieldsNameOfUserList = [8]string{
 	0: "id",
 	1: "fname",
 	2: "lname",
@@ -5206,7 +5107,7 @@ func (s *UserList) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"username\"")
 			}
 		case "created_at":
-			requiredBitSet[0] |= 1 << 5
+			requiredBitSet[0] |= 1 << 7
 			if err := func() error {
 				v, err := json.DecodeDateTime(d)
 				s.CreatedAt = v
@@ -5227,7 +5128,7 @@ func (s *UserList) Decode(d *jx.Decoder) error {
 	// Validate required fields.
 	var failures []validate.FieldError
 	for i, mask := range [1]uint8{
-		0b00111111,
+		0b11111111,
 	} {
 		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
 			// Mask only required fields and check equality to mask using XOR.
@@ -5283,38 +5184,32 @@ func (s *UserRead) Encode(e *jx.Encoder) {
 // encodeFields encodes fields.
 func (s *UserRead) encodeFields(e *jx.Encoder) {
 	{
-
 		e.FieldStart("id")
 		e.Int(s.ID)
 	}
 	{
-
 		e.FieldStart("fname")
 		e.Str(s.Fname)
 	}
 	{
-
 		e.FieldStart("lname")
 		e.Str(s.Lname)
 	}
 	{
-
 		e.FieldStart("email")
 		e.Str(s.Email)
 	}
 	{
-
 		e.FieldStart("username")
 		e.Str(s.Username)
 	}
 	{
-
 		e.FieldStart("created_at")
 		json.EncodeDateTime(e, s.CreatedAt)
 	}
 }
 
-var jsonFieldsNameOfUserRead = [6]string{
+var jsonFieldsNameOfUserRead = [8]string{
 	0: "id",
 	1: "fname",
 	2: "lname",
@@ -5393,7 +5288,7 @@ func (s *UserRead) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"username\"")
 			}
 		case "created_at":
-			requiredBitSet[0] |= 1 << 5
+			requiredBitSet[0] |= 1 << 7
 			if err := func() error {
 				v, err := json.DecodeDateTime(d)
 				s.CreatedAt = v
@@ -5414,7 +5309,7 @@ func (s *UserRead) Decode(d *jx.Decoder) error {
 	// Validate required fields.
 	var failures []validate.FieldError
 	for i, mask := range [1]uint8{
-		0b00111111,
+		0b11111111,
 	} {
 		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
 			// Mask only required fields and check equality to mask using XOR.
@@ -5470,44 +5365,38 @@ func (s *UserUpdate) Encode(e *jx.Encoder) {
 // encodeFields encodes fields.
 func (s *UserUpdate) encodeFields(e *jx.Encoder) {
 	{
-
 		e.FieldStart("id")
 		e.Int(s.ID)
 	}
 	{
-
 		e.FieldStart("fname")
 		e.Str(s.Fname)
 	}
 	{
-
 		e.FieldStart("lname")
 		e.Str(s.Lname)
 	}
 	{
-
 		e.FieldStart("email")
 		e.Str(s.Email)
 	}
 	{
-
 		e.FieldStart("username")
 		e.Str(s.Username)
 	}
 	{
-
 		e.FieldStart("created_at")
 		json.EncodeDateTime(e, s.CreatedAt)
 	}
 }
 
-var jsonFieldsNameOfUserUpdate = [6]string{
+var jsonFieldsNameOfUserUpdate = [8]string{
 	0: "id",
 	1: "fname",
 	2: "lname",
 	3: "email",
 	4: "username",
-	5: "created_at",
+	6: "created_at",
 }
 
 // Decode decodes UserUpdate from json.
@@ -5580,7 +5469,7 @@ func (s *UserUpdate) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"username\"")
 			}
 		case "created_at":
-			requiredBitSet[0] |= 1 << 5
+			requiredBitSet[0] |= 1 << 7
 			if err := func() error {
 				v, err := json.DecodeDateTime(d)
 				s.CreatedAt = v
@@ -5601,7 +5490,7 @@ func (s *UserUpdate) Decode(d *jx.Decoder) error {
 	// Validate required fields.
 	var failures []validate.FieldError
 	for i, mask := range [1]uint8{
-		0b00111111,
+		0b11111111,
 	} {
 		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
 			// Mask only required fields and check equality to mask using XOR.

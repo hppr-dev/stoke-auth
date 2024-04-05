@@ -1,10 +1,10 @@
 package web
 
 import (
-	"log"
 	"net/http"
 	"stoke/internal/ctx"
 	"stoke/internal/ent/ogent"
+	"stoke/internal/tel"
 )
 
 type EntityAPI struct {
@@ -12,7 +12,7 @@ type EntityAPI struct {
 	Context *ctx.Context
 }
 
-func NewEntityAPIHandler(prefix string, context *ctx.Context) http.Handler {
+func NewEntityAPIHandler(prefix string, context *ctx.Context, o *tel.OTEL) http.Handler {
 	if len(prefix) > 0 && prefix[len(prefix) - 1] == '/' {
 		prefix = prefix[0:len(prefix) - 1]
 	}
@@ -22,9 +22,11 @@ func NewEntityAPIHandler(prefix string, context *ctx.Context) http.Handler {
 			Context: context,
 		},
 		ogent.WithPathPrefix(prefix),
+		ogent.WithTracerProvider(o.Tracer),
+		ogent.WithMeterProvider(o.Meter),
 	)
 	if err != nil {
-		log.Printf("An error occured creating an entity handler: %v", err)
+		logger.Fatal().Err(err).Msg("An error occured creating an entity handler")
 		return nil
 	}
 	return hdlr

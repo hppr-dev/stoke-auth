@@ -16,6 +16,7 @@ export default defineConfig({
 	build: {
 		outDir: "../dist"
 	},
+	base: "/admin/",
   plugins: [
     VueRouter({
       dts: 'src/typed-router.d.ts',

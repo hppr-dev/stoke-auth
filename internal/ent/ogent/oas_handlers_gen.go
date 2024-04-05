@@ -7,11 +7,14 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/go-faster/errors"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
-	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
+	"go.opentelemetry.io/otel/metric"
+	semconv "go.opentelemetry.io/otel/semconv/v1.19.0"
 	"go.opentelemetry.io/otel/trace"
 
+	ht "github.com/ogen-go/ogen/http"
 	"github.com/ogen-go/ogen/middleware"
 	"github.com/ogen-go/ogen/ogenerrors"
 	"github.com/ogen-go/ogen/otelogen"
@@ -22,7 +25,7 @@ import (
 // Creates a new Claim and persists it to storage.
 //
 // POST /claims
-func (s *Server) handleCreateClaimRequest(args [0]string, w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleCreateClaimRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("createClaim"),
 		semconv.HTTPMethodKey.String("POST"),
@@ -40,17 +43,18 @@ func (s *Server) handleCreateClaimRequest(args [0]string, w http.ResponseWriter,
 	startTime := time.Now()
 	defer func() {
 		elapsedDuration := time.Since(startTime)
-		s.duration.Record(ctx, elapsedDuration.Microseconds(), otelAttrs...)
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		s.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
 	}()
 
 	// Increment request counter.
-	s.requests.Add(ctx, 1, otelAttrs...)
+	s.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	var (
 		recordError = func(stage string, err error) {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, stage)
-			s.errors.Add(ctx, 1, otelAttrs...)
+			s.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 		}
 		err          error
 		opErrContext = ogenerrors.OperationContext{
@@ -77,12 +81,13 @@ func (s *Server) handleCreateClaimRequest(args [0]string, w http.ResponseWriter,
 	var response CreateClaimRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
-			Context:       ctx,
-			OperationName: "CreateClaim",
-			OperationID:   "createClaim",
-			Body:          request,
-			Params:        middleware.Parameters{},
-			Raw:           r,
+			Context:          ctx,
+			OperationName:    "CreateClaim",
+			OperationSummary: "Create a new Claim",
+			OperationID:      "createClaim",
+			Body:             request,
+			Params:           middleware.Parameters{},
+			Raw:              r,
 		}
 
 		type (
@@ -114,7 +119,9 @@ func (s *Server) handleCreateClaimRequest(args [0]string, w http.ResponseWriter,
 
 	if err := encodeCreateClaimResponse(response, w, span); err != nil {
 		recordError("EncodeResponse", err)
-		s.cfg.ErrorHandler(ctx, w, r, err)
+		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
+			s.cfg.ErrorHandler(ctx, w, r, err)
+		}
 		return
 	}
 }
@@ -124,7 +131,7 @@ func (s *Server) handleCreateClaimRequest(args [0]string, w http.ResponseWriter,
 // Creates a new ClaimGroup and persists it to storage.
 //
 // POST /claim-groups
-func (s *Server) handleCreateClaimGroupRequest(args [0]string, w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleCreateClaimGroupRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("createClaimGroup"),
 		semconv.HTTPMethodKey.String("POST"),
@@ -142,17 +149,18 @@ func (s *Server) handleCreateClaimGroupRequest(args [0]string, w http.ResponseWr
 	startTime := time.Now()
 	defer func() {
 		elapsedDuration := time.Since(startTime)
-		s.duration.Record(ctx, elapsedDuration.Microseconds(), otelAttrs...)
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		s.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
 	}()
 
 	// Increment request counter.
-	s.requests.Add(ctx, 1, otelAttrs...)
+	s.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	var (
 		recordError = func(stage string, err error) {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, stage)
-			s.errors.Add(ctx, 1, otelAttrs...)
+			s.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 		}
 		err          error
 		opErrContext = ogenerrors.OperationContext{
@@ -179,12 +187,13 @@ func (s *Server) handleCreateClaimGroupRequest(args [0]string, w http.ResponseWr
 	var response CreateClaimGroupRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
-			Context:       ctx,
-			OperationName: "CreateClaimGroup",
-			OperationID:   "createClaimGroup",
-			Body:          request,
-			Params:        middleware.Parameters{},
-			Raw:           r,
+			Context:          ctx,
+			OperationName:    "CreateClaimGroup",
+			OperationSummary: "Create a new ClaimGroup",
+			OperationID:      "createClaimGroup",
+			Body:             request,
+			Params:           middleware.Parameters{},
+			Raw:              r,
 		}
 
 		type (
@@ -216,7 +225,9 @@ func (s *Server) handleCreateClaimGroupRequest(args [0]string, w http.ResponseWr
 
 	if err := encodeCreateClaimGroupResponse(response, w, span); err != nil {
 		recordError("EncodeResponse", err)
-		s.cfg.ErrorHandler(ctx, w, r, err)
+		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
+			s.cfg.ErrorHandler(ctx, w, r, err)
+		}
 		return
 	}
 }
@@ -226,7 +237,7 @@ func (s *Server) handleCreateClaimGroupRequest(args [0]string, w http.ResponseWr
 // Creates a new GroupLink and persists it to storage.
 //
 // POST /group-links
-func (s *Server) handleCreateGroupLinkRequest(args [0]string, w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleCreateGroupLinkRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("createGroupLink"),
 		semconv.HTTPMethodKey.String("POST"),
@@ -244,17 +255,18 @@ func (s *Server) handleCreateGroupLinkRequest(args [0]string, w http.ResponseWri
 	startTime := time.Now()
 	defer func() {
 		elapsedDuration := time.Since(startTime)
-		s.duration.Record(ctx, elapsedDuration.Microseconds(), otelAttrs...)
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		s.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
 	}()
 
 	// Increment request counter.
-	s.requests.Add(ctx, 1, otelAttrs...)
+	s.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	var (
 		recordError = func(stage string, err error) {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, stage)
-			s.errors.Add(ctx, 1, otelAttrs...)
+			s.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 		}
 		err          error
 		opErrContext = ogenerrors.OperationContext{
@@ -281,12 +293,13 @@ func (s *Server) handleCreateGroupLinkRequest(args [0]string, w http.ResponseWri
 	var response CreateGroupLinkRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
-			Context:       ctx,
-			OperationName: "CreateGroupLink",
-			OperationID:   "createGroupLink",
-			Body:          request,
-			Params:        middleware.Parameters{},
-			Raw:           r,
+			Context:          ctx,
+			OperationName:    "CreateGroupLink",
+			OperationSummary: "Create a new GroupLink",
+			OperationID:      "createGroupLink",
+			Body:             request,
+			Params:           middleware.Parameters{},
+			Raw:              r,
 		}
 
 		type (
@@ -318,7 +331,9 @@ func (s *Server) handleCreateGroupLinkRequest(args [0]string, w http.ResponseWri
 
 	if err := encodeCreateGroupLinkResponse(response, w, span); err != nil {
 		recordError("EncodeResponse", err)
-		s.cfg.ErrorHandler(ctx, w, r, err)
+		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
+			s.cfg.ErrorHandler(ctx, w, r, err)
+		}
 		return
 	}
 }
@@ -328,7 +343,7 @@ func (s *Server) handleCreateGroupLinkRequest(args [0]string, w http.ResponseWri
 // Deletes the Claim with the requested ID.
 //
 // DELETE /claims/{id}
-func (s *Server) handleDeleteClaimRequest(args [1]string, w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleDeleteClaimRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("deleteClaim"),
 		semconv.HTTPMethodKey.String("DELETE"),
@@ -346,17 +361,18 @@ func (s *Server) handleDeleteClaimRequest(args [1]string, w http.ResponseWriter,
 	startTime := time.Now()
 	defer func() {
 		elapsedDuration := time.Since(startTime)
-		s.duration.Record(ctx, elapsedDuration.Microseconds(), otelAttrs...)
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		s.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
 	}()
 
 	// Increment request counter.
-	s.requests.Add(ctx, 1, otelAttrs...)
+	s.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	var (
 		recordError = func(stage string, err error) {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, stage)
-			s.errors.Add(ctx, 1, otelAttrs...)
+			s.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 		}
 		err          error
 		opErrContext = ogenerrors.OperationContext{
@@ -364,7 +380,7 @@ func (s *Server) handleDeleteClaimRequest(args [1]string, w http.ResponseWriter,
 			ID:   "deleteClaim",
 		}
 	)
-	params, err := decodeDeleteClaimParams(args, r)
+	params, err := decodeDeleteClaimParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
 			OperationContext: opErrContext,
@@ -378,10 +394,11 @@ func (s *Server) handleDeleteClaimRequest(args [1]string, w http.ResponseWriter,
 	var response DeleteClaimRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
-			Context:       ctx,
-			OperationName: "DeleteClaim",
-			OperationID:   "deleteClaim",
-			Body:          nil,
+			Context:          ctx,
+			OperationName:    "DeleteClaim",
+			OperationSummary: "Deletes a Claim by ID",
+			OperationID:      "deleteClaim",
+			Body:             nil,
 			Params: middleware.Parameters{
 				{
 					Name: "id",
@@ -420,7 +437,9 @@ func (s *Server) handleDeleteClaimRequest(args [1]string, w http.ResponseWriter,
 
 	if err := encodeDeleteClaimResponse(response, w, span); err != nil {
 		recordError("EncodeResponse", err)
-		s.cfg.ErrorHandler(ctx, w, r, err)
+		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
+			s.cfg.ErrorHandler(ctx, w, r, err)
+		}
 		return
 	}
 }
@@ -430,7 +449,7 @@ func (s *Server) handleDeleteClaimRequest(args [1]string, w http.ResponseWriter,
 // Deletes the ClaimGroup with the requested ID.
 //
 // DELETE /claim-groups/{id}
-func (s *Server) handleDeleteClaimGroupRequest(args [1]string, w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleDeleteClaimGroupRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("deleteClaimGroup"),
 		semconv.HTTPMethodKey.String("DELETE"),
@@ -448,17 +467,18 @@ func (s *Server) handleDeleteClaimGroupRequest(args [1]string, w http.ResponseWr
 	startTime := time.Now()
 	defer func() {
 		elapsedDuration := time.Since(startTime)
-		s.duration.Record(ctx, elapsedDuration.Microseconds(), otelAttrs...)
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		s.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
 	}()
 
 	// Increment request counter.
-	s.requests.Add(ctx, 1, otelAttrs...)
+	s.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	var (
 		recordError = func(stage string, err error) {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, stage)
-			s.errors.Add(ctx, 1, otelAttrs...)
+			s.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 		}
 		err          error
 		opErrContext = ogenerrors.OperationContext{
@@ -466,7 +486,7 @@ func (s *Server) handleDeleteClaimGroupRequest(args [1]string, w http.ResponseWr
 			ID:   "deleteClaimGroup",
 		}
 	)
-	params, err := decodeDeleteClaimGroupParams(args, r)
+	params, err := decodeDeleteClaimGroupParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
 			OperationContext: opErrContext,
@@ -480,10 +500,11 @@ func (s *Server) handleDeleteClaimGroupRequest(args [1]string, w http.ResponseWr
 	var response DeleteClaimGroupRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
-			Context:       ctx,
-			OperationName: "DeleteClaimGroup",
-			OperationID:   "deleteClaimGroup",
-			Body:          nil,
+			Context:          ctx,
+			OperationName:    "DeleteClaimGroup",
+			OperationSummary: "Deletes a ClaimGroup by ID",
+			OperationID:      "deleteClaimGroup",
+			Body:             nil,
 			Params: middleware.Parameters{
 				{
 					Name: "id",
@@ -522,7 +543,9 @@ func (s *Server) handleDeleteClaimGroupRequest(args [1]string, w http.ResponseWr
 
 	if err := encodeDeleteClaimGroupResponse(response, w, span); err != nil {
 		recordError("EncodeResponse", err)
-		s.cfg.ErrorHandler(ctx, w, r, err)
+		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
+			s.cfg.ErrorHandler(ctx, w, r, err)
+		}
 		return
 	}
 }
@@ -532,7 +555,7 @@ func (s *Server) handleDeleteClaimGroupRequest(args [1]string, w http.ResponseWr
 // Deletes the GroupLink with the requested ID.
 //
 // DELETE /group-links/{id}
-func (s *Server) handleDeleteGroupLinkRequest(args [1]string, w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleDeleteGroupLinkRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("deleteGroupLink"),
 		semconv.HTTPMethodKey.String("DELETE"),
@@ -550,17 +573,18 @@ func (s *Server) handleDeleteGroupLinkRequest(args [1]string, w http.ResponseWri
 	startTime := time.Now()
 	defer func() {
 		elapsedDuration := time.Since(startTime)
-		s.duration.Record(ctx, elapsedDuration.Microseconds(), otelAttrs...)
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		s.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
 	}()
 
 	// Increment request counter.
-	s.requests.Add(ctx, 1, otelAttrs...)
+	s.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	var (
 		recordError = func(stage string, err error) {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, stage)
-			s.errors.Add(ctx, 1, otelAttrs...)
+			s.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 		}
 		err          error
 		opErrContext = ogenerrors.OperationContext{
@@ -568,7 +592,7 @@ func (s *Server) handleDeleteGroupLinkRequest(args [1]string, w http.ResponseWri
 			ID:   "deleteGroupLink",
 		}
 	)
-	params, err := decodeDeleteGroupLinkParams(args, r)
+	params, err := decodeDeleteGroupLinkParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
 			OperationContext: opErrContext,
@@ -582,10 +606,11 @@ func (s *Server) handleDeleteGroupLinkRequest(args [1]string, w http.ResponseWri
 	var response DeleteGroupLinkRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
-			Context:       ctx,
-			OperationName: "DeleteGroupLink",
-			OperationID:   "deleteGroupLink",
-			Body:          nil,
+			Context:          ctx,
+			OperationName:    "DeleteGroupLink",
+			OperationSummary: "Deletes a GroupLink by ID",
+			OperationID:      "deleteGroupLink",
+			Body:             nil,
 			Params: middleware.Parameters{
 				{
 					Name: "id",
@@ -624,7 +649,9 @@ func (s *Server) handleDeleteGroupLinkRequest(args [1]string, w http.ResponseWri
 
 	if err := encodeDeleteGroupLinkResponse(response, w, span); err != nil {
 		recordError("EncodeResponse", err)
-		s.cfg.ErrorHandler(ctx, w, r, err)
+		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
+			s.cfg.ErrorHandler(ctx, w, r, err)
+		}
 		return
 	}
 }
@@ -634,7 +661,7 @@ func (s *Server) handleDeleteGroupLinkRequest(args [1]string, w http.ResponseWri
 // List Claims.
 //
 // GET /claims
-func (s *Server) handleListClaimRequest(args [0]string, w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleListClaimRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("listClaim"),
 		semconv.HTTPMethodKey.String("GET"),
@@ -652,17 +679,18 @@ func (s *Server) handleListClaimRequest(args [0]string, w http.ResponseWriter, r
 	startTime := time.Now()
 	defer func() {
 		elapsedDuration := time.Since(startTime)
-		s.duration.Record(ctx, elapsedDuration.Microseconds(), otelAttrs...)
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		s.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
 	}()
 
 	// Increment request counter.
-	s.requests.Add(ctx, 1, otelAttrs...)
+	s.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	var (
 		recordError = func(stage string, err error) {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, stage)
-			s.errors.Add(ctx, 1, otelAttrs...)
+			s.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 		}
 		err          error
 		opErrContext = ogenerrors.OperationContext{
@@ -670,7 +698,7 @@ func (s *Server) handleListClaimRequest(args [0]string, w http.ResponseWriter, r
 			ID:   "listClaim",
 		}
 	)
-	params, err := decodeListClaimParams(args, r)
+	params, err := decodeListClaimParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
 			OperationContext: opErrContext,
@@ -684,10 +712,11 @@ func (s *Server) handleListClaimRequest(args [0]string, w http.ResponseWriter, r
 	var response ListClaimRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
-			Context:       ctx,
-			OperationName: "ListClaim",
-			OperationID:   "listClaim",
-			Body:          nil,
+			Context:          ctx,
+			OperationName:    "ListClaim",
+			OperationSummary: "List Claims",
+			OperationID:      "listClaim",
+			Body:             nil,
 			Params: middleware.Parameters{
 				{
 					Name: "page",
@@ -730,7 +759,9 @@ func (s *Server) handleListClaimRequest(args [0]string, w http.ResponseWriter, r
 
 	if err := encodeListClaimResponse(response, w, span); err != nil {
 		recordError("EncodeResponse", err)
-		s.cfg.ErrorHandler(ctx, w, r, err)
+		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
+			s.cfg.ErrorHandler(ctx, w, r, err)
+		}
 		return
 	}
 }
@@ -740,7 +771,7 @@ func (s *Server) handleListClaimRequest(args [0]string, w http.ResponseWriter, r
 // List attached ClaimGroups.
 //
 // GET /claims/{id}/claim-groups
-func (s *Server) handleListClaimClaimGroupsRequest(args [1]string, w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleListClaimClaimGroupsRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("listClaimClaimGroups"),
 		semconv.HTTPMethodKey.String("GET"),
@@ -758,17 +789,18 @@ func (s *Server) handleListClaimClaimGroupsRequest(args [1]string, w http.Respon
 	startTime := time.Now()
 	defer func() {
 		elapsedDuration := time.Since(startTime)
-		s.duration.Record(ctx, elapsedDuration.Microseconds(), otelAttrs...)
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		s.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
 	}()
 
 	// Increment request counter.
-	s.requests.Add(ctx, 1, otelAttrs...)
+	s.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	var (
 		recordError = func(stage string, err error) {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, stage)
-			s.errors.Add(ctx, 1, otelAttrs...)
+			s.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 		}
 		err          error
 		opErrContext = ogenerrors.OperationContext{
@@ -776,7 +808,7 @@ func (s *Server) handleListClaimClaimGroupsRequest(args [1]string, w http.Respon
 			ID:   "listClaimClaimGroups",
 		}
 	)
-	params, err := decodeListClaimClaimGroupsParams(args, r)
+	params, err := decodeListClaimClaimGroupsParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
 			OperationContext: opErrContext,
@@ -790,10 +822,11 @@ func (s *Server) handleListClaimClaimGroupsRequest(args [1]string, w http.Respon
 	var response ListClaimClaimGroupsRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
-			Context:       ctx,
-			OperationName: "ListClaimClaimGroups",
-			OperationID:   "listClaimClaimGroups",
-			Body:          nil,
+			Context:          ctx,
+			OperationName:    "ListClaimClaimGroups",
+			OperationSummary: "List attached ClaimGroups",
+			OperationID:      "listClaimClaimGroups",
+			Body:             nil,
 			Params: middleware.Parameters{
 				{
 					Name: "id",
@@ -840,7 +873,9 @@ func (s *Server) handleListClaimClaimGroupsRequest(args [1]string, w http.Respon
 
 	if err := encodeListClaimClaimGroupsResponse(response, w, span); err != nil {
 		recordError("EncodeResponse", err)
-		s.cfg.ErrorHandler(ctx, w, r, err)
+		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
+			s.cfg.ErrorHandler(ctx, w, r, err)
+		}
 		return
 	}
 }
@@ -850,7 +885,7 @@ func (s *Server) handleListClaimClaimGroupsRequest(args [1]string, w http.Respon
 // List ClaimGroups.
 //
 // GET /claim-groups
-func (s *Server) handleListClaimGroupRequest(args [0]string, w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleListClaimGroupRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("listClaimGroup"),
 		semconv.HTTPMethodKey.String("GET"),
@@ -868,17 +903,18 @@ func (s *Server) handleListClaimGroupRequest(args [0]string, w http.ResponseWrit
 	startTime := time.Now()
 	defer func() {
 		elapsedDuration := time.Since(startTime)
-		s.duration.Record(ctx, elapsedDuration.Microseconds(), otelAttrs...)
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		s.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
 	}()
 
 	// Increment request counter.
-	s.requests.Add(ctx, 1, otelAttrs...)
+	s.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	var (
 		recordError = func(stage string, err error) {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, stage)
-			s.errors.Add(ctx, 1, otelAttrs...)
+			s.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 		}
 		err          error
 		opErrContext = ogenerrors.OperationContext{
@@ -886,7 +922,7 @@ func (s *Server) handleListClaimGroupRequest(args [0]string, w http.ResponseWrit
 			ID:   "listClaimGroup",
 		}
 	)
-	params, err := decodeListClaimGroupParams(args, r)
+	params, err := decodeListClaimGroupParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
 			OperationContext: opErrContext,
@@ -900,10 +936,11 @@ func (s *Server) handleListClaimGroupRequest(args [0]string, w http.ResponseWrit
 	var response ListClaimGroupRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
-			Context:       ctx,
-			OperationName: "ListClaimGroup",
-			OperationID:   "listClaimGroup",
-			Body:          nil,
+			Context:          ctx,
+			OperationName:    "ListClaimGroup",
+			OperationSummary: "List ClaimGroups",
+			OperationID:      "listClaimGroup",
+			Body:             nil,
 			Params: middleware.Parameters{
 				{
 					Name: "page",
@@ -946,7 +983,9 @@ func (s *Server) handleListClaimGroupRequest(args [0]string, w http.ResponseWrit
 
 	if err := encodeListClaimGroupResponse(response, w, span); err != nil {
 		recordError("EncodeResponse", err)
-		s.cfg.ErrorHandler(ctx, w, r, err)
+		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
+			s.cfg.ErrorHandler(ctx, w, r, err)
+		}
 		return
 	}
 }
@@ -956,7 +995,7 @@ func (s *Server) handleListClaimGroupRequest(args [0]string, w http.ResponseWrit
 // List attached Claims.
 //
 // GET /claim-groups/{id}/claims
-func (s *Server) handleListClaimGroupClaimsRequest(args [1]string, w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleListClaimGroupClaimsRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("listClaimGroupClaims"),
 		semconv.HTTPMethodKey.String("GET"),
@@ -974,17 +1013,18 @@ func (s *Server) handleListClaimGroupClaimsRequest(args [1]string, w http.Respon
 	startTime := time.Now()
 	defer func() {
 		elapsedDuration := time.Since(startTime)
-		s.duration.Record(ctx, elapsedDuration.Microseconds(), otelAttrs...)
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		s.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
 	}()
 
 	// Increment request counter.
-	s.requests.Add(ctx, 1, otelAttrs...)
+	s.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	var (
 		recordError = func(stage string, err error) {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, stage)
-			s.errors.Add(ctx, 1, otelAttrs...)
+			s.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 		}
 		err          error
 		opErrContext = ogenerrors.OperationContext{
@@ -992,7 +1032,7 @@ func (s *Server) handleListClaimGroupClaimsRequest(args [1]string, w http.Respon
 			ID:   "listClaimGroupClaims",
 		}
 	)
-	params, err := decodeListClaimGroupClaimsParams(args, r)
+	params, err := decodeListClaimGroupClaimsParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
 			OperationContext: opErrContext,
@@ -1006,10 +1046,11 @@ func (s *Server) handleListClaimGroupClaimsRequest(args [1]string, w http.Respon
 	var response ListClaimGroupClaimsRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
-			Context:       ctx,
-			OperationName: "ListClaimGroupClaims",
-			OperationID:   "listClaimGroupClaims",
-			Body:          nil,
+			Context:          ctx,
+			OperationName:    "ListClaimGroupClaims",
+			OperationSummary: "List attached Claims",
+			OperationID:      "listClaimGroupClaims",
+			Body:             nil,
 			Params: middleware.Parameters{
 				{
 					Name: "id",
@@ -1056,7 +1097,9 @@ func (s *Server) handleListClaimGroupClaimsRequest(args [1]string, w http.Respon
 
 	if err := encodeListClaimGroupClaimsResponse(response, w, span); err != nil {
 		recordError("EncodeResponse", err)
-		s.cfg.ErrorHandler(ctx, w, r, err)
+		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
+			s.cfg.ErrorHandler(ctx, w, r, err)
+		}
 		return
 	}
 }
@@ -1066,7 +1109,7 @@ func (s *Server) handleListClaimGroupClaimsRequest(args [1]string, w http.Respon
 // List attached GroupLinks.
 //
 // GET /claim-groups/{id}/group-links
-func (s *Server) handleListClaimGroupGroupLinksRequest(args [1]string, w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleListClaimGroupGroupLinksRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("listClaimGroupGroupLinks"),
 		semconv.HTTPMethodKey.String("GET"),
@@ -1084,17 +1127,18 @@ func (s *Server) handleListClaimGroupGroupLinksRequest(args [1]string, w http.Re
 	startTime := time.Now()
 	defer func() {
 		elapsedDuration := time.Since(startTime)
-		s.duration.Record(ctx, elapsedDuration.Microseconds(), otelAttrs...)
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		s.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
 	}()
 
 	// Increment request counter.
-	s.requests.Add(ctx, 1, otelAttrs...)
+	s.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	var (
 		recordError = func(stage string, err error) {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, stage)
-			s.errors.Add(ctx, 1, otelAttrs...)
+			s.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 		}
 		err          error
 		opErrContext = ogenerrors.OperationContext{
@@ -1102,7 +1146,7 @@ func (s *Server) handleListClaimGroupGroupLinksRequest(args [1]string, w http.Re
 			ID:   "listClaimGroupGroupLinks",
 		}
 	)
-	params, err := decodeListClaimGroupGroupLinksParams(args, r)
+	params, err := decodeListClaimGroupGroupLinksParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
 			OperationContext: opErrContext,
@@ -1116,10 +1160,11 @@ func (s *Server) handleListClaimGroupGroupLinksRequest(args [1]string, w http.Re
 	var response ListClaimGroupGroupLinksRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
-			Context:       ctx,
-			OperationName: "ListClaimGroupGroupLinks",
-			OperationID:   "listClaimGroupGroupLinks",
-			Body:          nil,
+			Context:          ctx,
+			OperationName:    "ListClaimGroupGroupLinks",
+			OperationSummary: "List attached GroupLinks",
+			OperationID:      "listClaimGroupGroupLinks",
+			Body:             nil,
 			Params: middleware.Parameters{
 				{
 					Name: "id",
@@ -1166,7 +1211,9 @@ func (s *Server) handleListClaimGroupGroupLinksRequest(args [1]string, w http.Re
 
 	if err := encodeListClaimGroupGroupLinksResponse(response, w, span); err != nil {
 		recordError("EncodeResponse", err)
-		s.cfg.ErrorHandler(ctx, w, r, err)
+		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
+			s.cfg.ErrorHandler(ctx, w, r, err)
+		}
 		return
 	}
 }
@@ -1176,7 +1223,7 @@ func (s *Server) handleListClaimGroupGroupLinksRequest(args [1]string, w http.Re
 // List attached Users.
 //
 // GET /claim-groups/{id}/users
-func (s *Server) handleListClaimGroupUsersRequest(args [1]string, w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleListClaimGroupUsersRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("listClaimGroupUsers"),
 		semconv.HTTPMethodKey.String("GET"),
@@ -1194,17 +1241,18 @@ func (s *Server) handleListClaimGroupUsersRequest(args [1]string, w http.Respons
 	startTime := time.Now()
 	defer func() {
 		elapsedDuration := time.Since(startTime)
-		s.duration.Record(ctx, elapsedDuration.Microseconds(), otelAttrs...)
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		s.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
 	}()
 
 	// Increment request counter.
-	s.requests.Add(ctx, 1, otelAttrs...)
+	s.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	var (
 		recordError = func(stage string, err error) {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, stage)
-			s.errors.Add(ctx, 1, otelAttrs...)
+			s.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 		}
 		err          error
 		opErrContext = ogenerrors.OperationContext{
@@ -1212,7 +1260,7 @@ func (s *Server) handleListClaimGroupUsersRequest(args [1]string, w http.Respons
 			ID:   "listClaimGroupUsers",
 		}
 	)
-	params, err := decodeListClaimGroupUsersParams(args, r)
+	params, err := decodeListClaimGroupUsersParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
 			OperationContext: opErrContext,
@@ -1226,10 +1274,11 @@ func (s *Server) handleListClaimGroupUsersRequest(args [1]string, w http.Respons
 	var response ListClaimGroupUsersRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
-			Context:       ctx,
-			OperationName: "ListClaimGroupUsers",
-			OperationID:   "listClaimGroupUsers",
-			Body:          nil,
+			Context:          ctx,
+			OperationName:    "ListClaimGroupUsers",
+			OperationSummary: "List attached Users",
+			OperationID:      "listClaimGroupUsers",
+			Body:             nil,
 			Params: middleware.Parameters{
 				{
 					Name: "id",
@@ -1276,7 +1325,9 @@ func (s *Server) handleListClaimGroupUsersRequest(args [1]string, w http.Respons
 
 	if err := encodeListClaimGroupUsersResponse(response, w, span); err != nil {
 		recordError("EncodeResponse", err)
-		s.cfg.ErrorHandler(ctx, w, r, err)
+		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
+			s.cfg.ErrorHandler(ctx, w, r, err)
+		}
 		return
 	}
 }
@@ -1286,7 +1337,7 @@ func (s *Server) handleListClaimGroupUsersRequest(args [1]string, w http.Respons
 // List GroupLinks.
 //
 // GET /group-links
-func (s *Server) handleListGroupLinkRequest(args [0]string, w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleListGroupLinkRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("listGroupLink"),
 		semconv.HTTPMethodKey.String("GET"),
@@ -1304,17 +1355,18 @@ func (s *Server) handleListGroupLinkRequest(args [0]string, w http.ResponseWrite
 	startTime := time.Now()
 	defer func() {
 		elapsedDuration := time.Since(startTime)
-		s.duration.Record(ctx, elapsedDuration.Microseconds(), otelAttrs...)
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		s.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
 	}()
 
 	// Increment request counter.
-	s.requests.Add(ctx, 1, otelAttrs...)
+	s.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	var (
 		recordError = func(stage string, err error) {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, stage)
-			s.errors.Add(ctx, 1, otelAttrs...)
+			s.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 		}
 		err          error
 		opErrContext = ogenerrors.OperationContext{
@@ -1322,7 +1374,7 @@ func (s *Server) handleListGroupLinkRequest(args [0]string, w http.ResponseWrite
 			ID:   "listGroupLink",
 		}
 	)
-	params, err := decodeListGroupLinkParams(args, r)
+	params, err := decodeListGroupLinkParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
 			OperationContext: opErrContext,
@@ -1336,10 +1388,11 @@ func (s *Server) handleListGroupLinkRequest(args [0]string, w http.ResponseWrite
 	var response ListGroupLinkRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
-			Context:       ctx,
-			OperationName: "ListGroupLink",
-			OperationID:   "listGroupLink",
-			Body:          nil,
+			Context:          ctx,
+			OperationName:    "ListGroupLink",
+			OperationSummary: "List GroupLinks",
+			OperationID:      "listGroupLink",
+			Body:             nil,
 			Params: middleware.Parameters{
 				{
 					Name: "page",
@@ -1382,7 +1435,9 @@ func (s *Server) handleListGroupLinkRequest(args [0]string, w http.ResponseWrite
 
 	if err := encodeListGroupLinkResponse(response, w, span); err != nil {
 		recordError("EncodeResponse", err)
-		s.cfg.ErrorHandler(ctx, w, r, err)
+		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
+			s.cfg.ErrorHandler(ctx, w, r, err)
+		}
 		return
 	}
 }
@@ -1392,7 +1447,7 @@ func (s *Server) handleListGroupLinkRequest(args [0]string, w http.ResponseWrite
 // List PrivateKeys.
 //
 // GET /private-keys
-func (s *Server) handleListPrivateKeyRequest(args [0]string, w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleListPrivateKeyRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("listPrivateKey"),
 		semconv.HTTPMethodKey.String("GET"),
@@ -1410,17 +1465,18 @@ func (s *Server) handleListPrivateKeyRequest(args [0]string, w http.ResponseWrit
 	startTime := time.Now()
 	defer func() {
 		elapsedDuration := time.Since(startTime)
-		s.duration.Record(ctx, elapsedDuration.Microseconds(), otelAttrs...)
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		s.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
 	}()
 
 	// Increment request counter.
-	s.requests.Add(ctx, 1, otelAttrs...)
+	s.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	var (
 		recordError = func(stage string, err error) {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, stage)
-			s.errors.Add(ctx, 1, otelAttrs...)
+			s.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 		}
 		err          error
 		opErrContext = ogenerrors.OperationContext{
@@ -1428,7 +1484,7 @@ func (s *Server) handleListPrivateKeyRequest(args [0]string, w http.ResponseWrit
 			ID:   "listPrivateKey",
 		}
 	)
-	params, err := decodeListPrivateKeyParams(args, r)
+	params, err := decodeListPrivateKeyParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
 			OperationContext: opErrContext,
@@ -1442,10 +1498,11 @@ func (s *Server) handleListPrivateKeyRequest(args [0]string, w http.ResponseWrit
 	var response ListPrivateKeyRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
-			Context:       ctx,
-			OperationName: "ListPrivateKey",
-			OperationID:   "listPrivateKey",
-			Body:          nil,
+			Context:          ctx,
+			OperationName:    "ListPrivateKey",
+			OperationSummary: "List PrivateKeys",
+			OperationID:      "listPrivateKey",
+			Body:             nil,
 			Params: middleware.Parameters{
 				{
 					Name: "page",
@@ -1488,7 +1545,9 @@ func (s *Server) handleListPrivateKeyRequest(args [0]string, w http.ResponseWrit
 
 	if err := encodeListPrivateKeyResponse(response, w, span); err != nil {
 		recordError("EncodeResponse", err)
-		s.cfg.ErrorHandler(ctx, w, r, err)
+		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
+			s.cfg.ErrorHandler(ctx, w, r, err)
+		}
 		return
 	}
 }
@@ -1498,7 +1557,7 @@ func (s *Server) handleListPrivateKeyRequest(args [0]string, w http.ResponseWrit
 // List Users.
 //
 // GET /users
-func (s *Server) handleListUserRequest(args [0]string, w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleListUserRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("listUser"),
 		semconv.HTTPMethodKey.String("GET"),
@@ -1516,17 +1575,18 @@ func (s *Server) handleListUserRequest(args [0]string, w http.ResponseWriter, r 
 	startTime := time.Now()
 	defer func() {
 		elapsedDuration := time.Since(startTime)
-		s.duration.Record(ctx, elapsedDuration.Microseconds(), otelAttrs...)
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		s.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
 	}()
 
 	// Increment request counter.
-	s.requests.Add(ctx, 1, otelAttrs...)
+	s.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	var (
 		recordError = func(stage string, err error) {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, stage)
-			s.errors.Add(ctx, 1, otelAttrs...)
+			s.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 		}
 		err          error
 		opErrContext = ogenerrors.OperationContext{
@@ -1534,7 +1594,7 @@ func (s *Server) handleListUserRequest(args [0]string, w http.ResponseWriter, r 
 			ID:   "listUser",
 		}
 	)
-	params, err := decodeListUserParams(args, r)
+	params, err := decodeListUserParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
 			OperationContext: opErrContext,
@@ -1548,10 +1608,11 @@ func (s *Server) handleListUserRequest(args [0]string, w http.ResponseWriter, r 
 	var response ListUserRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
-			Context:       ctx,
-			OperationName: "ListUser",
-			OperationID:   "listUser",
-			Body:          nil,
+			Context:          ctx,
+			OperationName:    "ListUser",
+			OperationSummary: "List Users",
+			OperationID:      "listUser",
+			Body:             nil,
 			Params: middleware.Parameters{
 				{
 					Name: "page",
@@ -1594,7 +1655,9 @@ func (s *Server) handleListUserRequest(args [0]string, w http.ResponseWriter, r 
 
 	if err := encodeListUserResponse(response, w, span); err != nil {
 		recordError("EncodeResponse", err)
-		s.cfg.ErrorHandler(ctx, w, r, err)
+		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
+			s.cfg.ErrorHandler(ctx, w, r, err)
+		}
 		return
 	}
 }
@@ -1604,7 +1667,7 @@ func (s *Server) handleListUserRequest(args [0]string, w http.ResponseWriter, r 
 // List attached ClaimGroups.
 //
 // GET /users/{id}/claim-groups
-func (s *Server) handleListUserClaimGroupsRequest(args [1]string, w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleListUserClaimGroupsRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("listUserClaimGroups"),
 		semconv.HTTPMethodKey.String("GET"),
@@ -1622,17 +1685,18 @@ func (s *Server) handleListUserClaimGroupsRequest(args [1]string, w http.Respons
 	startTime := time.Now()
 	defer func() {
 		elapsedDuration := time.Since(startTime)
-		s.duration.Record(ctx, elapsedDuration.Microseconds(), otelAttrs...)
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		s.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
 	}()
 
 	// Increment request counter.
-	s.requests.Add(ctx, 1, otelAttrs...)
+	s.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	var (
 		recordError = func(stage string, err error) {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, stage)
-			s.errors.Add(ctx, 1, otelAttrs...)
+			s.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 		}
 		err          error
 		opErrContext = ogenerrors.OperationContext{
@@ -1640,7 +1704,7 @@ func (s *Server) handleListUserClaimGroupsRequest(args [1]string, w http.Respons
 			ID:   "listUserClaimGroups",
 		}
 	)
-	params, err := decodeListUserClaimGroupsParams(args, r)
+	params, err := decodeListUserClaimGroupsParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
 			OperationContext: opErrContext,
@@ -1654,10 +1718,11 @@ func (s *Server) handleListUserClaimGroupsRequest(args [1]string, w http.Respons
 	var response ListUserClaimGroupsRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
-			Context:       ctx,
-			OperationName: "ListUserClaimGroups",
-			OperationID:   "listUserClaimGroups",
-			Body:          nil,
+			Context:          ctx,
+			OperationName:    "ListUserClaimGroups",
+			OperationSummary: "List attached ClaimGroups",
+			OperationID:      "listUserClaimGroups",
+			Body:             nil,
 			Params: middleware.Parameters{
 				{
 					Name: "id",
@@ -1704,7 +1769,9 @@ func (s *Server) handleListUserClaimGroupsRequest(args [1]string, w http.Respons
 
 	if err := encodeListUserClaimGroupsResponse(response, w, span); err != nil {
 		recordError("EncodeResponse", err)
-		s.cfg.ErrorHandler(ctx, w, r, err)
+		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
+			s.cfg.ErrorHandler(ctx, w, r, err)
+		}
 		return
 	}
 }
@@ -1714,7 +1781,7 @@ func (s *Server) handleListUserClaimGroupsRequest(args [1]string, w http.Respons
 // Finds the Claim with the requested ID and returns it.
 //
 // GET /claims/{id}
-func (s *Server) handleReadClaimRequest(args [1]string, w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleReadClaimRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("readClaim"),
 		semconv.HTTPMethodKey.String("GET"),
@@ -1732,17 +1799,18 @@ func (s *Server) handleReadClaimRequest(args [1]string, w http.ResponseWriter, r
 	startTime := time.Now()
 	defer func() {
 		elapsedDuration := time.Since(startTime)
-		s.duration.Record(ctx, elapsedDuration.Microseconds(), otelAttrs...)
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		s.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
 	}()
 
 	// Increment request counter.
-	s.requests.Add(ctx, 1, otelAttrs...)
+	s.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	var (
 		recordError = func(stage string, err error) {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, stage)
-			s.errors.Add(ctx, 1, otelAttrs...)
+			s.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 		}
 		err          error
 		opErrContext = ogenerrors.OperationContext{
@@ -1750,7 +1818,7 @@ func (s *Server) handleReadClaimRequest(args [1]string, w http.ResponseWriter, r
 			ID:   "readClaim",
 		}
 	)
-	params, err := decodeReadClaimParams(args, r)
+	params, err := decodeReadClaimParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
 			OperationContext: opErrContext,
@@ -1764,10 +1832,11 @@ func (s *Server) handleReadClaimRequest(args [1]string, w http.ResponseWriter, r
 	var response ReadClaimRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
-			Context:       ctx,
-			OperationName: "ReadClaim",
-			OperationID:   "readClaim",
-			Body:          nil,
+			Context:          ctx,
+			OperationName:    "ReadClaim",
+			OperationSummary: "Find a Claim by ID",
+			OperationID:      "readClaim",
+			Body:             nil,
 			Params: middleware.Parameters{
 				{
 					Name: "id",
@@ -1806,7 +1875,9 @@ func (s *Server) handleReadClaimRequest(args [1]string, w http.ResponseWriter, r
 
 	if err := encodeReadClaimResponse(response, w, span); err != nil {
 		recordError("EncodeResponse", err)
-		s.cfg.ErrorHandler(ctx, w, r, err)
+		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
+			s.cfg.ErrorHandler(ctx, w, r, err)
+		}
 		return
 	}
 }
@@ -1816,7 +1887,7 @@ func (s *Server) handleReadClaimRequest(args [1]string, w http.ResponseWriter, r
 // Finds the ClaimGroup with the requested ID and returns it.
 //
 // GET /claim-groups/{id}
-func (s *Server) handleReadClaimGroupRequest(args [1]string, w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleReadClaimGroupRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("readClaimGroup"),
 		semconv.HTTPMethodKey.String("GET"),
@@ -1834,17 +1905,18 @@ func (s *Server) handleReadClaimGroupRequest(args [1]string, w http.ResponseWrit
 	startTime := time.Now()
 	defer func() {
 		elapsedDuration := time.Since(startTime)
-		s.duration.Record(ctx, elapsedDuration.Microseconds(), otelAttrs...)
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		s.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
 	}()
 
 	// Increment request counter.
-	s.requests.Add(ctx, 1, otelAttrs...)
+	s.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	var (
 		recordError = func(stage string, err error) {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, stage)
-			s.errors.Add(ctx, 1, otelAttrs...)
+			s.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 		}
 		err          error
 		opErrContext = ogenerrors.OperationContext{
@@ -1852,7 +1924,7 @@ func (s *Server) handleReadClaimGroupRequest(args [1]string, w http.ResponseWrit
 			ID:   "readClaimGroup",
 		}
 	)
-	params, err := decodeReadClaimGroupParams(args, r)
+	params, err := decodeReadClaimGroupParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
 			OperationContext: opErrContext,
@@ -1866,10 +1938,11 @@ func (s *Server) handleReadClaimGroupRequest(args [1]string, w http.ResponseWrit
 	var response ReadClaimGroupRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
-			Context:       ctx,
-			OperationName: "ReadClaimGroup",
-			OperationID:   "readClaimGroup",
-			Body:          nil,
+			Context:          ctx,
+			OperationName:    "ReadClaimGroup",
+			OperationSummary: "Find a ClaimGroup by ID",
+			OperationID:      "readClaimGroup",
+			Body:             nil,
 			Params: middleware.Parameters{
 				{
 					Name: "id",
@@ -1908,7 +1981,9 @@ func (s *Server) handleReadClaimGroupRequest(args [1]string, w http.ResponseWrit
 
 	if err := encodeReadClaimGroupResponse(response, w, span); err != nil {
 		recordError("EncodeResponse", err)
-		s.cfg.ErrorHandler(ctx, w, r, err)
+		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
+			s.cfg.ErrorHandler(ctx, w, r, err)
+		}
 		return
 	}
 }
@@ -1918,7 +1993,7 @@ func (s *Server) handleReadClaimGroupRequest(args [1]string, w http.ResponseWrit
 // Finds the GroupLink with the requested ID and returns it.
 //
 // GET /group-links/{id}
-func (s *Server) handleReadGroupLinkRequest(args [1]string, w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleReadGroupLinkRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("readGroupLink"),
 		semconv.HTTPMethodKey.String("GET"),
@@ -1936,17 +2011,18 @@ func (s *Server) handleReadGroupLinkRequest(args [1]string, w http.ResponseWrite
 	startTime := time.Now()
 	defer func() {
 		elapsedDuration := time.Since(startTime)
-		s.duration.Record(ctx, elapsedDuration.Microseconds(), otelAttrs...)
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		s.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
 	}()
 
 	// Increment request counter.
-	s.requests.Add(ctx, 1, otelAttrs...)
+	s.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	var (
 		recordError = func(stage string, err error) {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, stage)
-			s.errors.Add(ctx, 1, otelAttrs...)
+			s.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 		}
 		err          error
 		opErrContext = ogenerrors.OperationContext{
@@ -1954,7 +2030,7 @@ func (s *Server) handleReadGroupLinkRequest(args [1]string, w http.ResponseWrite
 			ID:   "readGroupLink",
 		}
 	)
-	params, err := decodeReadGroupLinkParams(args, r)
+	params, err := decodeReadGroupLinkParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
 			OperationContext: opErrContext,
@@ -1968,10 +2044,11 @@ func (s *Server) handleReadGroupLinkRequest(args [1]string, w http.ResponseWrite
 	var response ReadGroupLinkRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
-			Context:       ctx,
-			OperationName: "ReadGroupLink",
-			OperationID:   "readGroupLink",
-			Body:          nil,
+			Context:          ctx,
+			OperationName:    "ReadGroupLink",
+			OperationSummary: "Find a GroupLink by ID",
+			OperationID:      "readGroupLink",
+			Body:             nil,
 			Params: middleware.Parameters{
 				{
 					Name: "id",
@@ -2010,7 +2087,9 @@ func (s *Server) handleReadGroupLinkRequest(args [1]string, w http.ResponseWrite
 
 	if err := encodeReadGroupLinkResponse(response, w, span); err != nil {
 		recordError("EncodeResponse", err)
-		s.cfg.ErrorHandler(ctx, w, r, err)
+		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
+			s.cfg.ErrorHandler(ctx, w, r, err)
+		}
 		return
 	}
 }
@@ -2020,7 +2099,7 @@ func (s *Server) handleReadGroupLinkRequest(args [1]string, w http.ResponseWrite
 // Find the attached ClaimGroup of the GroupLink with the given ID.
 //
 // GET /group-links/{id}/claim-groups
-func (s *Server) handleReadGroupLinkClaimGroupsRequest(args [1]string, w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleReadGroupLinkClaimGroupsRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("readGroupLinkClaimGroups"),
 		semconv.HTTPMethodKey.String("GET"),
@@ -2038,17 +2117,18 @@ func (s *Server) handleReadGroupLinkClaimGroupsRequest(args [1]string, w http.Re
 	startTime := time.Now()
 	defer func() {
 		elapsedDuration := time.Since(startTime)
-		s.duration.Record(ctx, elapsedDuration.Microseconds(), otelAttrs...)
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		s.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
 	}()
 
 	// Increment request counter.
-	s.requests.Add(ctx, 1, otelAttrs...)
+	s.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	var (
 		recordError = func(stage string, err error) {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, stage)
-			s.errors.Add(ctx, 1, otelAttrs...)
+			s.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 		}
 		err          error
 		opErrContext = ogenerrors.OperationContext{
@@ -2056,7 +2136,7 @@ func (s *Server) handleReadGroupLinkClaimGroupsRequest(args [1]string, w http.Re
 			ID:   "readGroupLinkClaimGroups",
 		}
 	)
-	params, err := decodeReadGroupLinkClaimGroupsParams(args, r)
+	params, err := decodeReadGroupLinkClaimGroupsParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
 			OperationContext: opErrContext,
@@ -2070,10 +2150,11 @@ func (s *Server) handleReadGroupLinkClaimGroupsRequest(args [1]string, w http.Re
 	var response ReadGroupLinkClaimGroupsRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
-			Context:       ctx,
-			OperationName: "ReadGroupLinkClaimGroups",
-			OperationID:   "readGroupLinkClaimGroups",
-			Body:          nil,
+			Context:          ctx,
+			OperationName:    "ReadGroupLinkClaimGroups",
+			OperationSummary: "Find the attached ClaimGroup",
+			OperationID:      "readGroupLinkClaimGroups",
+			Body:             nil,
 			Params: middleware.Parameters{
 				{
 					Name: "id",
@@ -2112,7 +2193,9 @@ func (s *Server) handleReadGroupLinkClaimGroupsRequest(args [1]string, w http.Re
 
 	if err := encodeReadGroupLinkClaimGroupsResponse(response, w, span); err != nil {
 		recordError("EncodeResponse", err)
-		s.cfg.ErrorHandler(ctx, w, r, err)
+		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
+			s.cfg.ErrorHandler(ctx, w, r, err)
+		}
 		return
 	}
 }
@@ -2122,7 +2205,7 @@ func (s *Server) handleReadGroupLinkClaimGroupsRequest(args [1]string, w http.Re
 // Finds the PrivateKey with the requested ID and returns it.
 //
 // GET /private-keys/{id}
-func (s *Server) handleReadPrivateKeyRequest(args [1]string, w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleReadPrivateKeyRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("readPrivateKey"),
 		semconv.HTTPMethodKey.String("GET"),
@@ -2140,17 +2223,18 @@ func (s *Server) handleReadPrivateKeyRequest(args [1]string, w http.ResponseWrit
 	startTime := time.Now()
 	defer func() {
 		elapsedDuration := time.Since(startTime)
-		s.duration.Record(ctx, elapsedDuration.Microseconds(), otelAttrs...)
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		s.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
 	}()
 
 	// Increment request counter.
-	s.requests.Add(ctx, 1, otelAttrs...)
+	s.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	var (
 		recordError = func(stage string, err error) {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, stage)
-			s.errors.Add(ctx, 1, otelAttrs...)
+			s.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 		}
 		err          error
 		opErrContext = ogenerrors.OperationContext{
@@ -2158,7 +2242,7 @@ func (s *Server) handleReadPrivateKeyRequest(args [1]string, w http.ResponseWrit
 			ID:   "readPrivateKey",
 		}
 	)
-	params, err := decodeReadPrivateKeyParams(args, r)
+	params, err := decodeReadPrivateKeyParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
 			OperationContext: opErrContext,
@@ -2172,10 +2256,11 @@ func (s *Server) handleReadPrivateKeyRequest(args [1]string, w http.ResponseWrit
 	var response ReadPrivateKeyRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
-			Context:       ctx,
-			OperationName: "ReadPrivateKey",
-			OperationID:   "readPrivateKey",
-			Body:          nil,
+			Context:          ctx,
+			OperationName:    "ReadPrivateKey",
+			OperationSummary: "Find a PrivateKey by ID",
+			OperationID:      "readPrivateKey",
+			Body:             nil,
 			Params: middleware.Parameters{
 				{
 					Name: "id",
@@ -2214,7 +2299,9 @@ func (s *Server) handleReadPrivateKeyRequest(args [1]string, w http.ResponseWrit
 
 	if err := encodeReadPrivateKeyResponse(response, w, span); err != nil {
 		recordError("EncodeResponse", err)
-		s.cfg.ErrorHandler(ctx, w, r, err)
+		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
+			s.cfg.ErrorHandler(ctx, w, r, err)
+		}
 		return
 	}
 }
@@ -2224,7 +2311,7 @@ func (s *Server) handleReadPrivateKeyRequest(args [1]string, w http.ResponseWrit
 // Finds the User with the requested ID and returns it.
 //
 // GET /users/{id}
-func (s *Server) handleReadUserRequest(args [1]string, w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleReadUserRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("readUser"),
 		semconv.HTTPMethodKey.String("GET"),
@@ -2242,17 +2329,18 @@ func (s *Server) handleReadUserRequest(args [1]string, w http.ResponseWriter, r 
 	startTime := time.Now()
 	defer func() {
 		elapsedDuration := time.Since(startTime)
-		s.duration.Record(ctx, elapsedDuration.Microseconds(), otelAttrs...)
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		s.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
 	}()
 
 	// Increment request counter.
-	s.requests.Add(ctx, 1, otelAttrs...)
+	s.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	var (
 		recordError = func(stage string, err error) {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, stage)
-			s.errors.Add(ctx, 1, otelAttrs...)
+			s.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 		}
 		err          error
 		opErrContext = ogenerrors.OperationContext{
@@ -2260,7 +2348,7 @@ func (s *Server) handleReadUserRequest(args [1]string, w http.ResponseWriter, r 
 			ID:   "readUser",
 		}
 	)
-	params, err := decodeReadUserParams(args, r)
+	params, err := decodeReadUserParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
 			OperationContext: opErrContext,
@@ -2274,10 +2362,11 @@ func (s *Server) handleReadUserRequest(args [1]string, w http.ResponseWriter, r 
 	var response ReadUserRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
-			Context:       ctx,
-			OperationName: "ReadUser",
-			OperationID:   "readUser",
-			Body:          nil,
+			Context:          ctx,
+			OperationName:    "ReadUser",
+			OperationSummary: "Find a User by ID",
+			OperationID:      "readUser",
+			Body:             nil,
 			Params: middleware.Parameters{
 				{
 					Name: "id",
@@ -2316,7 +2405,9 @@ func (s *Server) handleReadUserRequest(args [1]string, w http.ResponseWriter, r 
 
 	if err := encodeReadUserResponse(response, w, span); err != nil {
 		recordError("EncodeResponse", err)
-		s.cfg.ErrorHandler(ctx, w, r, err)
+		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
+			s.cfg.ErrorHandler(ctx, w, r, err)
+		}
 		return
 	}
 }
@@ -2326,7 +2417,7 @@ func (s *Server) handleReadUserRequest(args [1]string, w http.ResponseWriter, r 
 // Updates a Claim and persists changes to storage.
 //
 // PATCH /claims/{id}
-func (s *Server) handleUpdateClaimRequest(args [1]string, w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleUpdateClaimRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("updateClaim"),
 		semconv.HTTPMethodKey.String("PATCH"),
@@ -2344,17 +2435,18 @@ func (s *Server) handleUpdateClaimRequest(args [1]string, w http.ResponseWriter,
 	startTime := time.Now()
 	defer func() {
 		elapsedDuration := time.Since(startTime)
-		s.duration.Record(ctx, elapsedDuration.Microseconds(), otelAttrs...)
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		s.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
 	}()
 
 	// Increment request counter.
-	s.requests.Add(ctx, 1, otelAttrs...)
+	s.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	var (
 		recordError = func(stage string, err error) {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, stage)
-			s.errors.Add(ctx, 1, otelAttrs...)
+			s.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 		}
 		err          error
 		opErrContext = ogenerrors.OperationContext{
@@ -2362,7 +2454,7 @@ func (s *Server) handleUpdateClaimRequest(args [1]string, w http.ResponseWriter,
 			ID:   "updateClaim",
 		}
 	)
-	params, err := decodeUpdateClaimParams(args, r)
+	params, err := decodeUpdateClaimParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
 			OperationContext: opErrContext,
@@ -2391,10 +2483,11 @@ func (s *Server) handleUpdateClaimRequest(args [1]string, w http.ResponseWriter,
 	var response UpdateClaimRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
-			Context:       ctx,
-			OperationName: "UpdateClaim",
-			OperationID:   "updateClaim",
-			Body:          request,
+			Context:          ctx,
+			OperationName:    "UpdateClaim",
+			OperationSummary: "Updates a Claim",
+			OperationID:      "updateClaim",
+			Body:             request,
 			Params: middleware.Parameters{
 				{
 					Name: "id",
@@ -2433,7 +2526,9 @@ func (s *Server) handleUpdateClaimRequest(args [1]string, w http.ResponseWriter,
 
 	if err := encodeUpdateClaimResponse(response, w, span); err != nil {
 		recordError("EncodeResponse", err)
-		s.cfg.ErrorHandler(ctx, w, r, err)
+		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
+			s.cfg.ErrorHandler(ctx, w, r, err)
+		}
 		return
 	}
 }
@@ -2443,7 +2538,7 @@ func (s *Server) handleUpdateClaimRequest(args [1]string, w http.ResponseWriter,
 // Updates a ClaimGroup and persists changes to storage.
 //
 // PATCH /claim-groups/{id}
-func (s *Server) handleUpdateClaimGroupRequest(args [1]string, w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleUpdateClaimGroupRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("updateClaimGroup"),
 		semconv.HTTPMethodKey.String("PATCH"),
@@ -2461,17 +2556,18 @@ func (s *Server) handleUpdateClaimGroupRequest(args [1]string, w http.ResponseWr
 	startTime := time.Now()
 	defer func() {
 		elapsedDuration := time.Since(startTime)
-		s.duration.Record(ctx, elapsedDuration.Microseconds(), otelAttrs...)
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		s.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
 	}()
 
 	// Increment request counter.
-	s.requests.Add(ctx, 1, otelAttrs...)
+	s.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	var (
 		recordError = func(stage string, err error) {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, stage)
-			s.errors.Add(ctx, 1, otelAttrs...)
+			s.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 		}
 		err          error
 		opErrContext = ogenerrors.OperationContext{
@@ -2479,7 +2575,7 @@ func (s *Server) handleUpdateClaimGroupRequest(args [1]string, w http.ResponseWr
 			ID:   "updateClaimGroup",
 		}
 	)
-	params, err := decodeUpdateClaimGroupParams(args, r)
+	params, err := decodeUpdateClaimGroupParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
 			OperationContext: opErrContext,
@@ -2508,10 +2604,11 @@ func (s *Server) handleUpdateClaimGroupRequest(args [1]string, w http.ResponseWr
 	var response UpdateClaimGroupRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
-			Context:       ctx,
-			OperationName: "UpdateClaimGroup",
-			OperationID:   "updateClaimGroup",
-			Body:          request,
+			Context:          ctx,
+			OperationName:    "UpdateClaimGroup",
+			OperationSummary: "Updates a ClaimGroup",
+			OperationID:      "updateClaimGroup",
+			Body:             request,
 			Params: middleware.Parameters{
 				{
 					Name: "id",
@@ -2550,7 +2647,9 @@ func (s *Server) handleUpdateClaimGroupRequest(args [1]string, w http.ResponseWr
 
 	if err := encodeUpdateClaimGroupResponse(response, w, span); err != nil {
 		recordError("EncodeResponse", err)
-		s.cfg.ErrorHandler(ctx, w, r, err)
+		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
+			s.cfg.ErrorHandler(ctx, w, r, err)
+		}
 		return
 	}
 }
@@ -2560,7 +2659,7 @@ func (s *Server) handleUpdateClaimGroupRequest(args [1]string, w http.ResponseWr
 // Updates a GroupLink and persists changes to storage.
 //
 // PATCH /group-links/{id}
-func (s *Server) handleUpdateGroupLinkRequest(args [1]string, w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleUpdateGroupLinkRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("updateGroupLink"),
 		semconv.HTTPMethodKey.String("PATCH"),
@@ -2578,17 +2677,18 @@ func (s *Server) handleUpdateGroupLinkRequest(args [1]string, w http.ResponseWri
 	startTime := time.Now()
 	defer func() {
 		elapsedDuration := time.Since(startTime)
-		s.duration.Record(ctx, elapsedDuration.Microseconds(), otelAttrs...)
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		s.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
 	}()
 
 	// Increment request counter.
-	s.requests.Add(ctx, 1, otelAttrs...)
+	s.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	var (
 		recordError = func(stage string, err error) {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, stage)
-			s.errors.Add(ctx, 1, otelAttrs...)
+			s.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 		}
 		err          error
 		opErrContext = ogenerrors.OperationContext{
@@ -2596,7 +2696,7 @@ func (s *Server) handleUpdateGroupLinkRequest(args [1]string, w http.ResponseWri
 			ID:   "updateGroupLink",
 		}
 	)
-	params, err := decodeUpdateGroupLinkParams(args, r)
+	params, err := decodeUpdateGroupLinkParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
 			OperationContext: opErrContext,
@@ -2625,10 +2725,11 @@ func (s *Server) handleUpdateGroupLinkRequest(args [1]string, w http.ResponseWri
 	var response UpdateGroupLinkRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
-			Context:       ctx,
-			OperationName: "UpdateGroupLink",
-			OperationID:   "updateGroupLink",
-			Body:          request,
+			Context:          ctx,
+			OperationName:    "UpdateGroupLink",
+			OperationSummary: "Updates a GroupLink",
+			OperationID:      "updateGroupLink",
+			Body:             request,
 			Params: middleware.Parameters{
 				{
 					Name: "id",
@@ -2667,7 +2768,9 @@ func (s *Server) handleUpdateGroupLinkRequest(args [1]string, w http.ResponseWri
 
 	if err := encodeUpdateGroupLinkResponse(response, w, span); err != nil {
 		recordError("EncodeResponse", err)
-		s.cfg.ErrorHandler(ctx, w, r, err)
+		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
+			s.cfg.ErrorHandler(ctx, w, r, err)
+		}
 		return
 	}
 }
@@ -2677,7 +2780,7 @@ func (s *Server) handleUpdateGroupLinkRequest(args [1]string, w http.ResponseWri
 // Updates a User and persists changes to storage.
 //
 // PATCH /users/{id}
-func (s *Server) handleUpdateUserRequest(args [1]string, w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleUpdateUserRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("updateUser"),
 		semconv.HTTPMethodKey.String("PATCH"),
@@ -2695,17 +2798,18 @@ func (s *Server) handleUpdateUserRequest(args [1]string, w http.ResponseWriter, 
 	startTime := time.Now()
 	defer func() {
 		elapsedDuration := time.Since(startTime)
-		s.duration.Record(ctx, elapsedDuration.Microseconds(), otelAttrs...)
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		s.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
 	}()
 
 	// Increment request counter.
-	s.requests.Add(ctx, 1, otelAttrs...)
+	s.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	var (
 		recordError = func(stage string, err error) {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, stage)
-			s.errors.Add(ctx, 1, otelAttrs...)
+			s.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 		}
 		err          error
 		opErrContext = ogenerrors.OperationContext{
@@ -2713,7 +2817,7 @@ func (s *Server) handleUpdateUserRequest(args [1]string, w http.ResponseWriter, 
 			ID:   "updateUser",
 		}
 	)
-	params, err := decodeUpdateUserParams(args, r)
+	params, err := decodeUpdateUserParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
 			OperationContext: opErrContext,
@@ -2742,10 +2846,11 @@ func (s *Server) handleUpdateUserRequest(args [1]string, w http.ResponseWriter, 
 	var response UpdateUserRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
-			Context:       ctx,
-			OperationName: "UpdateUser",
-			OperationID:   "updateUser",
-			Body:          request,
+			Context:          ctx,
+			OperationName:    "UpdateUser",
+			OperationSummary: "Updates a User",
+			OperationID:      "updateUser",
+			Body:             request,
 			Params: middleware.Parameters{
 				{
 					Name: "id",
@@ -2784,7 +2889,9 @@ func (s *Server) handleUpdateUserRequest(args [1]string, w http.ResponseWriter, 
 
 	if err := encodeUpdateUserResponse(response, w, span); err != nil {
 		recordError("EncodeResponse", err)
-		s.cfg.ErrorHandler(ctx, w, r, err)
+		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
+			s.cfg.ErrorHandler(ctx, w, r, err)
+		}
 		return
 	}
 }

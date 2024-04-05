@@ -8,8 +8,6 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AddActivator: typeof import('./components/AddActivator.vue')['default']
-    AddClaimDialog: typeof import('./components/dialogs/AddClaimDialog.vue')['default']
-    AddGroupDialog: typeof import('./components/dialogs/AddGroupDialog.vue')['default']
     AddUserDialog: typeof import('./components/dialogs/AddUserDialog.vue')['default']
     AppFooter: typeof import('./components/AppFooter.vue')['default']
     ClaimInfo: typeof import('./components/ClaimInfo.vue')['default']
@@ -21,18 +19,12 @@ declare module 'vue' {
     EntityList: typeof import('./components/EntityList.vue')['default']
     GroupInfo: typeof import('./components/GroupInfo.vue')['default']
     GroupList: typeof import('./components/GroupList.vue')['default']
-    GroupsTab: typeof import('./components/GroupsTab.vue')['default']
-    HelloWorld: typeof import('./components/HelloWorld.vue')['default']
-    Home: typeof import('./components/Home.vue')['default']
-    MainLayout: typeof import('./components/MainLayout.vue')['default']
-    MonitoringTab: typeof import('./components/MonitoringTab.vue')['default']
     NavDrawer: typeof import('./components/NavDrawer.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     StokeIcon: typeof import('./components/StokeIcon.vue')['default']
     UserInfo: typeof import('./components/UserInfo.vue')['default']
     UserList: typeof import('./components/UserList.vue')['default']
-    UsersTab: typeof import('./components/UsersTab.vue')['default']
     Viewport: typeof import('./components/Viewport.vue')['default']
   }
 }

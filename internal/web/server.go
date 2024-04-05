@@ -8,11 +8,15 @@ import (
 	"stoke/client/stoke"
 	"stoke/internal/admin"
 	"stoke/internal/ctx"
+	"stoke/internal/tel"
+
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 type Server struct {
 	Context *ctx.Context
 	Server *http.Server
+	OTEL   *tel.OTEL
 }
 
 func (s *Server) Init() error {
@@ -32,7 +36,9 @@ func (s *Server) Init() error {
 		"/api/login",
 		AllowAllMethods(
 			LogHTTP(
-				LoginApiHandler{ Context: s.Context },
+				WithSpan("LOGIN",
+					LoginApiHandler{ Context: s.Context },
+				),
 			),
 		),
 	)
@@ -41,7 +47,9 @@ func (s *Server) Init() error {
 		"/api/pkeys",
 		AllowAllMethods(
 			LogHTTP(
-				PkeyApiHandler{ Context: s.Context },
+				WithSpan("PKEYS",
+					PkeyApiHandler{ Context: s.Context },
+				),
 			),
 		),
 	)
@@ -50,10 +58,12 @@ func (s *Server) Init() error {
 		"/api/refresh",
 		AllowAllMethods(
 			LogHTTP(
-				stoke.Auth(
-					RefreshApiHandler{ Context: s.Context },
-					s.Context.Issuer,
-					stoke.Token().ForAccess(),
+				WithSpan("REFRESH",
+					stoke.Auth(
+						RefreshApiHandler{ Context: s.Context },
+						s.Context.Issuer,
+						stoke.Token().ForAccess(),
+					),
 				),
 			),
 		),
@@ -63,10 +73,12 @@ func (s *Server) Init() error {
 		"/api/admin_users",
 		AllowAllMethods(
 			LogHTTP(
-				stoke.Auth(
-					UserHandler{ Context: s.Context },
-					s.Context.Issuer,
-					stoke.Token().Requires("srol", "spr").ForAccess(),
+				WithSpan("ADMINUSERS",
+					stoke.Auth(
+						UserHandler{ Context: s.Context },
+						s.Context.Issuer,
+						stoke.Token().Requires("srol", "spr").ForAccess(),
+					),
 				),
 			),
 		),
@@ -76,11 +88,22 @@ func (s *Server) Init() error {
 		"/api/admin/",
 		AllowAllMethods(
 			LogHTTP(
-				stoke.Auth(
-					NewEntityAPIHandler("/api/admin/", s.Context),
-					s.Context.Issuer,
-					stoke.Token().Requires("srol", "spr").ForAccess(),
+				WithSpan("ADMINAPI",
+					stoke.Auth(
+						NewEntityAPIHandler("/api/admin/", s.Context, s.OTEL),
+						s.Context.Issuer,
+						stoke.Token().Requires("srol", "spr").ForAccess(),
+					),
 				),
+			),
+		),
+	)
+
+	http.Handle(
+		"/metrics",
+		AllowAllMethods(
+			LogHTTP(
+				promhttp.Handler(),
 			),
 		),
 	)

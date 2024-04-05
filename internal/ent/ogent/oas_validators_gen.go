@@ -7,61 +7,80 @@ import (
 )
 
 func (s ListClaimClaimGroupsOKApplicationJSON) Validate() error {
-	if s == nil {
+	alias := ([]ClaimClaimGroupsList)(s)
+	if alias == nil {
 		return errors.New("nil is invalid value")
 	}
 	return nil
 }
+
 func (s ListClaimGroupClaimsOKApplicationJSON) Validate() error {
-	if s == nil {
+	alias := ([]ClaimGroupClaimsList)(s)
+	if alias == nil {
 		return errors.New("nil is invalid value")
 	}
 	return nil
 }
+
 func (s ListClaimGroupGroupLinksOKApplicationJSON) Validate() error {
-	if s == nil {
+	alias := ([]ClaimGroupGroupLinksList)(s)
+	if alias == nil {
 		return errors.New("nil is invalid value")
 	}
 	return nil
 }
+
 func (s ListClaimGroupOKApplicationJSON) Validate() error {
-	if s == nil {
+	alias := ([]ClaimGroupList)(s)
+	if alias == nil {
 		return errors.New("nil is invalid value")
 	}
 	return nil
 }
+
 func (s ListClaimGroupUsersOKApplicationJSON) Validate() error {
-	if s == nil {
+	alias := ([]ClaimGroupUsersList)(s)
+	if alias == nil {
 		return errors.New("nil is invalid value")
 	}
 	return nil
 }
+
 func (s ListClaimOKApplicationJSON) Validate() error {
-	if s == nil {
+	alias := ([]ClaimList)(s)
+	if alias == nil {
 		return errors.New("nil is invalid value")
 	}
 	return nil
 }
+
 func (s ListGroupLinkOKApplicationJSON) Validate() error {
-	if s == nil {
+	alias := ([]GroupLinkList)(s)
+	if alias == nil {
 		return errors.New("nil is invalid value")
 	}
 	return nil
 }
+
 func (s ListPrivateKeyOKApplicationJSON) Validate() error {
-	if s == nil {
+	alias := ([]PrivateKeyList)(s)
+	if alias == nil {
 		return errors.New("nil is invalid value")
 	}
 	return nil
 }
+
 func (s ListUserClaimGroupsOKApplicationJSON) Validate() error {
-	if s == nil {
+	alias := ([]UserClaimGroupsList)(s)
+	if alias == nil {
 		return errors.New("nil is invalid value")
 	}
 	return nil
 }
+
 func (s ListUserOKApplicationJSON) Validate() error {
-	if s == nil {
+	alias := ([]UserList)(s)
+	if alias == nil {
 		return errors.New("nil is invalid value")
 	}
 	return nil

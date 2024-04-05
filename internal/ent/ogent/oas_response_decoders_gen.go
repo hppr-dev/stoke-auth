@@ -14,7 +14,7 @@ import (
 	"github.com/ogen-go/ogen/validate"
 )
 
-func decodeCreateClaimResponse(resp *http.Response) (res CreateClaimRes, err error) {
+func decodeCreateClaimResponse(resp *http.Response) (res CreateClaimRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -160,7 +160,7 @@ func decodeCreateClaimResponse(resp *http.Response) (res CreateClaimRes, err err
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
 
-func decodeCreateClaimGroupResponse(resp *http.Response) (res CreateClaimGroupRes, err error) {
+func decodeCreateClaimGroupResponse(resp *http.Response) (res CreateClaimGroupRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -306,7 +306,7 @@ func decodeCreateClaimGroupResponse(resp *http.Response) (res CreateClaimGroupRe
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
 
-func decodeCreateGroupLinkResponse(resp *http.Response) (res CreateGroupLinkRes, err error) {
+func decodeCreateGroupLinkResponse(resp *http.Response) (res CreateGroupLinkRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -452,7 +452,7 @@ func decodeCreateGroupLinkResponse(resp *http.Response) (res CreateGroupLinkRes,
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
 
-func decodeDeleteClaimResponse(resp *http.Response) (res DeleteClaimRes, err error) {
+func decodeDeleteClaimResponse(resp *http.Response) (res DeleteClaimRes, _ error) {
 	switch resp.StatusCode {
 	case 204:
 		// Code 204.
@@ -601,7 +601,7 @@ func decodeDeleteClaimResponse(resp *http.Response) (res DeleteClaimRes, err err
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
 
-func decodeDeleteClaimGroupResponse(resp *http.Response) (res DeleteClaimGroupRes, err error) {
+func decodeDeleteClaimGroupResponse(resp *http.Response) (res DeleteClaimGroupRes, _ error) {
 	switch resp.StatusCode {
 	case 204:
 		// Code 204.
@@ -750,7 +750,7 @@ func decodeDeleteClaimGroupResponse(resp *http.Response) (res DeleteClaimGroupRe
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
 
-func decodeDeleteGroupLinkResponse(resp *http.Response) (res DeleteGroupLinkRes, err error) {
+func decodeDeleteGroupLinkResponse(resp *http.Response) (res DeleteGroupLinkRes, _ error) {
 	switch resp.StatusCode {
 	case 204:
 		// Code 204.
@@ -899,7 +899,7 @@ func decodeDeleteGroupLinkResponse(resp *http.Response) (res DeleteGroupLinkRes,
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
 
-func decodeListClaimResponse(resp *http.Response) (res ListClaimRes, err error) {
+func decodeListClaimResponse(resp *http.Response) (res ListClaimRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -932,6 +932,15 @@ func decodeListClaimResponse(resp *http.Response) (res ListClaimRes, err error) 
 				}
 				return res, err
 			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
 			return &response, nil
 		default:
 			return res, validate.InvalidContentType(ct)
@@ -1080,7 +1089,7 @@ func decodeListClaimResponse(resp *http.Response) (res ListClaimRes, err error) 
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
 
-func decodeListClaimClaimGroupsResponse(resp *http.Response) (res ListClaimClaimGroupsRes, err error) {
+func decodeListClaimClaimGroupsResponse(resp *http.Response) (res ListClaimClaimGroupsRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -1113,6 +1122,15 @@ func decodeListClaimClaimGroupsResponse(resp *http.Response) (res ListClaimClaim
 				}
 				return res, err
 			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
 			return &response, nil
 		default:
 			return res, validate.InvalidContentType(ct)
@@ -1261,7 +1279,7 @@ func decodeListClaimClaimGroupsResponse(resp *http.Response) (res ListClaimClaim
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
 
-func decodeListClaimGroupResponse(resp *http.Response) (res ListClaimGroupRes, err error) {
+func decodeListClaimGroupResponse(resp *http.Response) (res ListClaimGroupRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -1294,6 +1312,15 @@ func decodeListClaimGroupResponse(resp *http.Response) (res ListClaimGroupRes, e
 				}
 				return res, err
 			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
 			return &response, nil
 		default:
 			return res, validate.InvalidContentType(ct)
@@ -1442,7 +1469,7 @@ func decodeListClaimGroupResponse(resp *http.Response) (res ListClaimGroupRes, e
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
 
-func decodeListClaimGroupClaimsResponse(resp *http.Response) (res ListClaimGroupClaimsRes, err error) {
+func decodeListClaimGroupClaimsResponse(resp *http.Response) (res ListClaimGroupClaimsRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -1475,6 +1502,15 @@ func decodeListClaimGroupClaimsResponse(resp *http.Response) (res ListClaimGroup
 				}
 				return res, err
 			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
 			return &response, nil
 		default:
 			return res, validate.InvalidContentType(ct)
@@ -1623,7 +1659,7 @@ func decodeListClaimGroupClaimsResponse(resp *http.Response) (res ListClaimGroup
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
 
-func decodeListClaimGroupGroupLinksResponse(resp *http.Response) (res ListClaimGroupGroupLinksRes, err error) {
+func decodeListClaimGroupGroupLinksResponse(resp *http.Response) (res ListClaimGroupGroupLinksRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -1656,6 +1692,15 @@ func decodeListClaimGroupGroupLinksResponse(resp *http.Response) (res ListClaimG
 				}
 				return res, err
 			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
 			return &response, nil
 		default:
 			return res, validate.InvalidContentType(ct)
@@ -1804,7 +1849,7 @@ func decodeListClaimGroupGroupLinksResponse(resp *http.Response) (res ListClaimG
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
 
-func decodeListClaimGroupUsersResponse(resp *http.Response) (res ListClaimGroupUsersRes, err error) {
+func decodeListClaimGroupUsersResponse(resp *http.Response) (res ListClaimGroupUsersRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -1837,6 +1882,15 @@ func decodeListClaimGroupUsersResponse(resp *http.Response) (res ListClaimGroupU
 				}
 				return res, err
 			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
 			return &response, nil
 		default:
 			return res, validate.InvalidContentType(ct)
@@ -1985,7 +2039,7 @@ func decodeListClaimGroupUsersResponse(resp *http.Response) (res ListClaimGroupU
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
 
-func decodeListGroupLinkResponse(resp *http.Response) (res ListGroupLinkRes, err error) {
+func decodeListGroupLinkResponse(resp *http.Response) (res ListGroupLinkRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -2018,6 +2072,15 @@ func decodeListGroupLinkResponse(resp *http.Response) (res ListGroupLinkRes, err
 				}
 				return res, err
 			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
 			return &response, nil
 		default:
 			return res, validate.InvalidContentType(ct)
@@ -2166,7 +2229,7 @@ func decodeListGroupLinkResponse(resp *http.Response) (res ListGroupLinkRes, err
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
 
-func decodeListPrivateKeyResponse(resp *http.Response) (res ListPrivateKeyRes, err error) {
+func decodeListPrivateKeyResponse(resp *http.Response) (res ListPrivateKeyRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -2199,6 +2262,15 @@ func decodeListPrivateKeyResponse(resp *http.Response) (res ListPrivateKeyRes, e
 				}
 				return res, err
 			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
 			return &response, nil
 		default:
 			return res, validate.InvalidContentType(ct)
@@ -2347,7 +2419,7 @@ func decodeListPrivateKeyResponse(resp *http.Response) (res ListPrivateKeyRes, e
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
 
-func decodeListUserResponse(resp *http.Response) (res ListUserRes, err error) {
+func decodeListUserResponse(resp *http.Response) (res ListUserRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -2380,6 +2452,15 @@ func decodeListUserResponse(resp *http.Response) (res ListUserRes, err error) {
 				}
 				return res, err
 			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
 			return &response, nil
 		default:
 			return res, validate.InvalidContentType(ct)
@@ -2528,7 +2609,7 @@ func decodeListUserResponse(resp *http.Response) (res ListUserRes, err error) {
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
 
-func decodeListUserClaimGroupsResponse(resp *http.Response) (res ListUserClaimGroupsRes, err error) {
+func decodeListUserClaimGroupsResponse(resp *http.Response) (res ListUserClaimGroupsRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -2561,6 +2642,15 @@ func decodeListUserClaimGroupsResponse(resp *http.Response) (res ListUserClaimGr
 				}
 				return res, err
 			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
 			return &response, nil
 		default:
 			return res, validate.InvalidContentType(ct)
@@ -2709,7 +2799,7 @@ func decodeListUserClaimGroupsResponse(resp *http.Response) (res ListUserClaimGr
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
 
-func decodeReadClaimResponse(resp *http.Response) (res ReadClaimRes, err error) {
+func decodeReadClaimResponse(resp *http.Response) (res ReadClaimRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -2890,7 +2980,7 @@ func decodeReadClaimResponse(resp *http.Response) (res ReadClaimRes, err error) 
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
 
-func decodeReadClaimGroupResponse(resp *http.Response) (res ReadClaimGroupRes, err error) {
+func decodeReadClaimGroupResponse(resp *http.Response) (res ReadClaimGroupRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -3071,7 +3161,7 @@ func decodeReadClaimGroupResponse(resp *http.Response) (res ReadClaimGroupRes, e
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
 
-func decodeReadGroupLinkResponse(resp *http.Response) (res ReadGroupLinkRes, err error) {
+func decodeReadGroupLinkResponse(resp *http.Response) (res ReadGroupLinkRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -3252,7 +3342,7 @@ func decodeReadGroupLinkResponse(resp *http.Response) (res ReadGroupLinkRes, err
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
 
-func decodeReadGroupLinkClaimGroupsResponse(resp *http.Response) (res ReadGroupLinkClaimGroupsRes, err error) {
+func decodeReadGroupLinkClaimGroupsResponse(resp *http.Response) (res ReadGroupLinkClaimGroupsRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -3433,7 +3523,7 @@ func decodeReadGroupLinkClaimGroupsResponse(resp *http.Response) (res ReadGroupL
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
 
-func decodeReadPrivateKeyResponse(resp *http.Response) (res ReadPrivateKeyRes, err error) {
+func decodeReadPrivateKeyResponse(resp *http.Response) (res ReadPrivateKeyRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -3614,7 +3704,7 @@ func decodeReadPrivateKeyResponse(resp *http.Response) (res ReadPrivateKeyRes, e
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
 
-func decodeReadUserResponse(resp *http.Response) (res ReadUserRes, err error) {
+func decodeReadUserResponse(resp *http.Response) (res ReadUserRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -3795,7 +3885,7 @@ func decodeReadUserResponse(resp *http.Response) (res ReadUserRes, err error) {
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
 
-func decodeUpdateClaimResponse(resp *http.Response) (res UpdateClaimRes, err error) {
+func decodeUpdateClaimResponse(resp *http.Response) (res UpdateClaimRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -3976,7 +4066,7 @@ func decodeUpdateClaimResponse(resp *http.Response) (res UpdateClaimRes, err err
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
 
-func decodeUpdateClaimGroupResponse(resp *http.Response) (res UpdateClaimGroupRes, err error) {
+func decodeUpdateClaimGroupResponse(resp *http.Response) (res UpdateClaimGroupRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -4157,7 +4247,7 @@ func decodeUpdateClaimGroupResponse(resp *http.Response) (res UpdateClaimGroupRe
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
 
-func decodeUpdateGroupLinkResponse(resp *http.Response) (res UpdateGroupLinkRes, err error) {
+func decodeUpdateGroupLinkResponse(resp *http.Response) (res UpdateGroupLinkRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -4338,7 +4428,7 @@ func decodeUpdateGroupLinkResponse(resp *http.Response) (res UpdateGroupLinkRes,
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
 
-func decodeUpdateUserResponse(resp *http.Response) (res UpdateUserRes, err error) {
+func decodeUpdateUserResponse(resp *http.Response) (res UpdateUserRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.

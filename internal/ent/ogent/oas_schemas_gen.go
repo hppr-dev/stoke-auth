@@ -1706,6 +1706,7 @@ func (s *UserList) GetUsername() string {
 	return s.Username
 }
 
+
 // GetCreatedAt returns the value of CreatedAt.
 func (s *UserList) GetCreatedAt() time.Time {
 	return s.CreatedAt
