@@ -16,6 +16,7 @@ import (
 
 type LocalProvider struct {
 	DB     *ent.Client
+	Ctx    context.Context
 }
 
 func (l LocalProvider) Init() error {

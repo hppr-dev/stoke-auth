@@ -3,15 +3,13 @@ package web
 import (
 	"errors"
 	"net/http"
-	"stoke/internal/ctx"
 	"stoke/internal/usr"
 
 	"github.com/go-faster/jx"
+	"github.com/rs/zerolog"
 )
 
-type UserHandler struct {
-	Context *ctx.Context
-}
+type UserHandler struct {}
 
 func (h UserHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	switch req.Method {
@@ -27,6 +25,8 @@ func (h UserHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 // Takes json with the following fields: fname, lname, email, username, password, provider and superuser
 // provider must be either local or ldap
 func (h UserHandler) handleCreate(res http.ResponseWriter, req *http.Request) {
+	ctx := req.Context()
+	logger := zerolog.Ctx(ctx)
 	var fname, lname, email, username, password, provider, superuser string
 
 	decoder := jx.Decode(req.Body, 256)
@@ -83,7 +83,7 @@ func (h UserHandler) handleCreate(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if err := h.Context.UserProvider.AddUser(providerType, fname, lname, email, username, password, superuser == "yes") ; err != nil {
+	if err := usr.ProviderFromCtx(ctx).AddUser(providerType, fname, lname, email, username, password, superuser == "yes") ; err != nil {
 		BadRequest.WriteWithError(res, err)
 		return
 	}
@@ -92,6 +92,9 @@ func (h UserHandler) handleCreate(res http.ResponseWriter, req *http.Request) {
 }
 
 func (h UserHandler) handleUpdate(res http.ResponseWriter, req *http.Request) {
+	ctx := req.Context()
+	logger := zerolog.Ctx(ctx)
+
 	var fname, lname, email, username, password, provider string
 
 	decoder := jx.Decode(req.Body, 256)
@@ -146,7 +149,7 @@ func (h UserHandler) handleUpdate(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if err := h.Context.UserProvider.UpdateUser(providerType, fname, lname, email, username, password); err != nil {
+	if err := usr.ProviderFromCtx(ctx).UpdateUser(providerType, fname, lname, email, username, password); err != nil {
 		logger.Error().Err(err).Msg("Failed to update user")
 		BadRequest.WriteWithError(res, err)
 		return

@@ -2,6 +2,7 @@
 server:
   address: ""
   port: 8080
+  timeout: 500
 
 database:
   type: sqlite
@@ -31,5 +32,11 @@ tokens:
     email: "e"
 #    first_name: "fn"
 #    last_name: "ln"
+
+telemetry:
+  trace_provider: grpc
+  trace_export_url: not used yet
+  metric_provider: prometheus only
+  metric_export_url: not used yet
 
 users:

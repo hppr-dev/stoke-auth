@@ -5,23 +5,28 @@ import (
 	"fmt"
 	"net/http"
 	"stoke/internal/cfg"
-	"stoke/internal/ctx"
 	"stoke/internal/ent"
 	"stoke/internal/key"
+	"stoke/internal/tel"
+	"stoke/internal/usr"
 	"time"
 
 	"github.com/go-faster/jx"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/rs/zerolog"
 )
 
-type LoginApiHandler struct {
-	Context *ctx.Context
-}
+type LoginApiHandler struct {}
 
 // Request takes username, password and optionally required_claims.
 // required_claims is an object specifying which claim the user must have to receive a token
 // If required_claims is not included, a token is granted if the username and password are correct
 func (l LoginApiHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
+	ctx := req.Context()
+	logger := zerolog.Ctx(ctx)
+	_, span := tel.GetTracer().Start(ctx, "LoginApiHandler.ServeHTTP")
+	defer span.End()
+
 	if req.Method != http.MethodPost {
 		MethodNotAllowed.Write(res)
 		return
@@ -54,7 +59,7 @@ func (l LoginApiHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 		BadRequest.Write(res)
 		return
 	}
-	user, claims, err := l.Context.UserProvider.GetUserClaims(username, password)
+	user, claims, err := usr.ProviderFromCtx(ctx).GetUserClaims(username, password)
 	if err != nil {
 		logger.Debug().Err(err).Msg("Failed to get claims from provider")
 		Unauthorized.Write(res)
@@ -80,11 +85,11 @@ func (l LoginApiHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	populateUserInfo(l.Context.Config, user, claimMap)
+	populateUserInfo(cfg.Ctx(ctx), user, claimMap)
 
-	token, refresh, err := l.Context.Issuer.IssueToken(key.Claims{
+	token, refresh, err := key.IssuerFromCtx(ctx).IssueToken(key.Claims{
 		StokeClaims : claimMap,
-		RegisteredClaims: createRegisteredClaims(l.Context.Config),
+		RegisteredClaims: createRegisteredClaims(cfg.Ctx(ctx).Tokens),
 	})
 	if err != nil {
 		InternalServerError.Write(res)
@@ -94,29 +99,29 @@ func (l LoginApiHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	res.Write([]byte(fmt.Sprintf("{\"token\":\"%s\",\"refresh\":\"%s\"}", token, refresh)))
 }
 
-func createRegisteredClaims(c cfg.Config) jwt.RegisteredClaims {
+func createRegisteredClaims(c cfg.Tokens) jwt.RegisteredClaims {
 	now := time.Now()
 	minClaims := jwt.RegisteredClaims{
-		ExpiresAt: jwt.NewNumericDate(now.Add(c.Tokens.TokenDuration)),
+		ExpiresAt: jwt.NewNumericDate(now.Add(c.TokenDuration)),
 
 		// Below fields are omitted if they are not included in config
-		Issuer:    c.Tokens.Issuer,
-		Subject:   c.Tokens.Subject,
-		Audience:  c.Tokens.Audience,
+		Issuer:    c.Issuer,
+		Subject:   c.Subject,
+		Audience:  c.Audience,
 	}
 
-	if c.Tokens.IncludeNotBefore {
+	if c.IncludeNotBefore {
 		minClaims.NotBefore = jwt.NewNumericDate(now)
 	}
 
-	if c.Tokens.IncludeIssuedAt {
+	if c.IncludeIssuedAt {
 		minClaims.IssuedAt = jwt.NewNumericDate(now)
 	}
 
 	return minClaims
 }
 
-func populateUserInfo(c cfg.Config, user *ent.User, t map[string]string) {
+func populateUserInfo(c *cfg.Config, user *ent.User, t map[string]string) {
 	usernameKey, ok := c.Tokens.UserInfo["username"]
 	if ok {
 		t[usernameKey] = user.Username

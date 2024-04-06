@@ -1,6 +1,7 @@
 package key
 
 import (
+	"context"
 	"encoding/base64"
 	"stoke/client/stoke"
 	"time"
@@ -21,6 +22,7 @@ type TokenIssuer interface {
 }
 
 type AsymetricTokenIssuer[P PrivateKey]  struct {
+	Ctx context.Context
 	KeyCache[P]
 }
 

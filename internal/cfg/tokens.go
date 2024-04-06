@@ -1,10 +1,15 @@
 package cfg
 
 import (
+	"context"
 	"regexp"
+	"stoke/internal/key"
 	"strconv"
 	"time"
+
+	"github.com/rs/zerolog"
 )
+
 
 type Tokens struct {
 	// One of RSA, ECDSA, or EdDSA
@@ -39,6 +44,80 @@ type Tokens struct {
 func (t *Tokens) ParseDurations() {
 	t.TokenDuration = strToDuration(t.TokenDurationStr)
 	t.KeyDuration = strToDuration(t.KeyDurationStr)
+}
+
+func (t *Tokens) withContext(ctx context.Context) context.Context {
+	// TODO Also should be an option to persist or not persist in db
+	// type, key and token duration must be configurable
+	var issuer key.TokenIssuer
+
+	t.ParseDurations()
+
+	switch t.Algorithm {
+	case "ECDSA", "ecdsa":
+		issuer = t.createECDSAIssuer(ctx)
+	case "EdDSA", "eddsa":
+		issuer = t.createEdDSAIssuer(ctx)
+	case "RSA", "rsa":
+		issuer = t.createRSAIssuer(ctx)
+	}
+
+	if issuer == nil {
+		zerolog.Ctx(ctx).Fatal().
+			Str("component", "cfg.Tokens").
+			Str("algorithm", t.Algorithm).
+			Msg("Unsupported algorithm")
+	}
+
+	if err := issuer.Init(); err != nil {
+		zerolog.Ctx(ctx).Fatal().
+			Str("component", "cfg.Tokens").
+			Err(err).
+			Msg("Could not initialize issuer")
+	}
+
+	return context.WithValue(ctx, "issuer", issuer)
+}
+
+func (t *Tokens) createECDSAIssuer(ctx context.Context) key.TokenIssuer {
+	return createAsymetricIssuer(t, ctx,
+		&key.ECDSAKeyPair{
+			NumBits: t.NumBits,
+		},
+	)
+}
+
+func (t *Tokens) createEdDSAIssuer(ctx context.Context) key.TokenIssuer {
+	return createAsymetricIssuer(t, ctx, &key.EdDSAKeyPair{})
+}
+
+func (t *Tokens) createRSAIssuer(ctx context.Context) key.TokenIssuer {
+	return createAsymetricIssuer(t, ctx,
+		&key.RSAKeyPair{
+			NumBits: t.NumBits,
+		},
+	)
+}
+
+func createAsymetricIssuer[P key.PrivateKey](t *Tokens, ctx context.Context, pair key.KeyPair[P]) *key.AsymetricTokenIssuer[P] {
+	cache := key.KeyCache[P]{
+		Ctx: augmentContext(ctx, "KeyCache"),
+		KeyDuration:   t.KeyDuration,
+		TokenDuration: t.TokenDuration,
+	}
+
+	err := cache.Bootstrap(pair)
+	if err != nil {
+		zerolog.Ctx(ctx).Fatal().
+			Str("component", "cfg.Tokens").
+			Err(err).
+			Msg("Could not bootstrap key cache")
+	}
+
+	return &key.AsymetricTokenIssuer[P]{
+		Ctx: augmentContext(ctx, "TokenIssuer"),
+		KeyCache: cache,
+	}
 }
 
 var durationRegex *regexp.Regexp = regexp.MustCompile(`(\d+)([sSmMhHdDyY])`)

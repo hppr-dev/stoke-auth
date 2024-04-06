@@ -17,6 +17,7 @@ import (
 type KeyCache[P PrivateKey] struct {
 	activeKey int
 	keys []KeyPair[P]
+	Ctx context.Context
 	KeyDuration time.Duration
 	TokenDuration time.Duration
 }
@@ -96,14 +97,16 @@ func (c *KeyCache[P]) Generate() error {
 	return nil
 }
 
-func (c *KeyCache[P]) Bootstrap(db *ent.Client, pair KeyPair[P]) error {
+func (c *KeyCache[P]) Bootstrap(pair KeyPair[P]) error {
 	logger.Info().Msg("Bootstraping key cache.")
-
 	var err error
+
+	db := ent.FromContext(c.Ctx)
 	now := time.Now()
+
 	pk, err := db.PrivateKey.Query().
 		Order(privatekey.ByExpires(sql.OrderDesc())).
-		First(context.Background())
+		First(c.Ctx)
 
 	if err != nil || pk.Expires.Before(now) {
 		logger.Info().Msg("Could not retrieve private key. Generating a new one.")
@@ -116,7 +119,7 @@ func (c *KeyCache[P]) Bootstrap(db *ent.Client, pair KeyPair[P]) error {
 		pk, err = db.PrivateKey.Create().
 			SetText(pair.Encode()).
 			SetExpires(now.Add(c.KeyDuration)).
-			Save(context.Background())
+			Save(c.Ctx)
 		if err != nil {
 			logger.Error().Err(err).Msg("Could not save private key")
 			return err

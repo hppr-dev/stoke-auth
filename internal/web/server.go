@@ -1,116 +1,89 @@
 package web
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"time"
 
 	"stoke/client/stoke"
 	"stoke/internal/admin"
-	"stoke/internal/ctx"
-	"stoke/internal/tel"
+	"stoke/internal/cfg"
+	"stoke/internal/key"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-type Server struct {
-	Context *ctx.Context
-	Server *http.Server
-	OTEL   *tel.OTEL
-}
+func NewServer(ctx context.Context) *http.Server {
+	config := cfg.Ctx(ctx).Server
+	issuer := key.IssuerFromCtx(ctx)
 
-func (s *Server) Init() error {
-	serverAddr := fmt.Sprintf("%s:%d", s.Context.Config.Server.Address, s.Context.Config.Server.Port)
-	s.Server = &http.Server{
-		Addr:           serverAddr,
+	mux := http.NewServeMux()
+
+	server := &http.Server{
+		Addr:           fmt.Sprintf("%s:%d", config.Address, config.Port),
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,
+		Handler:        InjectContext(ctx, LogHTTP(TraceHTTP(mux))),
 	}
 
 	// Static files
-	http.Handle("/admin/", http.StripPrefix("/admin/", http.FileServerFS(admin.Pages)))
+	mux.Handle("/admin/", http.StripPrefix("/admin/", http.FileServerFS(admin.Pages)))
 
 	// TODO restrict methods/origins
-	// Register handlers
-	http.Handle(
+	mux.Handle(
 		"/api/login",
 		AllowAllMethods(
-			LogHTTP(
-				WithSpan("LOGIN",
-					LoginApiHandler{ Context: s.Context },
-				),
-			),
+			LoginApiHandler{},
 		),
 	)
 
-	http.Handle(
+	mux.Handle(
 		"/api/pkeys",
 		AllowAllMethods(
-			LogHTTP(
-				WithSpan("PKEYS",
-					PkeyApiHandler{ Context: s.Context },
-				),
-			),
+			PkeyApiHandler{},
 		),
 	)
 
-	http.Handle(
+	mux.Handle(
 		"/api/refresh",
 		AllowAllMethods(
-			LogHTTP(
-				WithSpan("REFRESH",
-					stoke.Auth(
-						RefreshApiHandler{ Context: s.Context },
-						s.Context.Issuer,
-						stoke.Token().ForAccess(),
-					),
-				),
+			stoke.Auth(
+				RefreshApiHandler{},
+				issuer,
+				stoke.Token().ForAccess(),
 			),
 		),
 	)
 
-	http.Handle(
+	mux.Handle(
 		"/api/admin_users",
 		AllowAllMethods(
-			LogHTTP(
-				WithSpan("ADMINUSERS",
-					stoke.Auth(
-						UserHandler{ Context: s.Context },
-						s.Context.Issuer,
-						stoke.Token().Requires("srol", "spr").ForAccess(),
-					),
-				),
+			stoke.Auth(
+				UserHandler{},
+				issuer,
+				stoke.Token().Requires("srol", "spr").ForAccess(),
 			),
 		),
 	)
 
-	http.Handle(
+	mux.Handle(
 		"/api/admin/",
 		AllowAllMethods(
-			LogHTTP(
-				WithSpan("ADMINAPI",
-					stoke.Auth(
-						NewEntityAPIHandler("/api/admin/", s.Context, s.OTEL),
-						s.Context.Issuer,
-						stoke.Token().Requires("srol", "spr").ForAccess(),
-					),
-				),
+			stoke.Auth(
+				NewEntityAPIHandler("/api/admin/", ctx),
+				issuer,
+				stoke.Token().Requires("srol", "spr").ForAccess(),
 			),
 		),
 	)
 
-	http.Handle(
+	mux.Handle(
 		"/metrics",
 		AllowAllMethods(
-			LogHTTP(
 				promhttp.Handler(),
-			),
 		),
 	)
 
-	return nil
-}
-
-func (s *Server) Run() error {
-	return s.Server.ListenAndServe()
+	return server
 }

@@ -4,18 +4,21 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"stoke/internal/ctx"
+	"stoke/internal/cfg"
+	"stoke/internal/key"
 
 	"github.com/go-faster/jx"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/rs/zerolog"
 )
 
-type RefreshApiHandler struct {
-	Context *ctx.Context
-}
+type RefreshApiHandler struct {}
 
 // Request takes refresh token only. Must be authenticated by a valid token
 func (r RefreshApiHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
+	ctx := req.Context()
+	logger := zerolog.Ctx(ctx)
+
 	if req.Method != http.MethodPost {
 		MethodNotAllowed.Write(res)
 		return
@@ -41,7 +44,7 @@ func (r RefreshApiHandler) ServeHTTP(res http.ResponseWriter, req *http.Request)
 	}
 
 	token := req.Context().Value("jwt.Token").(*jwt.Token)
-	newToken, newRefresh, err := r.Context.Issuer.RefreshToken(token, refresh, r.Context.Config.Tokens.TokenDuration)
+	newToken, newRefresh, err := key.IssuerFromCtx(ctx).RefreshToken(token, refresh, cfg.Ctx(ctx).Tokens.TokenDuration)
 	if err != nil {
 		logger.Debug().Err(err).Str("refresh", refresh).Msg("Failed to refresh token")
 		BadRequest.Write(res)

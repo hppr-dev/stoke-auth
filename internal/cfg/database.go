@@ -1,6 +1,13 @@
 package cfg
 
-import "fmt"
+import (
+	"context"
+	"fmt"
+	"stoke/internal/ent"
+
+	"github.com/rs/zerolog"
+	_ "github.com/mattn/go-sqlite3"
+)
 
 type Database struct {
 	// One Of sqlite3, postgres, mysql
@@ -47,4 +54,29 @@ type Mysql struct {
 
 func (m Mysql) ConnectionString() string {
 	return fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?%s", m.User, m.Password, m.Host, m.Port, m.Database, m.Flags)
+}
+
+func (d Database) withContext(ctx context.Context) context.Context {
+	var dbClient *ent.Client
+	var err error
+
+	switch d.Type {
+	case "sqlite", "sqlite3":
+		dbClient, err = ent.Open("sqlite3", d.Sqlite.ConnectionString())
+	case "postgres":
+		dbClient, err = ent.Open("postgres", d.Postgres.ConnectionString())
+	case "mysql":
+		dbClient, err = ent.Open("mysql", d.Mysql.ConnectionString())
+	default:
+		err = fmt.Errorf("Unsupported database type: %s", d.Type)
+	}
+	if err != nil {
+		zerolog.Ctx(ctx).Error().Err(err).Msg("Could not connect to database")
+		panic("Unrecoverable")
+	}
+
+	// TODO better migration logic/ check error
+	dbClient.Schema.Create(context.Background())
+
+	return ent.NewContext(ctx, dbClient)
 }

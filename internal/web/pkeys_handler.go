@@ -1,19 +1,21 @@
 package web
 
 import (
-	"log"
 	"net/http"
-	"stoke/internal/ctx"
+	"stoke/internal/key"
+
+	"github.com/rs/zerolog"
 )
 
-type PkeyApiHandler struct {
-	Context *ctx.Context
-}
+type PkeyApiHandler struct {}
 
-func (p PkeyApiHandler) ServeHTTP(res http.ResponseWriter, _ *http.Request) {
-	b, err := p.Context.Issuer.PublicKeys()
+func (p PkeyApiHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
+	ctx := req.Context()
+	b, err := key.IssuerFromCtx(ctx).PublicKeys()
 	if err != nil {
-		log.Printf("Could not get public keys: %v", err)
+		zerolog.Ctx(ctx).Error().Err(err).Msg("Could not get public keys")
+		InternalServerError.Write(res)
+		return
 	}
 	res.Write(b)
 }
