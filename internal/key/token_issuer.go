@@ -4,9 +4,11 @@ import (
 	"context"
 	"encoding/base64"
 	"stoke/client/stoke"
+	"stoke/internal/tel"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/rs/zerolog"
 )
 
 type Claims struct {
@@ -15,9 +17,9 @@ type Claims struct {
 }
 
 type TokenIssuer interface {
-	IssueToken(Claims) (string, string, error)
-	RefreshToken(*jwt.Token, string, time.Duration) (string, string, error)
-	PublicKeys() ([]byte, error)
+	IssueToken(Claims, context.Context) (string, string, error)
+	RefreshToken(*jwt.Token, string, time.Duration, context.Context) (string, string, error)
+	PublicKeys(context.Context) ([]byte, error)
 	stoke.PublicKeyStore
 }
 
@@ -26,7 +28,11 @@ type AsymetricTokenIssuer[P PrivateKey]  struct {
 	KeyCache[P]
 }
 
-func (a *AsymetricTokenIssuer[P]) IssueToken(claims Claims) (string, string, error) {
+func (a *AsymetricTokenIssuer[P]) IssueToken(claims Claims, ctx context.Context) (string, string, error) {
+	logger := zerolog.Ctx(ctx)
+	_, span := tel.GetTracer().Start(ctx, "AsymetricTokenIssuer.IssueToken")
+	defer span.End()
+
 	curr := a.CurrentKey()
 	token, err := jwt.NewWithClaims(curr.SigningMethod(), claims).SignedString(curr.Key())
 	if err != nil {
@@ -41,7 +47,11 @@ func (a *AsymetricTokenIssuer[P]) IssueToken(claims Claims) (string, string, err
 	return token, base64.StdEncoding.EncodeToString(refresh), err
 }
 
-func (a *AsymetricTokenIssuer[P]) RefreshToken(jwtToken *jwt.Token, refreshToken string, extendTime time.Duration) (string, string, error) {
+func (a *AsymetricTokenIssuer[P]) RefreshToken(jwtToken *jwt.Token, refreshToken string, extendTime time.Duration, ctx context.Context) (string, string, error) {
+	logger := zerolog.Ctx(ctx)
+	_, span := tel.GetTracer().Start(ctx, "AsymetricTokenIssuer.RefreshToken")
+	defer span.End()
+
 	refreshBytes, err := base64.StdEncoding.DecodeString(refreshToken)
 	if err != nil {
 		logger.Error().
@@ -78,7 +88,7 @@ func (a *AsymetricTokenIssuer[P]) RefreshToken(jwtToken *jwt.Token, refreshToken
 	return a.IssueToken(Claims {
 		RegisteredClaims: stokeClaims.RegisteredClaims,
 		StokeClaims : stokeClaims.StokeClaims,
-	})
+	}, ctx)
 }
 
 func (a *AsymetricTokenIssuer[P]) verifyRefreshToken(jwtToken *jwt.Token, refreshBytes []byte) error {

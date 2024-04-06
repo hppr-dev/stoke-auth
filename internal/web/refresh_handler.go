@@ -44,7 +44,7 @@ func (r RefreshApiHandler) ServeHTTP(res http.ResponseWriter, req *http.Request)
 	}
 
 	token := req.Context().Value("jwt.Token").(*jwt.Token)
-	newToken, newRefresh, err := key.IssuerFromCtx(ctx).RefreshToken(token, refresh, cfg.Ctx(ctx).Tokens.TokenDuration)
+	newToken, newRefresh, err := key.IssuerFromCtx(ctx).RefreshToken(token, refresh, cfg.Ctx(ctx).Tokens.TokenDuration, ctx)
 	if err != nil {
 		logger.Debug().Err(err).Str("refresh", refresh).Msg("Failed to refresh token")
 		BadRequest.Write(res)

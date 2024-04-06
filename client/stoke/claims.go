@@ -10,7 +10,7 @@ type stokeClaimBuilder struct {
 }
 
 // Allows for the use of stoke.Token().Requires("myclaim", "myvalue").ForAccess() to validate tokens
-func Token() stokeClaimBuilder {
+func WithToken() stokeClaimBuilder {
 	return stokeClaimBuilder{
 		validator: &Claims{
 			requiredClaims : make(map[string]string),

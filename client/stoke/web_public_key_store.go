@@ -1,6 +1,7 @@
 package stoke
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -15,24 +16,26 @@ type WebPublicKeyStore struct {
 	keySet jwt.VerificationKeySet
 }
 
-func (s *WebPublicKeyStore) Init() error {
-  if err := s.refreshPublicKeys(); err != nil {
+func (s *WebPublicKeyStore) Init(ctx context.Context) error {
+  if err := s.refreshPublicKeys(ctx); err != nil {
 		return err
 	}
-	go s.goManage()
+	go s.goManage(ctx)
 	return  nil
 }
 
-func (s *WebPublicKeyStore) goManage(){
+func (s *WebPublicKeyStore) goManage(ctx context.Context){
 	for {
 		select {
 		case <-time.After(time.Now().Sub(s.nextUpdate)):
-			s.refreshPublicKeys()
+			s.refreshPublicKeys(ctx)
 		}
 	}
 }
 
-func (s *WebPublicKeyStore) ParseClaims(token string, reqClaims *Claims, parserOpts ...jwt.ParserOption) (*jwt.Token, error) {
+func (s *WebPublicKeyStore) ParseClaims(ctx context.Context, token string, reqClaims *Claims, parserOpts ...jwt.ParserOption) (*jwt.Token, error) {
+	_, span := getTracer().Start(ctx, "ClientPublicKeyStore.ParseClaims")
+	defer span.End()
 	return jwt.ParseWithClaims(token, reqClaims, s.keyFunc, parserOpts...)
 }
 
@@ -41,7 +44,10 @@ func (s *WebPublicKeyStore) keyFunc(token *jwt.Token) (interface{}, error) {
 	return s.keySet, nil
 }
 
-func (s *WebPublicKeyStore) refreshPublicKeys() error {
+func (s *WebPublicKeyStore) refreshPublicKeys(ctx context.Context) error {
+	_, span := getTracer().Start(ctx, "ClientPublicKeyStore.refreshPublicKeys")
+	defer span.End()
+
 	resp, err := http.Get(s.Endpoint)
 	if err != nil {
 		return err

@@ -5,7 +5,6 @@ import (
 	"stoke/internal/tel"
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
-	"go.opentelemetry.io/otel/attribute"
 	semconv "go.opentelemetry.io/otel/semconv/v1.24.0"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -13,7 +12,7 @@ import (
 
 func TraceHTTP(h http.Handler) spanHandler {
 	return spanHandler{
-		inner : otelhttp.NewHandler(h, "HTTP", otelhttp.WithMessageEvents(otelhttp.ReadEvents, otelhttp.WriteEvents)),
+		inner : otelhttp.NewHandler(h, "http-trace", otelhttp.WithMessageEvents(otelhttp.ReadEvents, otelhttp.WriteEvents)),
 		tracer: tel.GetTracer(),
 	}
 }
@@ -32,9 +31,9 @@ func (s spanHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 			trace.WithAttributes(
 				semconv.ClientAddress(req.RemoteAddr),
 				semconv.UserAgentOriginal(req.UserAgent()),
-				semconv.TLSEstablished(req.TLS == nil),
+				semconv.TLSEstablished(req.TLS != nil),
 				semconv.NetworkProtocolName(req.Proto),
-				attribute.String("http.request.method", req.Method),
+				semconv.HTTPRequestMethodKey.String(req.Method),
 		),
 	)
 	defer span.End()

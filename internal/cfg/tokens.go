@@ -69,7 +69,7 @@ func (t *Tokens) withContext(ctx context.Context) context.Context {
 			Msg("Unsupported algorithm")
 	}
 
-	if err := issuer.Init(); err != nil {
+	if err := issuer.Init(ctx); err != nil {
 		zerolog.Ctx(ctx).Fatal().
 			Str("component", "cfg.Tokens").
 			Err(err).
@@ -83,18 +83,24 @@ func (t *Tokens) createECDSAIssuer(ctx context.Context) key.TokenIssuer {
 	return createAsymetricIssuer(t, ctx,
 		&key.ECDSAKeyPair{
 			NumBits: t.NumBits,
+			Logger: zerolog.Ctx(ctx).With().Str("component", "ECDSAKeyPair").Logger(),
 		},
 	)
 }
 
 func (t *Tokens) createEdDSAIssuer(ctx context.Context) key.TokenIssuer {
-	return createAsymetricIssuer(t, ctx, &key.EdDSAKeyPair{})
+	return createAsymetricIssuer(t, ctx,
+		&key.EdDSAKeyPair{
+			Logger: zerolog.Ctx(ctx).With().Str("component", "EdDSAKeyPair").Logger(),
+		},
+	)
 }
 
 func (t *Tokens) createRSAIssuer(ctx context.Context) key.TokenIssuer {
 	return createAsymetricIssuer(t, ctx,
 		&key.RSAKeyPair{
 			NumBits: t.NumBits,
+			Logger: zerolog.Ctx(ctx).With().Str("component", "RSAKeyPair").Logger(),
 		},
 	)
 }
@@ -106,7 +112,7 @@ func createAsymetricIssuer[P key.PrivateKey](t *Tokens, ctx context.Context, pai
 		TokenDuration: t.TokenDuration,
 	}
 
-	err := cache.Bootstrap(pair)
+	err := cache.Bootstrap(ctx, pair)
 	if err != nil {
 		zerolog.Ctx(ctx).Fatal().
 			Str("component", "cfg.Tokens").
@@ -115,7 +121,6 @@ func createAsymetricIssuer[P key.PrivateKey](t *Tokens, ctx context.Context, pai
 	}
 
 	return &key.AsymetricTokenIssuer[P]{
-		Ctx: augmentContext(ctx, "TokenIssuer"),
 		KeyCache: cache,
 	}
 }

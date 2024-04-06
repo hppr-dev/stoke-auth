@@ -7,11 +7,13 @@ import (
 	"encoding/base64"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/rs/zerolog"
 )
 
 type EdDSAKeyPair struct {
 	PrivateKey ed25519.PrivateKey
 	KeyMeta
+	Logger zerolog.Logger
 }
 
 func (k *EdDSAKeyPair) Generate() (KeyPair[ed25519.PrivateKey], error) {
@@ -24,7 +26,7 @@ func (k *EdDSAKeyPair) Generate() (KeyPair[ed25519.PrivateKey], error) {
 func (k *EdDSAKeyPair) PublicString() string {
 	b, ok := k.PrivateKey.Public().(ed25519.PublicKey)
 	if !ok {
-		logger.Error().Msg("Failed to convert public key to bytes.")
+		k.Logger.Error().Msg("Failed to convert public key to bytes.")
 		return ""
 	}
 
@@ -42,7 +44,7 @@ func (k *EdDSAKeyPair) Encode() string {
 func (k *EdDSAKeyPair) Decode(in string) error {
 	b, err := base64.StdEncoding.DecodeString(in)
 	if err != nil {
-		logger.Error().Err(err).Msg("Could not decode EdDSA private key")
+		k.Logger.Error().Err(err).Msg("Could not decode EdDSA private key")
 		return err
 	}
 	k.PrivateKey = b

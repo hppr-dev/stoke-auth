@@ -83,7 +83,7 @@ func (h UserHandler) handleCreate(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if err := usr.ProviderFromCtx(ctx).AddUser(providerType, fname, lname, email, username, password, superuser == "yes") ; err != nil {
+	if err := usr.ProviderFromCtx(ctx).AddUser(providerType, fname, lname, email, username, password, superuser == "yes", ctx) ; err != nil {
 		BadRequest.WriteWithError(res, err)
 		return
 	}
@@ -149,7 +149,7 @@ func (h UserHandler) handleUpdate(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if err := usr.ProviderFromCtx(ctx).UpdateUser(providerType, fname, lname, email, username, password); err != nil {
+	if err := usr.ProviderFromCtx(ctx).UpdateUser(providerType, fname, lname, email, username, password, ctx); err != nil {
 		logger.Error().Err(err).Msg("Failed to update user")
 		BadRequest.WriteWithError(res, err)
 		return

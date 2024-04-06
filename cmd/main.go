@@ -18,7 +18,10 @@ func main() {
 	logger := zerolog.Ctx(rootCtx)
 
 	logger.Debug().Interface("config", config).Msg("Config Loaded")
-	logger.Info().Msg("Starting Stoke Server...")
+	logger.Info().
+		Str("addr",config.Server.Address).
+		Int("port", config.Server.Port).
+		Msg("Starting Stoke Server...")
 
 	server := web.NewServer(rootCtx)
 
@@ -27,10 +30,6 @@ func main() {
 		logger.Fatal().Err(err).Msg("Could not initialize telemetry")
 	}
 
-	logger.Info().
-		Str("addr",config.Server.Address).
-		Int("port", config.Server.Port).
-		Msg("Server starting...")
 	if err := server.ListenAndServe(); err != nil {
 		logger.Error().Err(err).Msg("An error occurred")
 	}

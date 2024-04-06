@@ -7,6 +7,7 @@ import (
 	"stoke/client/stoke"
 	"stoke/internal/ent"
 	"stoke/internal/ent/privatekey"
+	"stoke/internal/tel"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -23,25 +24,38 @@ type KeyCache[P PrivateKey] struct {
 }
 
 // Implements stoke.PublicKeyStore
-func (c *KeyCache[P]) Init() error {
+func (c *KeyCache[P]) Init(ctx context.Context) error {
 	c.activeKey = 0
-	go c.goManage()
+	go c.goManage(ctx)
 	return nil
 }
 
-func (c *KeyCache[P]) goManage() {
+func (c *KeyCache[P]) goManage(ctx context.Context) {
+	logger := zerolog.Ctx(ctx)
+
 	logger.Info().Msg("Starting key cache management...")
 	for {
 		nextExpire := c.CurrentKey().ExpiresAt().Sub(time.Now())
 		nextRenew  := nextExpire - (c.TokenDuration * 2)
 
 		time.Sleep(nextRenew)
-		c.Generate()
+		sCtx, span := tel.GetTracer().Start(ctx, "KeyCache.Rotation")
+		sLogger := logger.With().
+			Str("component", "KeyCache.Management").
+			Logger().
+			Hook(tel.LogHook{ Ctx : ctx } )
+		sCtx = sLogger.WithContext(ctx)
+
+		c.Generate(sCtx)
+
 		time.Sleep(c.TokenDuration)
-		logger.Info().Msg("Activating new key...")
+		sLogger.Info().Msg("Activating new key...")
 		c.activeKey += 1
+
 		time.Sleep(c.TokenDuration)
-		c.Clean()
+		c.Clean(sCtx)
+
+		span.End()
 	}
 }
 
@@ -49,7 +63,10 @@ func (c *KeyCache[P]) CurrentKey() KeyPair[P] {
 	return c.keys[c.activeKey]
 }
 
-func (c *KeyCache[P]) PublicKeys() ([]byte, error) {
+func (c *KeyCache[P]) PublicKeys(ctx context.Context) ([]byte, error) {
+	_, span := tel.GetTracer().Start(ctx, "KeyCache.PublicKeys")
+	defer span.End()
+
 	now := time.Now()
 	jwks := make([]*stoke.JWK, len(c.keys))
 	for i, k := range c.keys {
@@ -69,7 +86,11 @@ func (c *KeyCache[P]) PublicKeys() ([]byte, error) {
 	})
 }
 
-func (c *KeyCache[P]) Generate() error {
+func (c *KeyCache[P]) Generate(ctx context.Context) error {
+	logger := zerolog.Ctx(ctx)
+	_, span := tel.GetTracer().Start(ctx, "KeyCache.Generate")
+	defer span.End()
+
 	logger.Debug().Msg("Generating new key...")
 
 	if len(c.keys) == 0 {
@@ -97,7 +118,11 @@ func (c *KeyCache[P]) Generate() error {
 	return nil
 }
 
-func (c *KeyCache[P]) Bootstrap(pair KeyPair[P]) error {
+func (c *KeyCache[P]) Bootstrap(ctx context.Context, pair KeyPair[P]) error {
+	logger := zerolog.Ctx(ctx)
+	_, span := tel.GetTracer().Start(ctx, "KeyCache.Bootstrap")
+	defer span.End()
+
 	logger.Info().Msg("Bootstraping key cache.")
 	var err error
 
@@ -138,7 +163,11 @@ func (c *KeyCache[P]) Bootstrap(pair KeyPair[P]) error {
 	return nil
 }
 
-func (c *KeyCache[P]) Clean() {
+func (c *KeyCache[P]) Clean(ctx context.Context) {
+	logger := zerolog.Ctx(ctx)
+	_, span := tel.GetTracer().Start(ctx, "KeyCache.Clean")
+	defer span.End()
+
 	logger.Info().Msg("Cleaning key cache...")
 	logger.Debug().
 		Func(func(e *zerolog.Event) {
@@ -170,7 +199,11 @@ func (c *KeyCache[P]) Clean() {
 }
 
 // Implements stoke.PublicKeyStore
-func (c *KeyCache[P]) ParseClaims(token string, claims *stoke.Claims, parserOpts ...jwt.ParserOption) (*jwt.Token, error) {
+func (c *KeyCache[P]) ParseClaims(ctx context.Context, token string, claims *stoke.Claims, parserOpts ...jwt.ParserOption) (*jwt.Token, error) {
+	logger := zerolog.Ctx(ctx)
+	_, span := tel.GetTracer().Start(ctx, "KeyCache.ParseClaims")
+	defer span.End()
+
 	jwtToken, err := jwt.ParseWithClaims(token, claims, c.publicKeys, parserOpts...)
 	if err != nil {
 		logger.Debug().Str("token", token).Err(err).Msg("Failed to validate claims")

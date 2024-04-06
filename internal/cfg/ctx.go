@@ -12,6 +12,8 @@ func Ctx(ctx context.Context) *Config {
 
 func augmentContext(ctx context.Context, componentName string) context.Context {
 	rootLogger := zerolog.Ctx(ctx)
-	logger := rootLogger.With().Str("component", componentName).Logger()
+	logger := rootLogger.With().
+		Str("component", componentName).
+		Logger()
 	return logger.WithContext(ctx)
 }

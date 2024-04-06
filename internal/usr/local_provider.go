@@ -9,6 +9,7 @@ import (
 	"stoke/internal/ent/claim"
 	"stoke/internal/ent/claimgroup"
 	"stoke/internal/ent/user"
+	"stoke/internal/tel"
 
 	"github.com/rs/zerolog"
 	"golang.org/x/crypto/argon2"
@@ -16,17 +17,21 @@ import (
 
 type LocalProvider struct {
 	DB     *ent.Client
-	Ctx    context.Context
 }
 
-func (l LocalProvider) Init() error {
-	return l.checkForSuperUser()
+func (l LocalProvider) Init(ctx context.Context) error {
+	return l.checkForSuperUser(ctx)
 }
 
-func (l LocalProvider) AddUser(provider ProviderType, fname, lname, email, username, password string, superUser bool) error {
+func (l LocalProvider) AddUser(provider ProviderType, fname, lname, email, username, password string, superUser bool, ctx context.Context) error {
 	if provider != LOCAL {
 		return ProviderTypeNotSupported
 	}
+
+	logger := zerolog.Ctx(ctx)
+	_, span := tel.GetTracer().Start(ctx, "LoginApiHandler.ServeHTTP")
+	defer span.End()
+
 
 	logger.Info().
 			Str("fname", fname).
@@ -44,7 +49,7 @@ func (l LocalProvider) AddUser(provider ProviderType, fname, lname, email, usern
 		SetUsername(username).
 		SetSalt(salt).
 		SetPassword(l.hashPass(password, salt)).
-		Save(context.Background())
+		Save(ctx)
 	if err != nil {
 		logger.Error().
 			Err(err).
@@ -55,7 +60,7 @@ func (l LocalProvider) AddUser(provider ProviderType, fname, lname, email, usern
 	}
 	
 	if superUser {
-		superGroup, err := l.getOrCreateSuperGroup()
+		superGroup, err := l.getOrCreateSuperGroup(ctx)
 		if err != nil {
 		logger.Error().
 			Err(err).
@@ -65,7 +70,7 @@ func (l LocalProvider) AddUser(provider ProviderType, fname, lname, email, usern
 			return err
 		}
 
-		_, err = superGroup.Update().AddUsers(userInfo).Save(context.Background())
+		_, err = superGroup.Update().AddUsers(userInfo).Save(ctx)
 		if err != nil {
 			logger.Error().
 				Err(err).
@@ -79,7 +84,11 @@ func (l LocalProvider) AddUser(provider ProviderType, fname, lname, email, usern
 	return nil
 }
 
-func (l LocalProvider) GetUserClaims(username, password string) (*ent.User, ent.Claims, error) {
+func (l LocalProvider) GetUserClaims(username, password string, ctx context.Context) (*ent.User, ent.Claims, error) {
+	logger := zerolog.Ctx(ctx)
+	_, span := tel.GetTracer().Start(ctx, "LocalUserProvider.GetUserClaims")
+	defer span.End()
+
 	logger.Debug().
 		Str("username", username).
 		Msg("Getting user claims")
@@ -135,7 +144,11 @@ func (l LocalProvider) genSalt() string {
 	return base64.StdEncoding.EncodeToString(saltBytes)
 }
 
-func (l LocalProvider) getOrCreateSuperGroup() (*ent.ClaimGroup, error) {
+func (l LocalProvider) getOrCreateSuperGroup(ctx context.Context) (*ent.ClaimGroup, error) {
+	logger := zerolog.Ctx(ctx)
+	_, span := tel.GetTracer().Start(ctx, "LocalUserProvider.getOrCreateSuperGroup")
+	defer span.End()
+
 	superGroup, err := l.DB.ClaimGroup.Query().
 		Where(
 			claimgroup.HasClaimsWith(
@@ -146,44 +159,55 @@ func (l LocalProvider) getOrCreateSuperGroup() (*ent.ClaimGroup, error) {
 			),
 		).
 		WithUsers().
-		Only(context.Background())
+		Only(ctx)
 
 	if ent.IsNotFound(err) {
 		logger.Info().Msg("Stoke superusers not found. Creating...")
-		superClaim := l.DB.Claim.Create().
+		superClaim, err := l.DB.Claim.Create().
 			SetName("Stoke Super User").
 			SetDescription("Grants superuser management access to the stoke server").
 			SetShortName("srol").
 			SetValue("spr").
-			SaveX(context.Background())
+			Save(ctx)
+		if err != nil {
+			return nil, err
+		}
 
-		superGroup = l.DB.ClaimGroup.Create().
+		superGroup, err = l.DB.ClaimGroup.Create().
 			AddClaims(superClaim).
 			SetName("Stoke Superusers").
 			SetDescription("Stoke server superusers").
-			SaveX(context.Background())
+			Save(ctx)
+		if err != nil {
+			return nil, err
+		}
+
 	} else if err != nil {
 		return nil, err
 	}
 	return superGroup, nil
 }
 
-func (l LocalProvider) checkForSuperUser() error {
-	superGroup, err := l.getOrCreateSuperGroup()
+func (l LocalProvider) checkForSuperUser(ctx context.Context) error {
+	superGroup, err := l.getOrCreateSuperGroup(ctx)
 	if err != nil {
 		return err
 	}
 	if len(superGroup.Edges.Users) == 0 {
 		randomPass := l.genSalt()
-		l.AddUser(LOCAL, "Stoke", "Admin", "sadmin@localhost", "sadmin", randomPass, true)
-		logger.Info().
+		l.AddUser(LOCAL, "Stoke", "Admin", "sadmin@localhost", "sadmin", randomPass, true, ctx)
+		zerolog.Ctx(ctx).Info().
 			Str("password", randomPass).
 			Msg("Created superuser 'sadmin'")
 	}
 	return nil
 }
 
-func (l LocalProvider) UpdateUser(provider ProviderType, fname, lname, email, username, password string) error {
+func (l LocalProvider) UpdateUser(provider ProviderType, fname, lname, email, username, password string, ctx context.Context) error {
+	logger := zerolog.Ctx(ctx)
+	_, span := tel.GetTracer().Start(ctx, "LocalUserProvider.UpdateUser")
+	defer span.End()
 	// TODO
+	logger.Error().Msg("UPDATE NOT IMPLEMENTED YET")
 	return fmt.Errorf("NOT IMPLEMENTED")
 }

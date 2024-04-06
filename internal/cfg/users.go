@@ -18,7 +18,7 @@ func (u Users) withContext(ctx context.Context) context.Context {
 	localUserProvider := usr.LocalProvider{
 		DB: ent.FromContext(ctx),
 	}
-	err := localUserProvider.Init()
+	err := localUserProvider.Init(ctx)
 	if err != nil {
 		zerolog.Ctx(ctx).
 			Fatal().

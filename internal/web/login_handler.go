@@ -24,6 +24,7 @@ type LoginApiHandler struct {}
 func (l LoginApiHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
 	logger := zerolog.Ctx(ctx)
+
 	_, span := tel.GetTracer().Start(ctx, "LoginApiHandler.ServeHTTP")
 	defer span.End()
 
@@ -59,7 +60,7 @@ func (l LoginApiHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 		BadRequest.Write(res)
 		return
 	}
-	user, claims, err := usr.ProviderFromCtx(ctx).GetUserClaims(username, password)
+	user, claims, err := usr.ProviderFromCtx(ctx).GetUserClaims(username, password, ctx)
 	if err != nil {
 		logger.Debug().Err(err).Msg("Failed to get claims from provider")
 		Unauthorized.Write(res)
@@ -90,7 +91,7 @@ func (l LoginApiHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	token, refresh, err := key.IssuerFromCtx(ctx).IssueToken(key.Claims{
 		StokeClaims : claimMap,
 		RegisteredClaims: createRegisteredClaims(cfg.Ctx(ctx).Tokens),
-	})
+	}, ctx)
 	if err != nil {
 		InternalServerError.Write(res)
 		return

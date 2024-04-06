@@ -1,8 +1,11 @@
 package usr
 
 import (
+	"context"
 	"errors"
 	"stoke/internal/ent"
+
+	"github.com/rs/zerolog"
 )
 
 type ProviderType int
@@ -15,10 +18,10 @@ const (
 var ProviderTypeNotSupported = errors.New("Provider type not supported")
 
 type Provider interface {
-	Init() error
-	GetUserClaims(user, pass string) (*ent.User, ent.Claims, error)
-  AddUser(provider ProviderType, fname, lname, email, username, password string, superUser bool) error
-  UpdateUser(provider ProviderType, fname, lname, email, username, password string) error
+	Init(context.Context) error
+	GetUserClaims(user, password string, ctx context.Context) (*ent.User, ent.Claims, error)
+  AddUser(provider ProviderType, fname, lname, email, username, password string, superUser bool, ctx context.Context) error
+  UpdateUser(provider ProviderType, fname, lname, email, username, password string, ctx context.Context) error
 }
 
 type MultiProvider struct {
@@ -29,13 +32,13 @@ func (m MultiProvider) Add(t ProviderType, p Provider) {
 	m.providers[t] = p
 }
 
-func (m MultiProvider) Init() error {
-	logger.Info().
+func (m MultiProvider) Init(ctx context.Context) error {
+	zerolog.Ctx(ctx).Info().
 		Int("numProviders", len(m.providers)).
 		Msg("Initializing multiprovider...")
 
 	for _, p := range m.providers {
-		err := p.Init()
+		err := p.Init(ctx)
 		if err != nil {
 			return err
 		}
@@ -43,34 +46,34 @@ func (m MultiProvider) Init() error {
 	return nil
 }
 
-func (m MultiProvider) AddUser(provider ProviderType, fname, lname, email, username, password string, superUser bool) error {
+func (m MultiProvider) AddUser(provider ProviderType, fname, lname, email, username, password string, superUser bool, ctx context.Context) error {
 	p, ok := m.providers[provider]
 	if !ok {
 		return ProviderTypeNotSupported
 	}
-	return p.AddUser(provider, fname, lname, email, username, password, superUser)
+	return p.AddUser(provider, fname, lname, email, username, password, superUser, ctx)
 }
 
-func (m MultiProvider) UpdateUser(provider ProviderType, fname, lname, email, username, password string) error {
+func (m MultiProvider) UpdateUser(provider ProviderType, fname, lname, email, username, password string, ctx context.Context) error {
 	p, ok := m.providers[provider]
 	if !ok {
 		return ProviderTypeNotSupported
 	}
-	return p.UpdateUser(provider, fname, lname, email, username, password)
+	return p.UpdateUser(provider, fname, lname, email, username, password, ctx)
 }
 
-func (m MultiProvider) GetUserClaims(username, password string) (*ent.User, ent.Claims, error) {
+func (m MultiProvider) GetUserClaims(username, password string, ctx context.Context) (*ent.User, ent.Claims, error) {
 	var claims ent.Claims
 	var user *ent.User
 	for _, p := range m.providers {
-		provUser, provClaims, _ := p.GetUserClaims(username, password)
+		provUser, provClaims, _ := p.GetUserClaims(username, password, ctx)
 		claims = append(claims, provClaims...)
 		if provUser != nil {
 			user = provUser
 		}
 	}
 	if len(claims) == 0 {
-		logger.Debug().
+		zerolog.Ctx(ctx).Debug().
 			Str("username", username).
 			Msg("No claims found")
 		return nil, nil, errors.New("No claims found")

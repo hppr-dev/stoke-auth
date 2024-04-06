@@ -24,7 +24,7 @@ func NewServer(ctx context.Context) *http.Server {
 		Addr:           fmt.Sprintf("%s:%d", config.Address, config.Port),
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,
-		Handler:        InjectContext(ctx, LogHTTP(TraceHTTP(mux))),
+		Handler:        InjectContext(ctx, TraceHTTP(LogHTTP(mux))),
 	}
 
 	// Static files
@@ -51,7 +51,7 @@ func NewServer(ctx context.Context) *http.Server {
 			stoke.Auth(
 				RefreshApiHandler{},
 				issuer,
-				stoke.Token().ForAccess(),
+				stoke.WithToken().ForAccess(),
 			),
 		),
 	)
@@ -62,7 +62,7 @@ func NewServer(ctx context.Context) *http.Server {
 			stoke.Auth(
 				UserHandler{},
 				issuer,
-				stoke.Token().Requires("srol", "spr").ForAccess(),
+				stoke.WithToken().Requires("srol", "spr").ForAccess(),
 			),
 		),
 	)
@@ -73,7 +73,7 @@ func NewServer(ctx context.Context) *http.Server {
 			stoke.Auth(
 				NewEntityAPIHandler("/api/admin/", ctx),
 				issuer,
-				stoke.Token().Requires("srol", "spr").ForAccess(),
+				stoke.WithToken().Requires("srol", "spr").ForAccess(),
 			),
 		),
 	)

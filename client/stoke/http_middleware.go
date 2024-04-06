@@ -34,6 +34,10 @@ type authWrapper struct {
 }
 
 func (w authWrapper) ServeHTTP(res http.ResponseWriter, req *http.Request) {
+	ctx := req.Context()
+	_, span := getTracer().Start(ctx, "AuthHandler.ServeHTTP")
+	defer span.End()
+
 	token := req.Header.Get("Authorization")
 	if token == "" || !strings.HasPrefix(token, "Token ") {
 		res.WriteHeader(http.StatusUnprocessableEntity)
@@ -43,16 +47,25 @@ func (w authWrapper) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 
 	trimToken := strings.TrimPrefix(token, "Token ")
 
-	jwtToken, err := w.store.ParseClaims(trimToken, w.reqClaims, w.parserOpts...)
-	if err != nil  || !jwtToken.Valid {
+	jwtToken, err := w.store.ParseClaims(ctx, trimToken, w.reqClaims, w.parserOpts...)
+	if err != nil || 
+			addTokenToSpan(jwtToken, span) || // This is a shortcut to always add the token to the span
+			!jwtToken.Valid {
 		res.WriteHeader(http.StatusUnauthorized)
 		res.Write([]byte(`{"message" : "Unauthorized"}`))
 		return
 	}
 
-	reqContext := context.WithValue(req.Context(), "token", trimToken)
+	reqContext := context.WithValue(ctx, "token", trimToken)
 	reqContext = context.WithValue(reqContext, "jwt.Token", jwtToken)
 
 	w.inner(res, req.WithContext(reqContext))
 }
 
+func Token(ctx context.Context) *jwt.Token {
+	return ctx.Value("jwt.Token").(*jwt.Token)
+}
+
+func TokenString(ctx context.Context) string {
+	return ctx.Value("token").(string)
+}
