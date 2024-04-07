@@ -1,4 +1,5 @@
 import { User, Claim, Group } from '../util/entityTypes'
+import { parseMetricData } from '../util/prometheus'
 
 export const appActions = {
   login: async function(username : string, password : string, callback : () => void) {
@@ -128,39 +129,31 @@ export const appActions = {
     this[stateName] = await response.json()
   },
   fetchAllUsers: async function(refresh? : boolean) {
-    try {
-      await this.simpleGet("/api/admin/users", "allUsers", this.allUsers.length == 0 || refresh)
-    } catch (err) {
-      throw err
-    }
+    await this.simpleGet("/api/admin/users", "allUsers", this.allUsers.length == 0 || refresh)
   },
   fetchAllGroups: async function(refresh? : boolean) {
-    try {
-      await this.simpleGet("/api/admin/claim-groups", "allGroups", this.allGroups.length == 0 || refresh)
-    } catch (err) {
-      throw err
-    }
+    await this.simpleGet("/api/admin/claim-groups", "allGroups", this.allGroups.length == 0 || refresh)
   },
   fetchGroupsForUser: async function(userId: number) {
-    try {
-      await this.simpleGet(`/api/admin/users/${userId}/claim-groups`, "currentGroups", true)
-    } catch (err) {
-      throw err
-    }
+    await this.simpleGet(`/api/admin/users/${userId}/claim-groups`, "currentGroups", true)
   },
   fetchAllClaims: async function(refresh? : boolean) {
-    try {
-      await this.simpleGet("/api/admin/claims", "allClaims", this.allClaims.length == 0 || refresh)
-    } catch (err) {
-      throw err
-    }
+    await this.simpleGet("/api/admin/claims", "allClaims", this.allClaims.length == 0 || refresh)
   },
   fetchClaimsForGroup: async function(groupId: number) {
-    try {
-      await this.simpleGet(`/api/admin/claim-groups/${groupId}/claims`, "currentClaims", true)
-    } catch (err) {
-      throw err
-    }
+    await this.simpleGet(`/api/admin/claim-groups/${groupId}/claims`, "currentClaims", true)
+  },
+  fetchMetricData: async function() {
+    const response = await fetch(`${this.api_url}/metrics`, {
+        method: "GET",
+        headers: {
+          "Content-Type" : "text/plain; version=0.0.4",
+          "Authorization" : `Token ${this.token}`,
+        },
+      }
+    )
+    const result = await response.text();
+    this.metricData = parseMetricData(result);
   },
   simplePatch: async function(endpoint : string, stateToSend : string) {
     const value : User | Claim | Group = this[stateToSend]

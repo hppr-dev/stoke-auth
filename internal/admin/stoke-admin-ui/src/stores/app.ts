@@ -2,6 +2,7 @@
 import { defineStore } from 'pinia'
 import { appActions } from './app_actions'
 import { User, UserWithCreds, Group, Claim } from '../util/entityTypes'
+import { MetricDataMap } from '../util/prometheus'
 
 interface PasswordForm {
   username : string
@@ -35,7 +36,8 @@ export const useAppStore = defineStore('app', {
     allGroups:[] as Group[],
     allClaims:[] as Claim[],
 
-    passwordForm: {} as PasswordForm
+    passwordForm: {} as PasswordForm,
+    metricData: {} as MetricDataMap,
   }),
   getters: {
     authenticated: function() {

@@ -81,7 +81,11 @@ func NewServer(ctx context.Context) *http.Server {
 	mux.Handle(
 		"/metrics",
 		AllowAllMethods(
+			stoke.Auth(
 				promhttp.Handler(),
+				issuer,
+				stoke.WithToken().Requires("srol", "spr").ForAccess(),
+			),
 		),
 	)
 
