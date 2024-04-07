@@ -2,7 +2,6 @@ package cfg
 
 import (
 	"context"
-	"stoke/internal/ent"
 	"stoke/internal/usr"
 
 	"github.com/rs/zerolog"
@@ -15,9 +14,7 @@ type Users struct {
 func (u Users) withContext(ctx context.Context) context.Context {
 	// TODO need to be able to configure which provider to use
 	// Will always have user
-	localUserProvider := usr.LocalProvider{
-		DB: ent.FromContext(ctx),
-	}
+	localUserProvider := usr.LocalProvider{}
 	err := localUserProvider.Init(ctx)
 	if err != nil {
 		zerolog.Ctx(ctx).

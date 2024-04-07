@@ -21,7 +21,8 @@ type Provider interface {
 	Init(context.Context) error
 	GetUserClaims(user, password string, ctx context.Context) (*ent.User, ent.Claims, error)
   AddUser(provider ProviderType, fname, lname, email, username, password string, superUser bool, ctx context.Context) error
-  UpdateUser(provider ProviderType, fname, lname, email, username, password string, ctx context.Context) error
+	// Only need to handle this on local providers. Not sure if we need/want this on other providers
+  UpdateUserPassword(provider ProviderType, username, oldPassword, newPassword string, force bool, ctx context.Context) error
 }
 
 type MultiProvider struct {
@@ -54,12 +55,11 @@ func (m MultiProvider) AddUser(provider ProviderType, fname, lname, email, usern
 	return p.AddUser(provider, fname, lname, email, username, password, superUser, ctx)
 }
 
-func (m MultiProvider) UpdateUser(provider ProviderType, fname, lname, email, username, password string, ctx context.Context) error {
-	p, ok := m.providers[provider]
-	if !ok {
+func (m MultiProvider) UpdateUserPassword(provider ProviderType, username, oldPassword, newPassword string, force bool, ctx context.Context) error {
+	if provider != LOCAL {
 		return ProviderTypeNotSupported
 	}
-	return p.UpdateUser(provider, fname, lname, email, username, password, ctx)
+	return m.providers[LOCAL].UpdateUserPassword(provider, username, oldPassword, newPassword, force, ctx)
 }
 
 func (m MultiProvider) GetUserClaims(username, password string, ctx context.Context) (*ent.User, ent.Claims, error) {

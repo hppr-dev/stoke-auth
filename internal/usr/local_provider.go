@@ -15,9 +15,7 @@ import (
 	"golang.org/x/crypto/argon2"
 )
 
-type LocalProvider struct {
-	DB     *ent.Client
-}
+type LocalProvider struct {}
 
 func (l LocalProvider) Init(ctx context.Context) error {
 	return l.checkForSuperUser(ctx)
@@ -42,7 +40,7 @@ func (l LocalProvider) AddUser(provider ProviderType, fname, lname, email, usern
 			Msg("Creating user")
 
 	salt := l.genSalt()
-	userInfo, err := l.DB.User.Create().
+	userInfo, err := ent.FromContext(ctx).User.Create().
 		SetFname(fname).
 		SetLname(lname).
 		SetEmail(email).
@@ -93,7 +91,7 @@ func (l LocalProvider) GetUserClaims(username, password string, ctx context.Cont
 		Str("username", username).
 		Msg("Getting user claims")
 
-	usr, err := l.DB.User.Query().
+	usr, err := ent.FromContext(ctx).User.Query().
 		Where(
 			user.Or(
 				user.UsernameEQ(username),
@@ -103,7 +101,7 @@ func (l LocalProvider) GetUserClaims(username, password string, ctx context.Cont
 		WithClaimGroups(func (q *ent.ClaimGroupQuery) {
 			q.WithClaims()
 		}).
-		Only(context.Background())
+		Only(ctx)
 	if err != nil {
 		logger.Error().
 			Err(err).
@@ -149,7 +147,9 @@ func (l LocalProvider) getOrCreateSuperGroup(ctx context.Context) (*ent.ClaimGro
 	_, span := tel.GetTracer().Start(ctx, "LocalUserProvider.getOrCreateSuperGroup")
 	defer span.End()
 
-	superGroup, err := l.DB.ClaimGroup.Query().
+	client := ent.FromContext(ctx)
+
+	superGroup, err := client.ClaimGroup.Query().
 		Where(
 			claimgroup.HasClaimsWith(
 				claim.And(
@@ -163,7 +163,7 @@ func (l LocalProvider) getOrCreateSuperGroup(ctx context.Context) (*ent.ClaimGro
 
 	if ent.IsNotFound(err) {
 		logger.Info().Msg("Stoke superusers not found. Creating...")
-		superClaim, err := l.DB.Claim.Create().
+		superClaim, err := client.Claim.Create().
 			SetName("Stoke Super User").
 			SetDescription("Grants superuser management access to the stoke server").
 			SetShortName("srol").
@@ -173,7 +173,7 @@ func (l LocalProvider) getOrCreateSuperGroup(ctx context.Context) (*ent.ClaimGro
 			return nil, err
 		}
 
-		superGroup, err = l.DB.ClaimGroup.Create().
+		superGroup, err = client.ClaimGroup.Create().
 			AddClaims(superClaim).
 			SetName("Stoke Superusers").
 			SetDescription("Stoke server superusers").
@@ -203,11 +203,36 @@ func (l LocalProvider) checkForSuperUser(ctx context.Context) error {
 	return nil
 }
 
-func (l LocalProvider) UpdateUser(provider ProviderType, fname, lname, email, username, password string, ctx context.Context) error {
+func (l LocalProvider) UpdateUserPassword(provider ProviderType, username, oldPassword, newPassword string, force bool, ctx context.Context) error {
+	if provider != LOCAL {
+		return ProviderTypeNotSupported
+	}
+
 	logger := zerolog.Ctx(ctx)
 	_, span := tel.GetTracer().Start(ctx, "LocalUserProvider.UpdateUser")
 	defer span.End()
-	// TODO
-	logger.Error().Msg("UPDATE NOT IMPLEMENTED YET")
-	return fmt.Errorf("NOT IMPLEMENTED")
+
+	usr, err := ent.FromContext(ctx).User.Query().
+		Where(user.UsernameEQ(username)).
+		Only(context.Background())
+	if err != nil {
+		return err
+	}
+
+	if !force && l.hashPass(oldPassword, usr.Salt) != usr.Password {
+		logger.Debug().
+			Str("username", username).
+			Bool("force", force).
+			Msg("User old password did not match")
+		return fmt.Errorf("Bad Password")
+	}
+
+	newSalt := l.genSalt()
+	newPassHash := l.hashPass(newPassword, newSalt)
+
+	_, err = ent.FromContext(ctx).User.Update().
+		SetSalt(newSalt).
+		SetPassword(newPassHash).
+		Save(ctx)
+	return err
 }
