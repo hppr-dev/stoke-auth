@@ -3,10 +3,7 @@
     <v-row>
       <v-text-field variant="solo-filled" clearable label="Username" v-model="username" no-resize disabled></v-text-field>
       <v-btn class="ml-5 h-75" variant="tonal" color="info" stacked prepend-icon="mdi-lock-open-variant" disabled> Unlock </v-btn>
-      <v-btn class="ml-2 h-75" variant="tonal" color="error" stacked density="compact">
-          <span>Change</span>
-          <span>Password</span>
-      </v-btn>
+      <UpdateUserPassword />
     </v-row>
     <v-row>
       <v-text-field
@@ -53,6 +50,7 @@
   import { useAppStore } from "../../stores/app"
   import { Group } from "../../util/entityTypes"
   import { require } from "../../util/rules"
+import UpdateUserPassword from "./UpdateUserPassword.vue";
 
   const store = useAppStore()
 

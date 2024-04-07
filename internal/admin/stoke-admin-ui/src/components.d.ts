@@ -23,6 +23,7 @@ declare module 'vue' {
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     StokeIcon: typeof import('./components/StokeIcon.vue')['default']
+    UpdateUserPassword: typeof import('./components/dialogs/UpdateUserPassword.vue')['default']
     UserInfo: typeof import('./components/UserInfo.vue')['default']
     UserList: typeof import('./components/UserList.vue')['default']
     Viewport: typeof import('./components/Viewport.vue')['default']

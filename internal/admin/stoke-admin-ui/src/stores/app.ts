@@ -3,6 +3,13 @@ import { defineStore } from 'pinia'
 import { appActions } from './app_actions'
 import { User, UserWithCreds, Group, Claim } from '../util/entityTypes'
 
+interface PasswordForm {
+  username : string
+  oldPassword : string
+  newPassword : string
+  force : boolean
+}
+
 export const useAppStore = defineStore('app', {
   state: () => ({
     api_url: import.meta.env.DEV? import.meta.env.VITE_API_URL : "",
@@ -27,6 +34,8 @@ export const useAppStore = defineStore('app', {
     allUsers:[] as User[],
     allGroups:[] as Group[],
     allClaims:[] as Claim[],
+
+    passwordForm: {} as PasswordForm
   }),
   getters: {
     authenticated: function() {

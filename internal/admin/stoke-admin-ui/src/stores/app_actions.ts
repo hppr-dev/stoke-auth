@@ -1,9 +1,9 @@
 import { User, Claim, Group } from '../util/entityTypes'
 
 export const appActions = {
-  login: async function(username : string, password : string) {
+  login: async function(username : string, password : string, callback : () => void) {
     try {
-      const resp = await fetch(`${this.api_url}/api/login`, {
+      const response = await fetch(`${this.api_url}/api/login`, {
         method: "POST",
         headers: {
           "Content-Type" : "application/json",
@@ -17,10 +17,19 @@ export const appActions = {
         }),
       })
 
-      const result = await resp.json();
+      if ( !response.ok ){
+        throw new Error(response.statusText)
+      }
+
+      const result = await response.json();
       if ( result.message ) {
         throw new Error(result.message);
       }
+
+      // Artificial wait to make it seem as robust as it is
+      await new Promise((r) => setTimeout(r, 500))
+
+      callback()
 
       this.username = username
       this.token = result.token
@@ -46,7 +55,7 @@ export const appActions = {
   },
   refreshSession: async function() {
     try {
-      const resp = await fetch(`${this.api_url}/api/refresh`, {
+      const response = await fetch(`${this.api_url}/api/refresh`, {
         method: "POST",
         headers: {
           "Content-Type" : "application/json",
@@ -57,7 +66,11 @@ export const appActions = {
         }),
       })
 
-      const result = await resp.json();
+      if ( !response.ok ){
+        throw new Error(response.statusText)
+      }
+
+      const result = await response.json();
       if ( result.message ) {
         throw new Error(result.message);
       }
@@ -100,18 +113,19 @@ export const appActions = {
     if ( !refresh ) {
       return
     }
-    try {
-      const resp = await fetch(`${this.api_url}${endpoint}`, {
-        method: "GET",
-        headers: {
-          "Authorization" : `Token ${this.token}`,
-        }
-      })
 
-      this[stateName] = await resp.json()
-    } catch (err) {
-      throw err
+    const response = await fetch(`${this.api_url}${endpoint}`, {
+      method: "GET",
+      headers: {
+        "Authorization" : `Token ${this.token}`,
+      }
+    })
+
+    if ( !response.ok ){
+      throw new Error(response.statusText)
     }
+
+    this[stateName] = await response.json()
   },
   fetchAllUsers: async function(refresh? : boolean) {
     try {
@@ -149,31 +163,31 @@ export const appActions = {
     }
   },
   simplePatch: async function(endpoint : string, stateToSend : string) {
-    try {
-      const value : User | Claim | Group = this[stateToSend]
-      await fetch(`${this.api_url}${endpoint}/${value.id}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type"  : "application/json",
-          "Authorization" : `Token ${this.token}`,
-        },
-        body : JSON.stringify(value),
-      })
-    } catch (err) {
-      throw err
+    const value : User | Claim | Group = this[stateToSend]
+    const response = await fetch(`${this.api_url}${endpoint}/${value.id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type"  : "application/json",
+        "Authorization" : `Token ${this.token}`,
+      },
+      body : JSON.stringify(value),
+    })
+
+    if ( !response.ok ){
+      throw new Error(response.statusText)
     }
   },
   saveScratchUser: function() {
     this.currentUser = { ...this.scratchUser }
     this.currentGroups = [ ...this.scratchGroups ]
-    this.scratchUser.claim_groups = this.scratchGroups.map((g) => g.id)
+    this.scratchUser.claim_groups = this.scratchGroups.map((g : Group) => g.id)
     return this.simplePatch("/api/admin/users", "scratchUser")
       .then(() => this.scratchUser = {})
   },
   saveScratchGroup: function() {
     this.currentGroup = { ...this.scratchGroup }
     this.currentClaims = [ ...this.scratchClaims ]
-    this.scratchGroup.claims = this.scratchClaims.map((c) => c.id)
+    this.scratchGroup.claims = this.scratchClaims.map((c : Claim) => c.id)
     return this.simplePatch("/api/admin/claim-groups", "scratchGroup")
       .then(() => this.scratchGroup = {})
   },
@@ -182,18 +196,30 @@ export const appActions = {
     return this.simplePatch("/api/admin/claims", "scratchClaim")
       .then(() => this.scratchClaim = {})
   },
+  savePasswordForm: async function() {
+    const response = await fetch(`${this.api_url}/api/admin_users`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type"  : "application/json",
+        "Authorization" : `Token ${this.token}`,
+      },
+      body : JSON.stringify(this.passwordForm),
+    })
+    if ( !response.ok ){
+      throw new Error(response.statusText)
+    }
+  },
   simplePost: async function(endpoint : string, stateToSend : string) {
-    try {
-      await fetch(`${this.api_url}${endpoint}`, {
-        method: "POST",
-        headers: {
-          "Content-Type"  : "application/json",
-          "Authorization" : `Token ${this.token}`,
-        },
-        body : JSON.stringify(this[stateToSend]),
-      })
-    } catch (err) {
-      throw err
+    const response = await fetch(`${this.api_url}${endpoint}`, {
+      method: "POST",
+      headers: {
+        "Content-Type"  : "application/json",
+        "Authorization" : `Token ${this.token}`,
+      },
+      body : JSON.stringify(this[stateToSend]),
+    })
+    if ( !response.ok ){
+      throw new Error(response.statusText)
     }
   },
   addScratchUser: function() {

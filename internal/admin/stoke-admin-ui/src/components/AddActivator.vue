@@ -4,6 +4,15 @@
   </v-btn>
 
   <v-dialog v-model="dialogOpen" width="auto" @afterLeave="onCancel" persistent>
+    <v-alert
+      class="mb-n16"
+      type="error"
+      :text="errorMsg"
+      style="z-index : 100;"
+      v-if="errorMsg"
+      @click:close="errorMsg=''"
+      closable
+    ></v-alert>
     <v-form v-model="formValid" @submit.prevent="innerOnSave" validate-on="submit">
       <v-card>
         <template #title>
@@ -16,7 +25,7 @@
           <slot></slot>
         </template>
         <template #actions>
-          <div class="d-flex justify-center w-100">
+          <div class="d-flex justify-center w-100 pb-3">
             <v-btn color="error" @click="innerOnCancel">
               Cancel
             </v-btn>
@@ -45,10 +54,13 @@
 
   const dialogOpen = ref(false)
   const formValid = ref(false)
-  const errorMessage = ref("")
+  const errorMsg = ref("")
 
   function innerOnCancel() {
     dialogOpen.value = false
+    if(props.onCancel) {
+      props.onCancel()
+    }
   }
 
   async function innerOnSave(event : Promise<SubmitEvent>) {
@@ -61,7 +73,7 @@
         dialogOpen.value = false
       } catch (err) {
         console.error(err)
-        errorMessage.value = err
+        errorMsg.value = err
       }
     } else {
       dialogOpen.value = false
