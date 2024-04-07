@@ -35,8 +35,12 @@ tokens:
 
 telemetry:
   trace_provider: grpc
-  trace_export_url: not used yet
-  metric_provider: prometheus only
-  metric_export_url: not used yet
+  trace_export_url: https://localhost:4317
+  trace_insecure: true
+
+  # Set this to anything but http/grpc to only use the internal prometheus endpoint
+  metric_provider: prometheus_only
+  metric_export_url: https://localhost:4317
+  metric_insecure: false
 
 users:

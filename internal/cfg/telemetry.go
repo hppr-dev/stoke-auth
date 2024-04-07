@@ -26,11 +26,15 @@ type Telemetry struct {
 	MetricProvider  string `json:"metric_provider"`
 	// The URL of where to export metrics.
 	MetricExportURL string `json:"metric_exporter_url"`
+	// Use an insecure connection to connect to MetricExportURL
+	MetricInsecure  bool `json:"metric_insecure"`
 
 	// The type of trace provider. Can be http or grpc. Leave blank to disable
-	TraceProvider   string `json:"trace_provider"`
+	TraceProvider  string `json:"trace_provider"`
 	// The URL of where to export traces
-	TraceExportURL  string `json:"trace_export_url"`
+	TraceExportURL string `json:"trace_export_url"`
+	// Use an insecure connection to connect to TraceExportURL
+	TraceInsecure  bool `json:"trace_insecure"`
 
 	// Non-parsed fields
 	shutdownFuncs []ContextFunc
@@ -65,12 +69,27 @@ func (t *Telemetry) buildPropagator() propagation.TextMapPropagator {
 func (t *Telemetry) buildTracerProvider(info *resource.Resource, ctx context.Context) (*trace.TracerProvider, error) {
 	var exporter trace.SpanExporter
 	var err error
-	// TODO incorperate TraceExportURL
 	switch t.TraceProvider {
 	case "grpc":
-		exporter, err = otlptracegrpc.New(ctx)
+		var opts []otlptracegrpc.Option
+		if t.TraceExportURL != "" {
+		 opts = append(opts, otlptracegrpc.WithEndpointURL(t.TraceExportURL))
+		}
+		if t.TraceInsecure {
+			opts = append(opts, otlptracegrpc.WithInsecure())
+		}
+		exporter, err = otlptracegrpc.New(ctx, opts...)
+
 	case "http":
-		exporter, err = otlptracehttp.New(ctx)
+		var opts []otlptracehttp.Option
+		if t.TraceExportURL != "" {
+		 opts = append(opts, otlptracehttp.WithEndpointURL(t.TraceExportURL))
+		}
+		if t.TraceInsecure {
+			opts = append(opts, otlptracehttp.WithInsecure())
+		}
+		exporter, err = otlptracehttp.New(ctx, opts...)
+
 	default:
 		return nil, nil
 	}
@@ -90,13 +109,29 @@ func (t *Telemetry) buildMeterProvider(info *resource.Resource, ctx context.Cont
 		metric.WithResource(info),
 	}
 
-	// TODO encorperate MetricExportURL
 	switch t.MetricProvider {
 	case "grpc":
-		exporter, err = otlpmetricgrpc.New(ctx)
+		var opts []otlpmetricgrpc.Option
+		if t.MetricExportURL != "" {
+		 opts = append(opts, otlpmetricgrpc.WithEndpointURL(t.MetricExportURL))
+		}
+		if t.MetricInsecure {
+			opts = append(opts, otlpmetricgrpc.WithInsecure())
+		}
+		exporter, err = otlpmetricgrpc.New(ctx, opts...)
+
 	case "http":
-		exporter, err = otlpmetrichttp.New(ctx)
+		var opts []otlpmetrichttp.Option
+		if t.MetricExportURL != "" {
+		 opts = append(opts, otlpmetrichttp.WithEndpointURL(t.MetricExportURL))
+		}
+		if t.MetricInsecure {
+			opts = append(opts, otlpmetrichttp.WithInsecure())
+		}
+		exporter, err = otlpmetrichttp.New(ctx, opts...)
+
 	}
+
 	if err != nil {
 		zerolog.Ctx(ctx).Info().
 			Err(err).
