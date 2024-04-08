@@ -53,7 +53,9 @@ func (t *Telemetry) Initialize(ctx context.Context) ([]ContextFunc, error) {
 	}
 
 	otel.SetTextMapPropagator(t.buildPropagator())
-	otel.SetTracerProvider(tracer)
+	if tracer != nil {
+		otel.SetTracerProvider(tracer)
+	}
 	otel.SetMeterProvider(t.buildMeterProvider(info, ctx))
 
 	return t.shutdownFuncs, nil
