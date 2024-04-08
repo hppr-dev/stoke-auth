@@ -1,6 +1,6 @@
 <template>
-  <v-col cols="4">
-    <v-card elevation="5">
+  <v-col clas="h-100" cols="3">
+    <v-card class="h-100" elevation="5">
       <template #title>
         <span class="text-secondary"> {{ props.name }} </span>
         <div class="d-flex justify-end">
@@ -12,7 +12,7 @@
           <span class=""> {{ getCount() }} </span>
         </div>
       </template>
-      <template #subtitle>
+      <template #text>
         <span> {{ props.data.description.help }} </span>
       </template>
     </v-card>

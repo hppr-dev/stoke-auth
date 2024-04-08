@@ -1,13 +1,11 @@
 <template>
-  <v-col cols="12">
-    <v-card elevation="5">
+  <v-col cols="8">
+    <v-card class="h-100" elevation="5">
       <template #title>
         <span class="text-secondary"> {{ props.name }} </span>
       </template>
-      <template #subtitle>
-        <p> {{ props.data.description.help }} </p>
-      </template>
       <template #text>
+        <p> {{ props.data.description.help }} </p>
         <v-data-table :cell-props="{ style :'width: 2em' }" :items="tableData" :headers="tableHeaders">
           <template #item.tags="{ value }">
             <v-chip-group style="max-width : 21em">

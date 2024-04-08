@@ -1,6 +1,6 @@
 <template>
   <v-col cols="4">
-    <v-card elevation="5">
+    <v-card class="h-100" elevation="5">
       <template #title>
         <span class="text-secondary"> {{ props.name }} </span>
       </template>

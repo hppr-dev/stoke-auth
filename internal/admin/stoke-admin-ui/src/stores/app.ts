@@ -1,15 +1,20 @@
 // Utilities
 import { defineStore } from 'pinia'
-import { appActions } from './app_actions'
 import { User, UserWithCreds, Group, Claim } from '../util/entityTypes'
 import { MetricDataMap } from '../util/prometheus'
-import { ChartDataset } from 'chart.js'
+import { appActions } from './app_actions'
+import { managementActions } from './management_actions'
+import { metricActions, ChartData } from './metric_actions'
 
 interface PasswordForm {
   username : string
   oldPassword : string
   newPassword : string
   force : boolean
+}
+
+export interface ChartDatasets {
+  [k : string] : ChartData
 }
 
 export const useAppStore = defineStore('app', {
@@ -40,12 +45,12 @@ export const useAppStore = defineStore('app', {
     passwordForm: {} as PasswordForm,
 
     metricData: {} as MetricDataMap,
+    metricsPaused: true,
     metricRefreshTime: 30000,
     metricTimeoutID: 0,
+    maxPoints: 100,
 
-    // Tracked Metrics And datasets share an index
-    trackedMetrics : [] as string[],
-    chartDataSets: [] as ChartDataset[],
+    chartDatam: {} as ChartDatasets,
   }),
   getters: {
     authenticated: function() {
@@ -56,6 +61,13 @@ export const useAppStore = defineStore('app', {
       const claims = JSON.parse(decodeURIComponent(atob(b64)))
       return new Date(claims.exp * 1000)
     },
+    trackedMetrics: function() {
+      return Object.keys(this.chartDatam)
+    },
   },
-  actions: appActions,
+  actions: {
+    ...appActions,
+    ...managementActions,
+    ...metricActions,
+  },
 })

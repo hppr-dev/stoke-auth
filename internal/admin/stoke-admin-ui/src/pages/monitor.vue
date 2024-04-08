@@ -3,26 +3,48 @@
     <v-row class="mb-10 ml-0">
       <v-card class="h-100 w-100 mt-2 mb-5">
         <v-tabs align-tabs="center" v-model="tab" color="warning">
-          <v-tab value="0">Chart</v-tab>
           <v-tab value="1">GC</v-tab>
           <v-tab value="2">Memory</v-tab>
           <v-tab value="3">Process</v-tab>
           <v-tab value="4">HTTP</v-tab>
-          <v-tab value="5">Logs</v-tab>
+          <v-tab v-if="store.trackedMetrics.length > 0" value="5">Chart</v-tab>
+          <v-tab value="6">Logs</v-tab>
         </v-tabs>
         <v-container class="h-100">
-          <v-row>
-            <v-col class="mt-2 mr-n4 d-flex justify-end" offset="10" cols="1">
+          <div class="d-flex justify-end">
+            <div class="mr-3 mt-2">
+              <span class="text-body-1 font-weight-light"> Max Points: </span>
+            </div>
+            <div width="10em" >
+              <v-select
+                density="compact"
+                v-model="selectedMaxPoints"
+                :items="maxPointItems"
+                :disabled="!store.metricsPaused"
+                @update:modelValue="store.setMaxPoints"
+              > </v-select>
+            </div>
+            <div class="mx-3 mt-2">
               <span class="text-body-1 font-weight-light"> Refresh Every: </span>
-            </v-col>
-            <v-col cols="1">
-              <v-select density="compact" v-model="selectedTimer" :items="timerSelectItems" @update:modelValue="updateTimeout"> </v-select>
-            </v-col>
-          </v-row>
-          <v-window v-model="tab">
-            <v-window-item class="h-100" key="chart" value="0">
-              <MetricChart />
-            </v-window-item>
+            </div>
+            <div class="mx-3" width="10em" >
+              <v-select
+                density="compact"
+                v-model="selectedTimer"
+                :items="timerSelectItems"
+                @update:modelValue="store.setMetricRefresh"
+                :disabled="!store.metricsPaused"
+              > </v-select>
+            </div>
+            <div class="mr-3 mt-2">
+              <v-icon
+                @click="store.toggleMetricPaused"
+                :icon="store.metricsPaused? 'mdi-play-circle' : 'mdi-pause' "
+                :color="store.metricsPaused? 'error': 'primary'"
+              ></v-icon>
+            </div>
+          </div>
+          <v-window class="h-100" v-model="tab">
             <v-window-item class="h-100" key="gc" value="1">
               <MetricFilter :metricNames="gcMetrics"/>
             </v-window-item>
@@ -35,7 +57,10 @@
             <v-window-item class="h-100" key="http" value="4">
               <MetricFilter :metricNames="httpMetrics"/>
             </v-window-item>
-            <v-window-item class="h-100" key="logs" value="5">
+            <v-window-item class="h-100" key="chart" value="5">
+              <MetricChart />
+            </v-window-item>
+            <v-window-item class="h-100" key="logs" value="6">
               <p> Logs here </p>
             </v-window-item>
           </v-window>
@@ -61,15 +86,14 @@
     { title : "30s", value: 30000 },
     { title : "1m",  value: 60000 },
   ]
-
-
-  function updateTimeout() {
-    store.setMetricRefresh(selectedTimer.value)
-  }
-
-  onBeforeRouteLeave(() => {
-    store.clearMetricTimeout()
-  })
+  const selectedMaxPoints = ref(100)
+  const maxPointItems = [
+    { title : "25",  value: 25 },
+    { title : "50",  value: 50 },
+    { title : "100", value: 100 },
+    { title : "200", value: 200 },
+    { title : "1000",  value: 1000 },
+  ]
 
   onMounted(async () => {
     await store.fetchMetricData()

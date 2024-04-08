@@ -5,7 +5,7 @@
   <MultiMetric v-else-if="getMetricData()" :data="getMetricData()" :name="getPrettyName()" />
   <v-tooltip :text="isAdded()? 'Remove From Chart' : 'Add To Chart' " location="top">
     <template #activator="{ props }">
-      <v-icon v-bind="props" class="ml-n10 mt-5" :color="isAdded()? 'success' : 'error' " @click="addMetric" :icon="icons.ADD"></v-icon>
+      <v-icon v-bind="props" class="ml-n10 mt-5" :color="isAdded()? 'error' : 'success' " @click="store.toggleMetric(compProps.name)" :icon="icons.ADD"></v-icon>
     </template>
   </v-tooltip>
 </template>
@@ -17,33 +17,17 @@
 
   const store = useAppStore()
 
-  const props = defineProps<{
+  const compProps = defineProps<{
     name: { metricName: string, displayName: string },
   }>()
 
   function getPrettyName() {
-    return props.name.displayName
+    return compProps.name.displayName
   }
   function getMetricData() {
-    return store.metricData[props.name.metricName]
-  }
-  function addMetric() {
-    if( ! isAdded() ) {
-      store.$patch({
-        trackedMetrics : [
-          ...store.trackedMetrics,
-          props.name.metricName
-        ]
-      })
-    } else {
-      store.$patch({
-        trackedMetrics : [
-          ...store.trackedMetrics.filter((s) => s !== props.name.metricName),
-        ]
-      })
-    }
+    return store.metricData[compProps.name.metricName]
   }
   function isAdded() {
-    return store.trackedMetrics.includes(props.name.metricName)
+    return store.trackedMetrics.includes(compProps.name.metricName)
   }
 </script>
