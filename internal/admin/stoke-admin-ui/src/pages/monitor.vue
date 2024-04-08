@@ -1,37 +1,45 @@
 <template>
   <Viewport>
-    <v-row class="h-screen pb-10 ml-0">
-      <v-card class="w-100 mt-2 mb-4">
+    <v-row class="mb-10 ml-0">
+      <v-card class="h-100 w-100 mt-2 mb-5">
         <v-tabs align-tabs="center" v-model="tab" color="warning">
-          <v-tab value="0">Logs</v-tab>
+          <v-tab value="0">Chart</v-tab>
           <v-tab value="1">GC</v-tab>
           <v-tab value="2">Memory</v-tab>
           <v-tab value="3">Process</v-tab>
           <v-tab value="4">HTTP</v-tab>
-          <v-tab value="5">Tracing</v-tab>
+          <v-tab value="5">Logs</v-tab>
         </v-tabs>
-        <v-window class="h-100" v-model="tab">
-          <v-container>
-            <v-window-item class="h-100" key="logs" value="0">
-              <p> Logs here </p>
+        <v-container class="h-100">
+          <v-row>
+            <v-col class="mt-2 mr-n4 d-flex justify-end" offset="10" cols="1">
+              <span class="text-body-1 font-weight-light"> Refresh Every: </span>
+            </v-col>
+            <v-col cols="1">
+              <v-select density="compact" v-model="selectedTimer" :items="timerSelectItems" @update:modelValue="updateTimeout"> </v-select>
+            </v-col>
+          </v-row>
+          <v-window v-model="tab">
+            <v-window-item class="h-100" key="chart" value="0">
+              <MetricChart />
             </v-window-item>
             <v-window-item class="h-100" key="gc" value="1">
-              <p> {{ Object.keys(store.metricData).filter((n) => n.startsWith("go_gc") ) }} </p>
+              <MetricFilter :metricNames="gcMetrics"/>
             </v-window-item>
             <v-window-item class="h-100" key="memstats" value="2">
-              <p> {{ Object.keys(store.metricData).filter((n) => n.startsWith("go_memstats") ) }} </p>
+              <MetricFilter :metricNames="memoryMetrics"/>
             </v-window-item>
             <v-window-item class="h-100" key="process" value="3">
-              <p> {{ Object.keys(store.metricData).filter((n) => n.startsWith("process")) }} </p>
+              <MetricFilter :metricNames="processMetrics"/>
             </v-window-item>
             <v-window-item class="h-100" key="http" value="4">
-              <p> {{ Object.keys(store.metricData).filter((n) => n.startsWith("http") || n.startsWith("ogen")) }} </p>
+              <MetricFilter :metricNames="httpMetrics"/>
             </v-window-item>
-            <v-window-item class="h-100" key="tracing" value="5">
-              <p> {{ Object.keys(store.metricData).filter((n) => n.startsWith("promhttp") || n.startsWith("otel")) }} </p>
+            <v-window-item class="h-100" key="logs" value="5">
+              <p> Logs here </p>
             </v-window-item>
-          </v-container>
-        </v-window>
+          </v-window>
+        </v-container>
       </v-card>
     </v-row>
   </Viewport>
@@ -39,13 +47,82 @@
 
 <script lang="ts" setup>
   import { ref, onMounted } from 'vue'
+  import { onBeforeRouteLeave } from 'vue-router'
   import { useAppStore } from '../stores/app'
-
-  const tab = ref(0)
 
   const store = useAppStore()
 
+  const tab = ref(0)
+  const selectedTimer = ref(30000)
+  const timerSelectItems = [
+    { title : "1s",  value: 1000 },
+    { title : "5s",  value: 5000 },
+    { title : "10s", value: 10000 },
+    { title : "30s", value: 30000 },
+    { title : "1m",  value: 60000 },
+  ]
+
+
+  function updateTimeout() {
+    store.setMetricRefresh(selectedTimer.value)
+  }
+
+  onBeforeRouteLeave(() => {
+    store.clearMetricTimeout()
+  })
+
   onMounted(async () => {
     await store.fetchMetricData()
+    store.metricRefresh()
   })
+
+  const gcMetrics = [
+    { metricName: "go_gc_duration_seconds",           displayName: "GC Duration Seconds" },
+    { metricName: "go_memstats_gc_sys_bytes",         displayName: "GC System Bytes" },
+    { metricName: "go_memstats_last_gc_time_seconds", displayName: "Last GC Time Seconds" },
+    { metricName: "go_memstats_next_gc_bytes",        displayName: "Next GC Bytes" },
+    { metricName: "go_memstats_heap_alloc_bytes",     displayName: "Allocated Heap Bytes" },
+    { metricName: "go_memstats_heap_idle_bytes",      displayName: "Idle Heap Bytes" },
+    { metricName: "go_memstats_heap_inuse_bytes",     displayName: "Active Heap Bytes" },
+    { metricName: "go_memstats_heap_released_bytes",  displayName: "Released Heap Bytes" },
+    { metricName: "go_memstats_heap_sys_bytes",       displayName: "System Heap Bytes" },
+    { metricName: "go_memstats_heap_objects",         displayName: "Heap Objects" },
+  ]
+
+  const memoryMetrics = [
+    { metricName: "go_memstats_frees_total",         displayName: "Total Frees" },
+    { metricName: "go_memstats_alloc_bytes",         displayName: "Allocated Bytes" },
+    { metricName: "go_memstats_mallocs_total",       displayName: "Malloc Total" },
+    { metricName: "go_memstats_alloc_bytes_total",   displayName: "Total Allocated Bytes" },
+    { metricName: "go_memstats_buck_hash_sys_bytes", displayName: "System Bucket Hash Bytes" },
+    { metricName: "go_memstats_lookups_total",       displayName: "Total Lookups" },
+    { metricName: "go_memstats_mcache_inuse_bytes",  displayName: "Active Mcache Bytes" },
+    { metricName: "go_memstats_mcache_sys_bytes",    displayName: "System Mcache Bytes" },
+    { metricName: "go_memstats_mspan_inuse_bytes",   displayName: "Active Mspan Bytes" },
+    { metricName: "go_memstats_mspan_sys_bytes",     displayName: "System Mspan Bytes" },
+    { metricName: "go_memstats_stack_inuse_bytes",   displayName: "Active Stack Bytes" },
+    { metricName: "go_memstats_stack_sys_bytes",     displayName: "System Stack Bytes" },
+    { metricName: "go_memstats_other_sys_bytes",     displayName: "Other System Bytes" },
+    { metricName: "go_memstats_sys_bytes",           displayName: "System Bytes" },
+  ]
+
+  const processMetrics = [
+    //"go_info",
+    { metricName: "go_goroutines",                    displayName: "Total Goroutines" },
+    { metricName: "go_threads",                       displayName: "Total Threads" },
+    { metricName: "process_cpu_seconds_total",        displayName: "Total CPU Time Seconds" },
+    { metricName: "process_max_fds",                  displayName: "Max File Descriptors" },
+    { metricName: "process_open_fds",                 displayName: "Open File Descriptors" },
+    { metricName: "process_resident_memory_bytes",    displayName: "Resident Memory Bytes" },
+    { metricName: "process_start_time_seconds",       displayName: "Start Time Seconds" },
+    { metricName: "process_virtual_memory_bytes",     displayName: "Virtual Memory Bytes" },
+    { metricName: "process_virtual_memory_max_bytes", displayName: "Max Virtual Memory Bytes" },
+  ]
+
+  const httpMetrics = [
+    { metricName: "http_server_duration_milliseconds", displayName: "Endpoint Millisecond Buckets" },
+    { metricName: "http_server_request_size_bytes_total", displayName: "Endpoint Request Size Bytes" },
+    { metricName: "http_server_response_size_bytes_total", displayName: "Endpoint Response Size Bytes" },
+  ]
+
 </script>

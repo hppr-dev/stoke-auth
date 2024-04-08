@@ -143,18 +143,6 @@ export const appActions = {
   fetchClaimsForGroup: async function(groupId: number) {
     await this.simpleGet(`/api/admin/claim-groups/${groupId}/claims`, "currentClaims", true)
   },
-  fetchMetricData: async function() {
-    const response = await fetch(`${this.api_url}/metrics`, {
-        method: "GET",
-        headers: {
-          "Content-Type" : "text/plain; version=0.0.4",
-          "Authorization" : `Token ${this.token}`,
-        },
-      }
-    )
-    const result = await response.text();
-    this.metricData = parseMetricData(result);
-  },
   simplePatch: async function(endpoint : string, stateToSend : string) {
     const value : User | Claim | Group = this[stateToSend]
     const response = await fetch(`${this.api_url}${endpoint}/${value.id}`, {
@@ -267,5 +255,36 @@ export const appActions = {
 
     this.currentGroups = []
     this.currentClaims = []
+  },
+  fetchMetricData: async function() {
+    const response = await fetch(`${this.api_url}/metrics`, {
+        method: "GET",
+        headers: {
+          "Content-Type" : "text/plain; version=0.0.4",
+          "Authorization" : `Token ${this.token}`,
+        },
+      }
+    )
+    const result = await response.text();
+    this.metricData = parseMetricData(result);
+  },
+  metricRefresh: async function() {
+    await this.fetchMetricData()
+    this.metricTimeoutID = window.setTimeout(this.metricRefresh, this.metricRefreshTime)
+    // TODO save data for charting
+  },
+  setMetricRefresh: function(millis : number) {
+    if( millis < this.metricRefreshTime || this.metricTimeoutID === 0 ) {
+      if( this.metricTimeoutID !== 0 ) {
+        window.clearTimeout(this.metricTimeoutID)
+      }
+      this.metricTimeoutID = setTimeout(this.metricRefresh, millis)
+    }
+    this.metricRefreshTime = millis
+  },
+  clearMetricTimeout: function() {
+    if( this.metricTimeoutID !== 0 ) {
+      window.clearTimeout(this.metricTimeoutID)
+    }
   }
 }

@@ -3,6 +3,7 @@ import { defineStore } from 'pinia'
 import { appActions } from './app_actions'
 import { User, UserWithCreds, Group, Claim } from '../util/entityTypes'
 import { MetricDataMap } from '../util/prometheus'
+import { ChartDataset } from 'chart.js'
 
 interface PasswordForm {
   username : string
@@ -37,7 +38,14 @@ export const useAppStore = defineStore('app', {
     allClaims:[] as Claim[],
 
     passwordForm: {} as PasswordForm,
+
     metricData: {} as MetricDataMap,
+    metricRefreshTime: 30000,
+    metricTimeoutID: 0,
+
+    // Tracked Metrics And datasets share an index
+    trackedMetrics : [] as string[],
+    chartDataSets: [] as ChartDataset[],
   }),
   getters: {
     authenticated: function() {
