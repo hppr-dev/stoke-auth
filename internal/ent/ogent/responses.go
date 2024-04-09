@@ -219,6 +219,7 @@ func NewClaimGroupUsersList(e *ent.User) *ClaimGroupUsersList {
 	ret.ID = e.ID
 	ret.Fname = e.Fname
 	ret.Lname = e.Lname
+	ret.Source = e.Source
 	ret.Email = e.Email
 	ret.Username = e.Username
 	ret.CreatedAt = e.CreatedAt
@@ -576,6 +577,7 @@ func NewUserList(e *ent.User) *UserList {
 	ret.ID = e.ID
 	ret.Fname = e.Fname
 	ret.Lname = e.Lname
+	ret.Source = e.Source
 	ret.Email = e.Email
 	ret.Username = e.Username
 	ret.CreatedAt = e.CreatedAt
@@ -608,6 +610,7 @@ func NewUserRead(e *ent.User) *UserRead {
 	ret.ID = e.ID
 	ret.Fname = e.Fname
 	ret.Lname = e.Lname
+	ret.Source = e.Source
 	ret.Email = e.Email
 	ret.Username = e.Username
 	ret.CreatedAt = e.CreatedAt
@@ -640,6 +643,7 @@ func NewUserUpdate(e *ent.User) *UserUpdate {
 	ret.ID = e.ID
 	ret.Fname = e.Fname
 	ret.Lname = e.Lname
+	ret.Source = e.Source
 	ret.Email = e.Email
 	ret.Username = e.Username
 	ret.CreatedAt = e.CreatedAt

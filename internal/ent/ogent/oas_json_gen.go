@@ -1143,6 +1143,10 @@ func (s *ClaimGroupUsersList) encodeFields(e *jx.Encoder) {
 		e.Str(s.Lname)
 	}
 	{
+		e.FieldStart("source")
+		e.Str(s.Source)
+	}
+	{
 		e.FieldStart("email")
 		e.Str(s.Email)
 	}
@@ -1156,13 +1160,14 @@ func (s *ClaimGroupUsersList) encodeFields(e *jx.Encoder) {
 	}
 }
 
-var jsonFieldsNameOfClaimGroupUsersList = [8]string{
+var jsonFieldsNameOfClaimGroupUsersList = [9]string{
 	0: "id",
 	1: "fname",
 	2: "lname",
-	3: "email",
-	4: "username",
-	5: "created_at",
+	3: "source",
+	4: "email",
+	5: "username",
+	6: "created_at",
 }
 
 // Decode decodes ClaimGroupUsersList from json.
@@ -1170,7 +1175,7 @@ func (s *ClaimGroupUsersList) Decode(d *jx.Decoder) error {
 	if s == nil {
 		return errors.New("invalid: unable to decode ClaimGroupUsersList to nil")
 	}
-	var requiredBitSet [1]uint8
+	var requiredBitSet [2]uint8
 
 	if err := d.ObjBytes(func(d *jx.Decoder, k []byte) error {
 		switch string(k) {
@@ -1210,8 +1215,20 @@ func (s *ClaimGroupUsersList) Decode(d *jx.Decoder) error {
 			}(); err != nil {
 				return errors.Wrap(err, "decode field \"lname\"")
 			}
-		case "email":
+		case "source":
 			requiredBitSet[0] |= 1 << 3
+			if err := func() error {
+				v, err := d.Str()
+				s.Source = string(v)
+				if err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"source\"")
+			}
+		case "email":
+			requiredBitSet[0] |= 1 << 4
 			if err := func() error {
 				v, err := d.Str()
 				s.Email = string(v)
@@ -1223,7 +1240,7 @@ func (s *ClaimGroupUsersList) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"email\"")
 			}
 		case "username":
-			requiredBitSet[0] |= 1 << 4
+			requiredBitSet[0] |= 1 << 5
 			if err := func() error {
 				v, err := d.Str()
 				s.Username = string(v)
@@ -1235,7 +1252,7 @@ func (s *ClaimGroupUsersList) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"username\"")
 			}
 		case "created_at":
-			requiredBitSet[0] |= 1 << 7
+			requiredBitSet[1] |= 1 << 0
 			if err := func() error {
 				v, err := json.DecodeDateTime(d)
 				s.CreatedAt = v
@@ -1255,8 +1272,9 @@ func (s *ClaimGroupUsersList) Decode(d *jx.Decoder) error {
 	}
 	// Validate required fields.
 	var failures []validate.FieldError
-	for i, mask := range [1]uint8{
+	for i, mask := range [2]uint8{
 		0b11111111,
+		0b00000001,
 	} {
 		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
 			// Mask only required fields and check equality to mask using XOR.
@@ -4741,6 +4759,12 @@ func (s *UpdateUserReq) encodeFields(e *jx.Encoder) {
 		}
 	}
 	{
+		if s.Source.Set {
+			e.FieldStart("source")
+			s.Source.Encode(e)
+		}
+	}
+	{
 		if s.Email.Set {
 			e.FieldStart("email")
 			s.Email.Encode(e)
@@ -4764,12 +4788,13 @@ func (s *UpdateUserReq) encodeFields(e *jx.Encoder) {
 	}
 }
 
-var jsonFieldsNameOfUpdateUserReq = [7]string{
+var jsonFieldsNameOfUpdateUserReq = [8]string{
 	0: "fname",
 	1: "lname",
-	2: "email",
-	3: "username",
-	4: "claim_groups",
+	2: "source",
+	3: "email",
+	4: "username",
+	5: "claim_groups",
 }
 
 // Decode decodes UpdateUserReq from json.
@@ -4799,6 +4824,16 @@ func (s *UpdateUserReq) Decode(d *jx.Decoder) error {
 				return nil
 			}(); err != nil {
 				return errors.Wrap(err, "decode field \"lname\"")
+			}
+		case "source":
+			if err := func() error {
+				s.Source.Reset()
+				if err := s.Source.Decode(d); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"source\"")
 			}
 		case "email":
 			if err := func() error {
@@ -5015,6 +5050,10 @@ func (s *UserList) encodeFields(e *jx.Encoder) {
 		e.Str(s.Lname)
 	}
 	{
+		e.FieldStart("source")
+		e.Str(s.Source)
+	}
+	{
 		e.FieldStart("email")
 		e.Str(s.Email)
 	}
@@ -5028,13 +5067,14 @@ func (s *UserList) encodeFields(e *jx.Encoder) {
 	}
 }
 
-var jsonFieldsNameOfUserList = [8]string{
+var jsonFieldsNameOfUserList = [9]string{
 	0: "id",
 	1: "fname",
 	2: "lname",
-	3: "email",
-	4: "username",
-	5: "created_at",
+	3: "source",
+	4: "email",
+	5: "username",
+	6: "created_at",
 }
 
 // Decode decodes UserList from json.
@@ -5042,7 +5082,7 @@ func (s *UserList) Decode(d *jx.Decoder) error {
 	if s == nil {
 		return errors.New("invalid: unable to decode UserList to nil")
 	}
-	var requiredBitSet [1]uint8
+	var requiredBitSet [2]uint8
 
 	if err := d.ObjBytes(func(d *jx.Decoder, k []byte) error {
 		switch string(k) {
@@ -5082,8 +5122,20 @@ func (s *UserList) Decode(d *jx.Decoder) error {
 			}(); err != nil {
 				return errors.Wrap(err, "decode field \"lname\"")
 			}
-		case "email":
+		case "source":
 			requiredBitSet[0] |= 1 << 3
+			if err := func() error {
+				v, err := d.Str()
+				s.Source = string(v)
+				if err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"source\"")
+			}
+		case "email":
+			requiredBitSet[0] |= 1 << 4
 			if err := func() error {
 				v, err := d.Str()
 				s.Email = string(v)
@@ -5095,7 +5147,7 @@ func (s *UserList) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"email\"")
 			}
 		case "username":
-			requiredBitSet[0] |= 1 << 4
+			requiredBitSet[0] |= 1 << 5
 			if err := func() error {
 				v, err := d.Str()
 				s.Username = string(v)
@@ -5107,7 +5159,7 @@ func (s *UserList) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"username\"")
 			}
 		case "created_at":
-			requiredBitSet[0] |= 1 << 7
+			requiredBitSet[1] |= 1 << 0
 			if err := func() error {
 				v, err := json.DecodeDateTime(d)
 				s.CreatedAt = v
@@ -5127,8 +5179,9 @@ func (s *UserList) Decode(d *jx.Decoder) error {
 	}
 	// Validate required fields.
 	var failures []validate.FieldError
-	for i, mask := range [1]uint8{
+	for i, mask := range [2]uint8{
 		0b11111111,
+		0b00000001,
 	} {
 		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
 			// Mask only required fields and check equality to mask using XOR.
@@ -5196,6 +5249,10 @@ func (s *UserRead) encodeFields(e *jx.Encoder) {
 		e.Str(s.Lname)
 	}
 	{
+		e.FieldStart("source")
+		e.Str(s.Source)
+	}
+	{
 		e.FieldStart("email")
 		e.Str(s.Email)
 	}
@@ -5209,13 +5266,14 @@ func (s *UserRead) encodeFields(e *jx.Encoder) {
 	}
 }
 
-var jsonFieldsNameOfUserRead = [8]string{
+var jsonFieldsNameOfUserRead = [9]string{
 	0: "id",
 	1: "fname",
 	2: "lname",
-	3: "email",
-	4: "username",
-	5: "created_at",
+	3: "source",
+	4: "email",
+	5: "username",
+	6: "created_at",
 }
 
 // Decode decodes UserRead from json.
@@ -5223,7 +5281,7 @@ func (s *UserRead) Decode(d *jx.Decoder) error {
 	if s == nil {
 		return errors.New("invalid: unable to decode UserRead to nil")
 	}
-	var requiredBitSet [1]uint8
+	var requiredBitSet [2]uint8
 
 	if err := d.ObjBytes(func(d *jx.Decoder, k []byte) error {
 		switch string(k) {
@@ -5263,8 +5321,20 @@ func (s *UserRead) Decode(d *jx.Decoder) error {
 			}(); err != nil {
 				return errors.Wrap(err, "decode field \"lname\"")
 			}
-		case "email":
+		case "source":
 			requiredBitSet[0] |= 1 << 3
+			if err := func() error {
+				v, err := d.Str()
+				s.Source = string(v)
+				if err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"source\"")
+			}
+		case "email":
+			requiredBitSet[0] |= 1 << 4
 			if err := func() error {
 				v, err := d.Str()
 				s.Email = string(v)
@@ -5276,7 +5346,7 @@ func (s *UserRead) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"email\"")
 			}
 		case "username":
-			requiredBitSet[0] |= 1 << 4
+			requiredBitSet[0] |= 1 << 5
 			if err := func() error {
 				v, err := d.Str()
 				s.Username = string(v)
@@ -5288,7 +5358,7 @@ func (s *UserRead) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"username\"")
 			}
 		case "created_at":
-			requiredBitSet[0] |= 1 << 7
+			requiredBitSet[1] |= 1 << 0
 			if err := func() error {
 				v, err := json.DecodeDateTime(d)
 				s.CreatedAt = v
@@ -5308,8 +5378,9 @@ func (s *UserRead) Decode(d *jx.Decoder) error {
 	}
 	// Validate required fields.
 	var failures []validate.FieldError
-	for i, mask := range [1]uint8{
+	for i, mask := range [2]uint8{
 		0b11111111,
+		0b00000001,
 	} {
 		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
 			// Mask only required fields and check equality to mask using XOR.
@@ -5377,6 +5448,10 @@ func (s *UserUpdate) encodeFields(e *jx.Encoder) {
 		e.Str(s.Lname)
 	}
 	{
+		e.FieldStart("source")
+		e.Str(s.Source)
+	}
+	{
 		e.FieldStart("email")
 		e.Str(s.Email)
 	}
@@ -5390,12 +5465,13 @@ func (s *UserUpdate) encodeFields(e *jx.Encoder) {
 	}
 }
 
-var jsonFieldsNameOfUserUpdate = [8]string{
+var jsonFieldsNameOfUserUpdate = [9]string{
 	0: "id",
 	1: "fname",
 	2: "lname",
-	3: "email",
-	4: "username",
+	3: "source",
+	4: "email",
+	5: "username",
 	6: "created_at",
 }
 
@@ -5404,7 +5480,7 @@ func (s *UserUpdate) Decode(d *jx.Decoder) error {
 	if s == nil {
 		return errors.New("invalid: unable to decode UserUpdate to nil")
 	}
-	var requiredBitSet [1]uint8
+	var requiredBitSet [2]uint8
 
 	if err := d.ObjBytes(func(d *jx.Decoder, k []byte) error {
 		switch string(k) {
@@ -5444,8 +5520,20 @@ func (s *UserUpdate) Decode(d *jx.Decoder) error {
 			}(); err != nil {
 				return errors.Wrap(err, "decode field \"lname\"")
 			}
-		case "email":
+		case "source":
 			requiredBitSet[0] |= 1 << 3
+			if err := func() error {
+				v, err := d.Str()
+				s.Source = string(v)
+				if err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"source\"")
+			}
+		case "email":
+			requiredBitSet[0] |= 1 << 4
 			if err := func() error {
 				v, err := d.Str()
 				s.Email = string(v)
@@ -5457,7 +5545,7 @@ func (s *UserUpdate) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"email\"")
 			}
 		case "username":
-			requiredBitSet[0] |= 1 << 4
+			requiredBitSet[0] |= 1 << 5
 			if err := func() error {
 				v, err := d.Str()
 				s.Username = string(v)
@@ -5469,7 +5557,7 @@ func (s *UserUpdate) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"username\"")
 			}
 		case "created_at":
-			requiredBitSet[0] |= 1 << 7
+			requiredBitSet[1] |= 1 << 0
 			if err := func() error {
 				v, err := json.DecodeDateTime(d)
 				s.CreatedAt = v
@@ -5489,8 +5577,9 @@ func (s *UserUpdate) Decode(d *jx.Decoder) error {
 	}
 	// Validate required fields.
 	var failures []validate.FieldError
-	for i, mask := range [1]uint8{
+	for i, mask := range [2]uint8{
 		0b11111111,
+		0b00000001,
 	} {
 		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
 			// Mask only required fields and check equality to mask using XOR.

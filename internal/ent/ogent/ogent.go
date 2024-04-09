@@ -874,6 +874,9 @@ func (h *OgentHandler) UpdateUser(ctx context.Context, req *UpdateUserReq, param
 	if v, ok := req.Lname.Get(); ok {
 		b.SetLname(v)
 	}
+	if v, ok := req.Source.Get(); ok {
+		b.SetSource(v)
+	}
 	if v, ok := req.Email.Get(); ok {
 		b.SetEmail(v)
 	}

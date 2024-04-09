@@ -1,5 +1,7 @@
 ariga.io/atlas v0.19.1-0.20240203083654-5948b60a8e43 h1:GwdJbXydHCYPedeeLt4x/lrlIISQ4JTH1mRWuE5ZZ14=
 ariga.io/atlas v0.19.1-0.20240203083654-5948b60a8e43/go.mod h1:uj3pm+hUTVN/X5yfdBexHlZv+1Xu5u5ZbZx7+CDavNU=
+ariga.io/ogent v0.0.0-20230621041143-ed3e5d4da458 h1:FShFeMszKX8VcySiTRgshmj98jQWMv2GjQgMJcHJJi4=
+ariga.io/ogent v0.0.0-20230621041143-ed3e5d4da458/go.mod h1:95vCbvAYAW6NsWUrSL23k2SQykuf/yjellmwV1X+svI=
 entgo.io/contrib v0.3.5 h1:wY85TgRp3j5ix/SZ9IE6Ob5lObHFmVUYH0ZFw1D5Hzc=
 entgo.io/contrib v0.3.5/go.mod h1:R5HiFszVD8OVOZKFGRbqYogRxK7z1ruzWyEEesjQwE0=
 entgo.io/ent v0.13.1 h1:uD8QwN1h6SNphdCCzmkMN3feSUzNnVvV/WIkHKMbzOE=

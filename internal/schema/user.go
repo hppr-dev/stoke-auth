@@ -18,6 +18,7 @@ func (User) Fields() []ent.Field {
 		return []ent.Field{
 				field.String("fname"),
 				field.String("lname"),
+				field.String("source"),
 				field.String("email").
 					Unique(),
 				field.String("username").

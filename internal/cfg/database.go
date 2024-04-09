@@ -4,9 +4,10 @@ import (
 	"context"
 	"fmt"
 	"stoke/internal/ent"
+	"stoke/internal/tel"
 
-	"github.com/rs/zerolog"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/rs/zerolog"
 )
 
 type Database struct {
@@ -57,6 +58,7 @@ func (m Mysql) ConnectionString() string {
 }
 
 func (d Database) withContext(ctx context.Context) context.Context {
+	logger := zerolog.Ctx(ctx)
 	var dbClient *ent.Client
 	var err error
 
@@ -71,12 +73,15 @@ func (d Database) withContext(ctx context.Context) context.Context {
 		err = fmt.Errorf("Unsupported database type: %s", d.Type)
 	}
 	if err != nil {
-		zerolog.Ctx(ctx).Error().Err(err).Msg("Could not connect to database")
-		panic("Unrecoverable")
+		logger.Fatal().Err(err).Msg("Could not connect to database")
 	}
 
 	// TODO better migration logic/ check error
-	dbClient.Schema.Create(context.Background())
+	if err := dbClient.Schema.Create(ctx); err != nil {
+		logger.Fatal().Err(err).Msg("Could not migrate the database")
+	}
+
+	dbClient.Use(tel.DatabaseTelemetryMiddleware(ctx))
 
 	return ent.NewContext(ctx, dbClient)
 }

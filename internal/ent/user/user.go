@@ -18,6 +18,8 @@ const (
 	FieldFname = "fname"
 	// FieldLname holds the string denoting the lname field in the database.
 	FieldLname = "lname"
+	// FieldSource holds the string denoting the source field in the database.
+	FieldSource = "source"
 	// FieldEmail holds the string denoting the email field in the database.
 	FieldEmail = "email"
 	// FieldUsername holds the string denoting the username field in the database.
@@ -44,6 +46,7 @@ var Columns = []string{
 	FieldID,
 	FieldFname,
 	FieldLname,
+	FieldSource,
 	FieldEmail,
 	FieldUsername,
 	FieldPassword,
@@ -88,6 +91,11 @@ func ByFname(opts ...sql.OrderTermOption) OrderOption {
 // ByLname orders the results by the lname field.
 func ByLname(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldLname, opts...).ToFunc()
+}
+
+// BySource orders the results by the source field.
+func BySource(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSource, opts...).ToFunc()
 }
 
 // ByEmail orders the results by the email field.

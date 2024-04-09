@@ -361,6 +361,7 @@ type ClaimGroupUsersList struct {
 	ID        int       `json:"id"`
 	Fname     string    `json:"fname"`
 	Lname     string    `json:"lname"`
+	Source    string    `json:"source"`
 	Email     string    `json:"email"`
 	Username  string    `json:"username"`
 	CreatedAt time.Time `json:"created_at"`
@@ -379,6 +380,11 @@ func (s *ClaimGroupUsersList) GetFname() string {
 // GetLname returns the value of Lname.
 func (s *ClaimGroupUsersList) GetLname() string {
 	return s.Lname
+}
+
+// GetSource returns the value of Source.
+func (s *ClaimGroupUsersList) GetSource() string {
+	return s.Source
 }
 
 // GetEmail returns the value of Email.
@@ -411,6 +417,11 @@ func (s *ClaimGroupUsersList) SetLname(val string) {
 	s.Lname = val
 }
 
+// SetSource sets the value of Source.
+func (s *ClaimGroupUsersList) SetSource(val string) {
+	s.Source = val
+}
+
 // SetEmail sets the value of Email.
 func (s *ClaimGroupUsersList) SetEmail(val string) {
 	s.Email = val
@@ -420,6 +431,7 @@ func (s *ClaimGroupUsersList) SetEmail(val string) {
 func (s *ClaimGroupUsersList) SetUsername(val string) {
 	s.Username = val
 }
+
 
 // SetCreatedAt sets the value of CreatedAt.
 func (s *ClaimGroupUsersList) SetCreatedAt(val time.Time) {
@@ -1579,6 +1591,7 @@ func (s *UpdateGroupLinkReq) SetClaimGroups(val OptInt) {
 type UpdateUserReq struct {
 	Fname       OptString `json:"fname"`
 	Lname       OptString `json:"lname"`
+	Source      OptString `json:"source"`
 	Email       OptString `json:"email"`
 	Username    OptString `json:"username"`
 	ClaimGroups []int     `json:"claim_groups"`
@@ -1592,6 +1605,11 @@ func (s *UpdateUserReq) GetFname() OptString {
 // GetLname returns the value of Lname.
 func (s *UpdateUserReq) GetLname() OptString {
 	return s.Lname
+}
+
+// GetSource returns the value of Source.
+func (s *UpdateUserReq) GetSource() OptString {
+	return s.Source
 }
 
 // GetEmail returns the value of Email.
@@ -1617,6 +1635,11 @@ func (s *UpdateUserReq) SetFname(val OptString) {
 // SetLname sets the value of Lname.
 func (s *UpdateUserReq) SetLname(val OptString) {
 	s.Lname = val
+}
+
+// SetSource sets the value of Source.
+func (s *UpdateUserReq) SetSource(val OptString) {
+	s.Source = val
 }
 
 // SetEmail sets the value of Email.
@@ -1676,6 +1699,7 @@ type UserList struct {
 	ID        int       `json:"id"`
 	Fname     string    `json:"fname"`
 	Lname     string    `json:"lname"`
+	Source    string    `json:"source"`
 	Email     string    `json:"email"`
 	Username  string    `json:"username"`
 	CreatedAt time.Time `json:"created_at"`
@@ -1696,6 +1720,11 @@ func (s *UserList) GetLname() string {
 	return s.Lname
 }
 
+// GetSource returns the value of Source.
+func (s *UserList) GetSource() string {
+	return s.Source
+}
+
 // GetEmail returns the value of Email.
 func (s *UserList) GetEmail() string {
 	return s.Email
@@ -1705,7 +1734,6 @@ func (s *UserList) GetEmail() string {
 func (s *UserList) GetUsername() string {
 	return s.Username
 }
-
 
 // GetCreatedAt returns the value of CreatedAt.
 func (s *UserList) GetCreatedAt() time.Time {
@@ -1725,6 +1753,11 @@ func (s *UserList) SetFname(val string) {
 // SetLname sets the value of Lname.
 func (s *UserList) SetLname(val string) {
 	s.Lname = val
+}
+
+// SetSource sets the value of Source.
+func (s *UserList) SetSource(val string) {
+	s.Source = val
 }
 
 // SetEmail sets the value of Email.
@@ -1747,6 +1780,7 @@ type UserRead struct {
 	ID        int       `json:"id"`
 	Fname     string    `json:"fname"`
 	Lname     string    `json:"lname"`
+	Source    string    `json:"source"`
 	Email     string    `json:"email"`
 	Username  string    `json:"username"`
 	CreatedAt time.Time `json:"created_at"`
@@ -1765,6 +1799,11 @@ func (s *UserRead) GetFname() string {
 // GetLname returns the value of Lname.
 func (s *UserRead) GetLname() string {
 	return s.Lname
+}
+
+// GetSource returns the value of Source.
+func (s *UserRead) GetSource() string {
+	return s.Source
 }
 
 // GetEmail returns the value of Email.
@@ -1797,6 +1836,11 @@ func (s *UserRead) SetLname(val string) {
 	s.Lname = val
 }
 
+// SetSource sets the value of Source.
+func (s *UserRead) SetSource(val string) {
+	s.Source = val
+}
+
 // SetEmail sets the value of Email.
 func (s *UserRead) SetEmail(val string) {
 	s.Email = val
@@ -1819,6 +1863,7 @@ type UserUpdate struct {
 	ID        int       `json:"id"`
 	Fname     string    `json:"fname"`
 	Lname     string    `json:"lname"`
+	Source    string    `json:"source"`
 	Email     string    `json:"email"`
 	Username  string    `json:"username"`
 	CreatedAt time.Time `json:"created_at"`
@@ -1837,6 +1882,11 @@ func (s *UserUpdate) GetFname() string {
 // GetLname returns the value of Lname.
 func (s *UserUpdate) GetLname() string {
 	return s.Lname
+}
+
+// GetSource returns the value of Source.
+func (s *UserUpdate) GetSource() string {
+	return s.Source
 }
 
 // GetEmail returns the value of Email.
@@ -1867,6 +1917,11 @@ func (s *UserUpdate) SetFname(val string) {
 // SetLname sets the value of Lname.
 func (s *UserUpdate) SetLname(val string) {
 	s.Lname = val
+}
+
+// SetSource sets the value of Source.
+func (s *UserUpdate) SetSource(val string) {
+	s.Source = val
 }
 
 // SetEmail sets the value of Email.

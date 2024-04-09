@@ -33,6 +33,12 @@ func (uc *UserCreate) SetLname(s string) *UserCreate {
 	return uc
 }
 
+// SetSource sets the "source" field.
+func (uc *UserCreate) SetSource(s string) *UserCreate {
+	uc.mutation.SetSource(s)
+	return uc
+}
+
 // SetEmail sets the "email" field.
 func (uc *UserCreate) SetEmail(s string) *UserCreate {
 	uc.mutation.SetEmail(s)
@@ -135,6 +141,9 @@ func (uc *UserCreate) check() error {
 	if _, ok := uc.mutation.Lname(); !ok {
 		return &ValidationError{Name: "lname", err: errors.New(`ent: missing required field "User.lname"`)}
 	}
+	if _, ok := uc.mutation.Source(); !ok {
+		return &ValidationError{Name: "source", err: errors.New(`ent: missing required field "User.source"`)}
+	}
 	if _, ok := uc.mutation.Email(); !ok {
 		return &ValidationError{Name: "email", err: errors.New(`ent: missing required field "User.email"`)}
 	}
@@ -183,6 +192,10 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := uc.mutation.Lname(); ok {
 		_spec.SetField(user.FieldLname, field.TypeString, value)
 		_node.Lname = value
+	}
+	if value, ok := uc.mutation.Source(); ok {
+		_spec.SetField(user.FieldSource, field.TypeString, value)
+		_node.Source = value
 	}
 	if value, ok := uc.mutation.Email(); ok {
 		_spec.SetField(user.FieldEmail, field.TypeString, value)

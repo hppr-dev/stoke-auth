@@ -79,6 +79,7 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "fname", Type: field.TypeString},
 		{Name: "lname", Type: field.TypeString},
+		{Name: "source", Type: field.TypeString},
 		{Name: "email", Type: field.TypeString, Unique: true},
 		{Name: "username", Type: field.TypeString, Unique: true},
 		{Name: "password", Type: field.TypeString},

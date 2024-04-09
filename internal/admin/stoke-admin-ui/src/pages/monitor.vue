@@ -150,9 +150,12 @@
   ]
 
   const httpMetrics = [
-    { metricName: "http_server_duration_milliseconds", displayName: "Endpoint Millisecond Buckets" },
-    { metricName: "http_server_request_size_bytes_total", displayName: "Endpoint Request Size Bytes" },
-    { metricName: "http_server_response_size_bytes_total", displayName: "Endpoint Response Size Bytes" },
+    { metricName: "http_server_duration_milliseconds",        displayName: "Endpoint Millisecond Buckets" },
+    { metricName: "http_server_request_size_bytes_total",     displayName: "Endpoint Request Size Bytes" },
+    { metricName: "http_server_response_size_bytes_total",    displayName: "Endpoint Response Size Bytes" },
+    { metricName: "stoke_database_mutation_total",            displayName: "Total Database Mutations" },
+    { metricName: "stoke_database_mutation_millis_total",     displayName: "Total Database Time" },
+    { metricName: "stoke_database_mutation_millis_histogram", displayName: "Total Database Time" },
   ]
 
 </script>

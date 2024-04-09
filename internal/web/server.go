@@ -4,7 +4,9 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"stoke/client/stoke"
@@ -16,6 +18,15 @@ import (
 	"github.com/rs/zerolog"
 )
 
+type debugLogger struct {
+	logger zerolog.Logger
+}
+
+func (d debugLogger) Write(p []byte) (int, error) {
+	d.logger.Debug().Msg(strings.TrimSuffix(string(p), "\n"))
+	return len(p), nil
+}
+
 func NewServer(ctx context.Context) *http.Server {
 	logger := zerolog.Ctx(ctx)
 	config := cfg.Ctx(ctx).Server
@@ -23,11 +34,15 @@ func NewServer(ctx context.Context) *http.Server {
 
 	mux := http.NewServeMux()
 
+	
+	dLogger := debugLogger{ logger: logger.With().Str("component", "http.Server").Logger() }
+
 	server := &http.Server{
 		Addr:           fmt.Sprintf("%s:%d", config.Address, config.Port),
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,
 		Handler:        InjectContext(ctx, TraceHTTP(LogHTTP(mux))),
+		ErrorLog:       log.New(dLogger, "", 0),
 	}
 
 	if config.TLSPrivateKey != "" && config.TLSPublicCert != "" {

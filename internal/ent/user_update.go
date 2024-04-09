@@ -56,6 +56,20 @@ func (uu *UserUpdate) SetNillableLname(s *string) *UserUpdate {
 	return uu
 }
 
+// SetSource sets the "source" field.
+func (uu *UserUpdate) SetSource(s string) *UserUpdate {
+	uu.mutation.SetSource(s)
+	return uu
+}
+
+// SetNillableSource sets the "source" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableSource(s *string) *UserUpdate {
+	if s != nil {
+		uu.SetSource(*s)
+	}
+	return uu
+}
+
 // SetEmail sets the "email" field.
 func (uu *UserUpdate) SetEmail(s string) *UserUpdate {
 	uu.mutation.SetEmail(s)
@@ -195,6 +209,9 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := uu.mutation.Lname(); ok {
 		_spec.SetField(user.FieldLname, field.TypeString, value)
 	}
+	if value, ok := uu.mutation.Source(); ok {
+		_spec.SetField(user.FieldSource, field.TypeString, value)
+	}
 	if value, ok := uu.mutation.Email(); ok {
 		_spec.SetField(user.FieldEmail, field.TypeString, value)
 	}
@@ -296,6 +313,20 @@ func (uuo *UserUpdateOne) SetLname(s string) *UserUpdateOne {
 func (uuo *UserUpdateOne) SetNillableLname(s *string) *UserUpdateOne {
 	if s != nil {
 		uuo.SetLname(*s)
+	}
+	return uuo
+}
+
+// SetSource sets the "source" field.
+func (uuo *UserUpdateOne) SetSource(s string) *UserUpdateOne {
+	uuo.mutation.SetSource(s)
+	return uuo
+}
+
+// SetNillableSource sets the "source" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableSource(s *string) *UserUpdateOne {
+	if s != nil {
+		uuo.SetSource(*s)
 	}
 	return uuo
 }
@@ -468,6 +499,9 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	}
 	if value, ok := uuo.mutation.Lname(); ok {
 		_spec.SetField(user.FieldLname, field.TypeString, value)
+	}
+	if value, ok := uuo.mutation.Source(); ok {
+		_spec.SetField(user.FieldSource, field.TypeString, value)
 	}
 	if value, ok := uuo.mutation.Email(); ok {
 		_spec.SetField(user.FieldEmail, field.TypeString, value)

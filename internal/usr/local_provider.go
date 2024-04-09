@@ -45,6 +45,7 @@ func (l LocalProvider) AddUser(provider ProviderType, fname, lname, email, usern
 		SetLname(lname).
 		SetEmail(email).
 		SetUsername(username).
+		SetSource("LOCAL").
 		SetSalt(salt).
 		SetPassword(l.hashPass(password, salt)).
 		Save(ctx)
