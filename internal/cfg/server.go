@@ -7,4 +7,9 @@ type Server struct {
 	Port    int    `json:"port"`
 	// Request Timeout in milliseconds
 	Timeout int    `json:"timeout"`
+
+	// Private TLS Key
+	TLSPrivateKey string `json:"tls_private_key"`
+	// Public TLS Cert
+	TLSPublicCert  string `json:"tls_public_cert"`
 }

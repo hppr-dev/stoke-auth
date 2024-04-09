@@ -3,6 +3,8 @@ server:
   address: ""
   port: 8080
   timeout: 500
+  tls_private_key: stoke-private.key
+  tls_public_cert: stoke-public.crt
 
 database:
   type: sqlite
@@ -40,7 +42,7 @@ telemetry:
 
   # Set this to anything but http/grpc to only use the internal prometheus endpoint
   metric_provider: prometheus_only
-  metric_export_url: https://localhost:4317
-  metric_insecure: false
+#  metric_export_url: https://localhost:4317
+#  metric_insecure: false
 
 users:

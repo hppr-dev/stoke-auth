@@ -2,7 +2,7 @@
   <v-col cols="4">
     <v-card class="h-100" elevation="5">
       <template #title>
-        <span class="text-secondary"> {{ props.name }} </span>
+        <span class="text-secondary"> {{ props.name.displayName }} </span>
       </template>
       <template #subtitle>
         <p> {{ props.data?.description.help }} </p>
@@ -29,7 +29,7 @@
   import { MetricData } from '../util/prometheus'
 
   const props = defineProps<{
-    name: string
+    name: { metricName: string, displayName: string }
     data: MetricData
   }>()
 

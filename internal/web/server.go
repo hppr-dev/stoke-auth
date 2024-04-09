@@ -2,6 +2,7 @@ package web
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"net/http"
 	"time"
@@ -12,9 +13,11 @@ import (
 	"stoke/internal/key"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/rs/zerolog"
 )
 
 func NewServer(ctx context.Context) *http.Server {
+	logger := zerolog.Ctx(ctx)
 	config := cfg.Ctx(ctx).Server
 	issuer := key.IssuerFromCtx(ctx)
 
@@ -25,6 +28,29 @@ func NewServer(ctx context.Context) *http.Server {
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,
 		Handler:        InjectContext(ctx, TraceHTTP(LogHTTP(mux))),
+	}
+
+	if config.TLSPrivateKey != "" && config.TLSPublicCert != "" {
+		cert, err := tls.LoadX509KeyPair(config.TLSPublicCert, config.TLSPrivateKey)
+		if err != nil {
+			logger.Fatal().
+				Err(err).
+				Str("privateKey", config.TLSPrivateKey).
+				Str("publicKey", config.TLSPublicCert).
+				Msg("Could not load TLS certificates")
+		}
+		server.TLSNextProto = make(map[string]func(*http.Server, *tls.Conn, http.Handler), 0)
+		server.TLSConfig = &tls.Config{
+			Certificates:             []tls.Certificate{ cert },
+			MinVersion:               tls.VersionTLS12,
+		}
+	} else {
+		logger.Error().
+			Str("privateKey", config.TLSPrivateKey).
+			Str("publicKey", config.TLSPublicCert).
+			Str("error", "tls_private_key and/or tls_public_key not set.").
+			Str("advice", "Enable TLS in production environments").
+			Msg("Failed to initialize TLS.")
 	}
 
 	// Static files

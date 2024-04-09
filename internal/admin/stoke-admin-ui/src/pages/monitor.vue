@@ -38,7 +38,7 @@
             </div>
             <div class="mr-3 mt-2">
               <v-icon
-                @click="store.toggleMetricPaused"
+                @click="onStart"
                 :icon="store.metricsPaused? 'mdi-play-circle' : 'mdi-pause' "
                 :color="store.metricsPaused? 'error': 'primary'"
               ></v-icon>
@@ -72,7 +72,6 @@
 
 <script lang="ts" setup>
   import { ref, onMounted } from 'vue'
-  import { onBeforeRouteLeave } from 'vue-router'
   import { useAppStore } from '../stores/app'
 
   const store = useAppStore()
@@ -94,6 +93,13 @@
     { title : "200", value: 200 },
     { title : "1000",  value: 1000 },
   ]
+
+  function onStart() {
+    store.toggleMetricPaused()
+    if(! store.metricsPaused && store.trackedMetrics.length > 0) {
+      tab.value = 4
+    }
+  }
 
   onMounted(async () => {
     await store.fetchMetricData()

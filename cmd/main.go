@@ -21,6 +21,8 @@ func main() {
 	logger.Info().
 		Str("addr",config.Server.Address).
 		Int("port", config.Server.Port).
+		Str("privateKey", config.Server.TLSPrivateKey).
+		Str("publicCert", config.Server.TLSPublicCert).
 		Msg("Starting Stoke Server...")
 
 	server := web.NewServer(rootCtx)
@@ -30,8 +32,14 @@ func main() {
 		logger.Fatal().Err(err).Msg("Could not initialize telemetry")
 	}
 
-	if err := server.ListenAndServe(); err != nil {
-		logger.Error().Err(err).Msg("An error occurred")
+	if server.TLSConfig != nil {
+		if err := server.ListenAndServeTLS("","") ; err != nil {
+			logger.Error().Err(err).Msg("An error occurred with the TLS server")
+		}
+	} else {
+		if err := server.ListenAndServe(); err != nil {
+			logger.Error().Err(err).Msg("An error occurred with the http server")
+		}
 	}
 
 	err = nil
