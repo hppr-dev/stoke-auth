@@ -81,7 +81,8 @@ func (d Database) withContext(ctx context.Context) context.Context {
 		logger.Fatal().Err(err).Msg("Could not migrate the database")
 	}
 
-	dbClient.Use(tel.DatabaseTelemetryMiddleware(ctx))
+	dbClient.Use(tel.DatabaseMutationTelemetry(ctx))
+	dbClient.Intercept(tel.DatabaseReadTelemetry(ctx))
 
 	return ent.NewContext(ctx, dbClient)
 }

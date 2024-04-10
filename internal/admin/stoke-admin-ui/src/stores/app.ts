@@ -51,6 +51,7 @@ export const useAppStore = defineStore('app', {
     maxPoints: 100,
 
     chartDatam: {} as ChartDatasets,
+    logText: "",
   }),
   getters: {
     authenticated: function() {

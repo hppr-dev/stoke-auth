@@ -4,8 +4,10 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -30,6 +32,7 @@ func (d debugLogger) Write(p []byte) (int, error) {
 func NewServer(ctx context.Context) *http.Server {
 	logger := zerolog.Ctx(ctx)
 	config := cfg.Ctx(ctx).Server
+	logFile := cfg.Ctx(ctx).Logging.LogFile
 	issuer := key.IssuerFromCtx(ctx)
 
 	mux := http.NewServeMux()
@@ -70,6 +73,7 @@ func NewServer(ctx context.Context) *http.Server {
 
 	// Static files
 	mux.Handle("/admin/", http.StripPrefix("/admin/", http.FileServerFS(admin.Pages)))
+
 
 	// TODO restrict methods/origins
 	mux.Handle(
@@ -124,6 +128,37 @@ func NewServer(ctx context.Context) *http.Server {
 		AllowAllMethods(
 			stoke.Auth(
 				promhttp.Handler(),
+				issuer,
+				stoke.WithToken().Requires("srol", "spr").ForAccess(),
+			),
+		),
+	)
+
+	mux.Handle(
+		"/metrics/logs",
+		AllowAllMethods(
+			stoke.AuthFunc(
+				func(res http.ResponseWriter, req *http.Request) {
+					logger := zerolog.Ctx(ctx)
+					f, err := os.Open(logFile)
+					if err != nil {
+						logger.Error().Err(err).Msg("Could not open log file")
+					}
+
+					// Only return the last 6144 bytes of the logfile
+					newOffset, err := f.Seek(-6144, 2)
+					if err != nil {
+						logger.Debug().Err(err).Int64("newOffset", newOffset).Msg("Could not seek log file")
+					}
+
+					content, err := io.ReadAll(f)
+					if err != nil {
+						logger.Error().Err(err).Msg("Could not read log file")
+					}
+
+					res.WriteHeader(http.StatusOK)
+					res.Write(content)
+				},
 				issuer,
 				stoke.WithToken().Requires("srol", "spr").ForAccess(),
 			),

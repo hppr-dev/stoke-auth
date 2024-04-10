@@ -6,7 +6,7 @@
           <v-tab value="1">GC</v-tab>
           <v-tab value="2">Memory</v-tab>
           <v-tab value="3">Process</v-tab>
-          <v-tab value="4">HTTP</v-tab>
+          <v-tab value="4">Server</v-tab>
           <v-tab v-if="store.trackedMetrics.length > 0" value="5">Chart</v-tab>
           <v-tab value="6">Logs</v-tab>
         </v-tabs>
@@ -61,7 +61,7 @@
               <MetricChart />
             </v-window-item>
             <v-window-item class="h-100" key="logs" value="6">
-              <p> Logs here </p>
+              <LogView />
             </v-window-item>
           </v-window>
         </v-container>
@@ -153,9 +153,7 @@
     { metricName: "http_server_duration_milliseconds",        displayName: "Endpoint Millisecond Buckets" },
     { metricName: "http_server_request_size_bytes_total",     displayName: "Endpoint Request Size Bytes" },
     { metricName: "http_server_response_size_bytes_total",    displayName: "Endpoint Response Size Bytes" },
-    { metricName: "stoke_database_mutation_total",            displayName: "Total Database Mutations" },
-    { metricName: "stoke_database_mutation_millis_total",     displayName: "Total Database Time" },
-    { metricName: "stoke_database_mutation_millis_histogram", displayName: "Total Database Time" },
+    { metricName: "stoke_database_time_histogram",            displayName: "Database Time Buckets" },
   ]
 
 </script>

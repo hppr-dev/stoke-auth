@@ -44,6 +44,7 @@ export const metricActions = {
   },
   metricRefresh: async function() {
     await this.fetchMetricData()
+    await this.fetchLogText()
     if( ! this.metricsPaused ) {
       this.metricTimeoutID = window.setTimeout(this.metricRefresh, this.metricRefreshTime)
       const timeNow = new Date();
@@ -78,4 +79,15 @@ export const metricActions = {
       this.metricTimeoutID = setTimeout(this.metricRefresh, this.metricRefreshTime)
     }
   },
+  fetchLogText: async function() {
+    const response = await fetch(`${this.api_url}/metrics/logs`, {
+        method: "GET",
+        headers: {
+          "Content-Type" : "text/plain; version=0.0.4",
+          "Authorization" : `Token ${this.token}`,
+        },
+      }
+    )
+    this.logText = await response.text();
+  }
 }

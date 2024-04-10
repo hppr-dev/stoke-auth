@@ -13,17 +13,26 @@ import (
 type Logging struct {
 	// ONE of trace, debug, info, warn, error, fatal, panic
 	Level         string `json:"level"`
-	// File to write logs to
+	// File to write logs to. Leave empty to not log to file
 	LogFile       string `json:"log_file"`
 	// Whether to prettify the output. Set to false to log JSON.
-	PrettyConsole bool   `json:"pretty_console"`
+	PrettyStdout bool   `json:"pretty_stdout"`
+	// Whether to write logs to stdout.
+	WriteToStdout bool   `json:"write_to_stdout"`
 }
 
 func (l Logging) withContext(ctx context.Context) context.Context {
 	logger := log.Logger
 
-	var rootWriter io.Writer
-	var writers []io.Writer = []io.Writer{ os.Stdout }
+	var writers []io.Writer = []io.Writer{ }
+
+	if l.WriteToStdout {
+		if l.PrettyStdout {
+			writers = append(writers, zerolog.ConsoleWriter{ Out: os.Stdout } )
+		} else {
+			writers = append(writers, os.Stdout )
+		}
+	}
 
 	if l.LogFile != "" {
 		f, err := os.Create(l.LogFile)
@@ -33,11 +42,7 @@ func (l Logging) withContext(ctx context.Context) context.Context {
 		writers = append(writers, f)
 	}
 
-	rootWriter = io.MultiWriter(writers...)
-	if l.PrettyConsole {
-		rootWriter = zerolog.ConsoleWriter{ Out: rootWriter }
-	} 
-	logger = log.Output(rootWriter)
+	logger = log.Output(io.MultiWriter(writers...))
 
 	switch l.Level {
 	case "TRACE", "trace":

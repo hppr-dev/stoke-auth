@@ -20,6 +20,7 @@ declare module 'vue' {
     GroupInfo: typeof import('./components/GroupInfo.vue')['default']
     GroupList: typeof import('./components/GroupList.vue')['default']
     HistogramMetric: typeof import('./components/HistogramMetric.vue')['default']
+    LogView: typeof import('./components/LogView.vue')['default']
     MetricCard: typeof import('./components/MetricCard.vue')['default']
     MetricChart: typeof import('./components/MetricChart.vue')['default']
     MetricFilter: typeof import('./components/MetricFilter.vue')['default']
