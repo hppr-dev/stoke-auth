@@ -2,7 +2,6 @@ package web
 
 import (
 	"net/http"
-	"stoke/internal/tel"
 	"time"
 
 	"github.com/rs/zerolog"
@@ -27,7 +26,7 @@ type logWrapper struct {
 
 func (w logWrapper) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
-	logger := zerolog.Ctx(ctx).Hook(tel.LogHook{ Ctx: ctx })
+	logger := zerolog.Ctx(ctx)
 	hlog.AccessHandler(func(r *http.Request, status, size int, duration time.Duration) {
 		logger.Debug().
 				Str("method", r.Method).

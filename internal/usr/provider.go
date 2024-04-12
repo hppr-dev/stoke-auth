@@ -29,11 +29,14 @@ type MultiProvider struct {
 	providers map[ProviderType]Provider
 }
 
-func (m MultiProvider) Add(t ProviderType, p Provider) {
+func (m *MultiProvider) Add(t ProviderType, p Provider) {
+	if m.providers == nil {
+		m.providers = make(map[ProviderType]Provider)
+	}
 	m.providers[t] = p
 }
 
-func (m MultiProvider) Init(ctx context.Context) error {
+func (m *MultiProvider) Init(ctx context.Context) error {
 	zerolog.Ctx(ctx).Info().
 		Int("numProviders", len(m.providers)).
 		Msg("Initializing multiprovider...")
@@ -47,7 +50,7 @@ func (m MultiProvider) Init(ctx context.Context) error {
 	return nil
 }
 
-func (m MultiProvider) AddUser(provider ProviderType, fname, lname, email, username, password string, superUser bool, ctx context.Context) error {
+func (m *MultiProvider) AddUser(provider ProviderType, fname, lname, email, username, password string, superUser bool, ctx context.Context) error {
 	p, ok := m.providers[provider]
 	if !ok {
 		return ProviderTypeNotSupported
@@ -55,28 +58,17 @@ func (m MultiProvider) AddUser(provider ProviderType, fname, lname, email, usern
 	return p.AddUser(provider, fname, lname, email, username, password, superUser, ctx)
 }
 
-func (m MultiProvider) UpdateUserPassword(provider ProviderType, username, oldPassword, newPassword string, force bool, ctx context.Context) error {
+func (m *MultiProvider) UpdateUserPassword(provider ProviderType, username, oldPassword, newPassword string, force bool, ctx context.Context) error {
 	if provider != LOCAL {
 		return ProviderTypeNotSupported
 	}
 	return m.providers[LOCAL].UpdateUserPassword(provider, username, oldPassword, newPassword, force, ctx)
 }
 
-func (m MultiProvider) GetUserClaims(username, password string, ctx context.Context) (*ent.User, ent.Claims, error) {
-	var claims ent.Claims
-	var user *ent.User
-	for _, p := range m.providers {
-		provUser, provClaims, _ := p.GetUserClaims(username, password, ctx)
-		claims = append(claims, provClaims...)
-		if provUser != nil {
-			user = provUser
-		}
+func (m *MultiProvider) GetUserClaims(username, password string, ctx context.Context) (*ent.User, ent.Claims, error) {
+	p, ok := m.providers[LDAP]
+	if ok {
+		return p.GetUserClaims(username, password, ctx)
 	}
-	if len(claims) == 0 {
-		zerolog.Ctx(ctx).Debug().
-			Str("username", username).
-			Msg("No claims found")
-		return nil, nil, errors.New("No claims found")
-	}
-	return user, claims, nil
+	return m.providers[LOCAL].GetUserClaims(username, password, ctx)
 }

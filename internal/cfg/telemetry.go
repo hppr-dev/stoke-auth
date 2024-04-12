@@ -36,6 +36,11 @@ type Telemetry struct {
 	// Use an insecure connection to connect to TraceExportURL
 	TraceInsecure  bool `json:"trace_insecure"`
 
+	// Disable exposing default prometheus metrics
+	DisableDefaultPrometheus bool `json:"disable_default_prometheus"`
+	// Require authentication for default prometheus
+	RequirePrometheusAuthentication bool `json:"require_prometheus_authentication"`
+
 	// Non-parsed fields
 	shutdownFuncs []ContextFunc
 }

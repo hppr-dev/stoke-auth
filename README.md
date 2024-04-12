@@ -66,9 +66,37 @@ A manual rotation and sync of the keys may be used to invalidate any tokens sign
 
 # HTTP Endpoints
 
+TODO document endpoint usage
+
 - /login -- configured login page (HTML)
 - /admin -- the admin console (HTML)
 - /api -- JSON api
   - /api/pkeys -- current valid public verification keys
   - /api/login -- JSON login
   - /api/renew -- renew a given JWT
+
+# Performance/Load Benchmarks
+
+The following results were found using the scripts in the benchmark and benchmark/k6 directory.
+Tests were run with a sqlite file database.
+Logins (AKA token requests) were done with a user with 5 groups with 50 seperate claims.
+
+Tests were run with the following failure conditions:
+    * If more than 1% of requests fail, the tests stop
+    * If more than 1% of requests take more than 300 ms , the tests stop
+
+Default run environment:
+    * X nanoseconds / token in isolation
+    * Breakpoint:       X tokens / second
+    * High Load Test:   X tokens / second
+    * Medium Load Test: X tokens / second
+    * Suggested Max Nominal Load: X tokens / second
+
+GOMAXPROCS=1:
+    * X nanoseconds / token in isolation
+    * Breakpoint:       X tokens / second
+    * High Load Test:   X tokens / second
+    * Medium Load Test: X tokens / second
+    * Suggested Max Nominal Load: X tokens / second
+
+

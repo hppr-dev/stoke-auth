@@ -35,7 +35,7 @@ func (l Logging) withContext(ctx context.Context) context.Context {
 	}
 
 	if l.LogFile != "" {
-		f, err := os.Create(l.LogFile)
+		f, err := os.OpenFile(l.LogFile, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
 		if err != nil {
 			panic(fmt.Sprintf("Could not open log file: %s, %v", l.LogFile, err))
 		}

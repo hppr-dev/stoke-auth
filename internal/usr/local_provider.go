@@ -12,6 +12,7 @@ import (
 	"stoke/internal/tel"
 
 	"github.com/rs/zerolog"
+	"github.com/vincentfree/opentelemetry/otelzerolog"
 	"golang.org/x/crypto/argon2"
 )
 
@@ -27,17 +28,18 @@ func (l LocalProvider) AddUser(provider ProviderType, fname, lname, email, usern
 	}
 
 	logger := zerolog.Ctx(ctx)
-	_, span := tel.GetTracer().Start(ctx, "LoginApiHandler.ServeHTTP")
+	ctx, span := tel.GetTracer().Start(ctx, "LoginApiHandler.ServeHTTP")
 	defer span.End()
 
 
 	logger.Info().
-			Str("fname", fname).
-			Str("lname", lname).
-			Str("username", username).
-			Str("email", email).
-			Bool("superuser", superUser).
-			Msg("Creating user")
+		Func(otelzerolog.AddTracingContext(span)).
+		Str("fname", fname).
+		Str("lname", lname).
+		Str("username", username).
+		Str("email", email).
+		Bool("superuser", superUser).
+		Msg("Creating user")
 
 	salt := l.genSalt()
 	userInfo, err := ent.FromContext(ctx).User.Create().
@@ -51,6 +53,7 @@ func (l LocalProvider) AddUser(provider ProviderType, fname, lname, email, usern
 		Save(ctx)
 	if err != nil {
 		logger.Error().
+			Func(otelzerolog.AddTracingContext(span)).
 			Err(err).
 			Str("username", username).
 			Str("email", email).
@@ -62,6 +65,7 @@ func (l LocalProvider) AddUser(provider ProviderType, fname, lname, email, usern
 		superGroup, err := l.getOrCreateSuperGroup(ctx)
 		if err != nil {
 		logger.Error().
+			Func(otelzerolog.AddTracingContext(span)).
 			Err(err).
 			Str("username", username).
 			Str("email", email).
@@ -72,6 +76,7 @@ func (l LocalProvider) AddUser(provider ProviderType, fname, lname, email, usern
 		_, err = superGroup.Update().AddUsers(userInfo).Save(ctx)
 		if err != nil {
 			logger.Error().
+				Func(otelzerolog.AddTracingContext(span)).
 				Err(err).
 				Str("username", username).
 				Str("email", email).
@@ -85,18 +90,22 @@ func (l LocalProvider) AddUser(provider ProviderType, fname, lname, email, usern
 
 func (l LocalProvider) GetUserClaims(username, password string, ctx context.Context) (*ent.User, ent.Claims, error) {
 	logger := zerolog.Ctx(ctx)
-	_, span := tel.GetTracer().Start(ctx, "LocalUserProvider.GetUserClaims")
+	ctx, span := tel.GetTracer().Start(ctx, "LocalUserProvider.GetUserClaims")
 	defer span.End()
 
 	logger.Debug().
+		Func(otelzerolog.AddTracingContext(span)).
 		Str("username", username).
 		Msg("Getting user claims")
 
 	usr, err := ent.FromContext(ctx).User.Query().
 		Where(
-			user.Or(
-				user.UsernameEQ(username),
-				user.EmailEQ(username),
+			user.And(
+				user.Or(
+					user.UsernameEQ(username),
+					user.EmailEQ(username),
+				),
+				user.SourceEQ("LOCAL"),
 			),
 		).
 		WithClaimGroups(func (q *ent.ClaimGroupQuery) {
@@ -105,6 +114,7 @@ func (l LocalProvider) GetUserClaims(username, password string, ctx context.Cont
 		Only(ctx)
 	if err != nil {
 		logger.Error().
+			Func(otelzerolog.AddTracingContext(span)).
 			Err(err).
 			Str("username", username).
 			Msg("Could not find user")
@@ -112,7 +122,10 @@ func (l LocalProvider) GetUserClaims(username, password string, ctx context.Cont
 	}
 
 	if l.hashPass(password, usr.Salt) != usr.Password {
-		logger.Debug().Str("username", username).Msg("User password did not match")
+		logger.Debug().
+			Func(otelzerolog.AddTracingContext(span)).
+			Str("username", username).
+			Msg("User password did not match")
 		return nil, nil, fmt.Errorf("Bad Password")
 	}
 
@@ -122,6 +135,7 @@ func (l LocalProvider) GetUserClaims(username, password string, ctx context.Cont
 	}
 	logger.Debug().
 		Str("username", username).
+		Func(otelzerolog.AddTracingContext(span)).
 		Func(func (e *zerolog.Event) {
 			var values []string
 			for _, c := range allClaims {
@@ -145,7 +159,7 @@ func (l LocalProvider) genSalt() string {
 
 func (l LocalProvider) getOrCreateSuperGroup(ctx context.Context) (*ent.ClaimGroup, error) {
 	logger := zerolog.Ctx(ctx)
-	_, span := tel.GetTracer().Start(ctx, "LocalUserProvider.getOrCreateSuperGroup")
+	ctx, span := tel.GetTracer().Start(ctx, "LocalUserProvider.getOrCreateSuperGroup")
 	defer span.End()
 
 	client := ent.FromContext(ctx)
@@ -163,7 +177,10 @@ func (l LocalProvider) getOrCreateSuperGroup(ctx context.Context) (*ent.ClaimGro
 		Only(ctx)
 
 	if ent.IsNotFound(err) {
-		logger.Info().Msg("Stoke superusers not found. Creating...")
+		logger.Info().
+			Func(otelzerolog.AddTracingContext(span)).
+			Msg("Stoke superusers not found. Creating...")
+
 		superClaim, err := client.Claim.Create().
 			SetName("Stoke Super User").
 			SetDescription("Grants superuser management access to the stoke server").
@@ -210,7 +227,7 @@ func (l LocalProvider) UpdateUserPassword(provider ProviderType, username, oldPa
 	}
 
 	logger := zerolog.Ctx(ctx)
-	_, span := tel.GetTracer().Start(ctx, "LocalUserProvider.UpdateUser")
+	ctx, span := tel.GetTracer().Start(ctx, "LocalUserProvider.UpdateUser")
 	defer span.End()
 
 	usr, err := ent.FromContext(ctx).User.Query().
@@ -222,6 +239,7 @@ func (l LocalProvider) UpdateUserPassword(provider ProviderType, username, oldPa
 
 	if !force && l.hashPass(oldPassword, usr.Salt) != usr.Password {
 		logger.Debug().
+			Func(otelzerolog.AddTracingContext(span)).
 			Str("username", username).
 			Bool("force", force).
 			Msg("User old password did not match")

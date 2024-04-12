@@ -14,6 +14,7 @@ import (
 	"github.com/go-faster/jx"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/rs/zerolog"
+	"github.com/vincentfree/opentelemetry/otelzerolog"
 )
 
 type LoginApiHandler struct {}
@@ -25,7 +26,7 @@ func (l LoginApiHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
 	logger := zerolog.Ctx(ctx)
 
-	_, span := tel.GetTracer().Start(ctx, "LoginApiHandler.ServeHTTP")
+	ctx, span := tel.GetTracer().Start(ctx, "LoginApiHandler.ServeHTTP")
 	defer span.End()
 
 	if req.Method != http.MethodPost {
@@ -56,13 +57,20 @@ func (l LoginApiHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	})
 
 	if err != nil || username == "" || password == "" {
-		logger.Debug().Err(err).Str("username", username).Msg("Missing body parameters")
+		logger.Debug().
+			Func(otelzerolog.AddTracingContext(span)).
+			Err(err).
+			Str("username", username).
+			Msg("Missing body parameters")
 		BadRequest.Write(res)
 		return
 	}
 	user, claims, err := usr.ProviderFromCtx(ctx).GetUserClaims(username, password, ctx)
 	if err != nil {
-		logger.Debug().Err(err).Msg("Failed to get claims from provider")
+		logger.Debug().
+			Func(otelzerolog.AddTracingContext(span)).
+			Err(err).
+			Msg("Failed to get claims from provider")
 		Unauthorized.Write(res)
 		return
 	}

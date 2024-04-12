@@ -6,10 +6,12 @@ import (
 	"net/http"
 	"stoke/internal/cfg"
 	"stoke/internal/key"
+	"stoke/internal/tel"
 
 	"github.com/go-faster/jx"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/rs/zerolog"
+	"github.com/vincentfree/opentelemetry/otelzerolog"
 )
 
 type RefreshApiHandler struct {}
@@ -18,6 +20,9 @@ type RefreshApiHandler struct {}
 func (r RefreshApiHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
 	logger := zerolog.Ctx(ctx)
+
+	ctx, span := tel.GetTracer().Start(ctx, "RefreshApiHandler.ServeHTTP")
+	defer span.End()
 
 	if req.Method != http.MethodPost {
 		MethodNotAllowed.Write(res)
@@ -38,7 +43,11 @@ func (r RefreshApiHandler) ServeHTTP(res http.ResponseWriter, req *http.Request)
 	})
 
 	if err != nil || refresh == "" {
-		logger.Debug().Err(err).Str("refresh", refresh).Msg("Missing body parameters")
+		logger.Debug().
+			Func(otelzerolog.AddTracingContext(span)).
+			Err(err).
+			Str("refresh", refresh).
+			Msg("Missing body parameters")
 		BadRequest.Write(res)
 		return
 	}
@@ -46,7 +55,11 @@ func (r RefreshApiHandler) ServeHTTP(res http.ResponseWriter, req *http.Request)
 	token := req.Context().Value("jwt.Token").(*jwt.Token)
 	newToken, newRefresh, err := key.IssuerFromCtx(ctx).RefreshToken(token, refresh, cfg.Ctx(ctx).Tokens.TokenDuration, ctx)
 	if err != nil {
-		logger.Debug().Err(err).Str("refresh", refresh).Msg("Failed to refresh token")
+		logger.Debug().
+			Func(otelzerolog.AddTracingContext(span)).
+			Err(err).
+			Str("refresh", refresh).
+			Msg("Failed to refresh token")
 		BadRequest.Write(res)
 		return
 	}

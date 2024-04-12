@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/rs/zerolog"
+	"github.com/vincentfree/opentelemetry/otelzerolog"
 )
 
 type KeyCache[P PrivateKey] struct {
@@ -43,8 +44,8 @@ func (c *KeyCache[P]) goManage(ctx context.Context) {
 		sLogger := logger.With().
 			Str("component", "KeyCache.Management").
 			Logger().
-			Hook(tel.LogHook{ Ctx : ctx } )
-		sCtx = sLogger.WithContext(ctx)
+			Hook(tel.LogHook{ Ctx : sCtx } )
+		sCtx = sLogger.WithContext(sCtx)
 
 		c.Generate(sCtx)
 
@@ -64,7 +65,7 @@ func (c *KeyCache[P]) CurrentKey() KeyPair[P] {
 }
 
 func (c *KeyCache[P]) PublicKeys(ctx context.Context) ([]byte, error) {
-	_, span := tel.GetTracer().Start(ctx, "KeyCache.PublicKeys")
+	ctx, span := tel.GetTracer().Start(ctx, "KeyCache.PublicKeys")
 	defer span.End()
 
 	now := time.Now()
@@ -88,10 +89,12 @@ func (c *KeyCache[P]) PublicKeys(ctx context.Context) ([]byte, error) {
 
 func (c *KeyCache[P]) Generate(ctx context.Context) error {
 	logger := zerolog.Ctx(ctx)
-	_, span := tel.GetTracer().Start(ctx, "KeyCache.Generate")
+	ctx, span := tel.GetTracer().Start(ctx, "KeyCache.Generate")
 	defer span.End()
 
-	logger.Debug().Msg("Generating new key...")
+	logger.Debug().
+		Func(otelzerolog.AddTracingContext(span)).
+		Msg("Generating new key...")
 
 	if len(c.keys) == 0 {
 		logger.Fatal().Msg("Unable to generate keys. No keys in keystore!")
@@ -99,7 +102,10 @@ func (c *KeyCache[P]) Generate(ctx context.Context) error {
 
 	newKey, err := c.keys[0].Generate()
 	if err != nil {
-		logger.Error().Err(err).Msg("Could not generate key")
+		logger.Error().
+			Func(otelzerolog.AddTracingContext(span)).
+			Err(err).
+			Msg("Could not generate key")
 		return err
 	}
 
@@ -108,6 +114,7 @@ func (c *KeyCache[P]) Generate(ctx context.Context) error {
 	c.keys = append(c.keys, newKey)
 
 	logger.Debug().
+		Func(otelzerolog.AddTracingContext(span)).
 		Int("numKeys", len(c.keys)).
 		Time("expires", expires).
 		Dur("keyDuration", c.KeyDuration).
@@ -120,10 +127,12 @@ func (c *KeyCache[P]) Generate(ctx context.Context) error {
 
 func (c *KeyCache[P]) Bootstrap(ctx context.Context, pair KeyPair[P]) error {
 	logger := zerolog.Ctx(ctx)
-	_, span := tel.GetTracer().Start(ctx, "KeyCache.Bootstrap")
+	ctx, span := tel.GetTracer().Start(ctx, "KeyCache.Bootstrap")
 	defer span.End()
 
-	logger.Info().Msg("Bootstraping key cache.")
+	logger.Info().
+		Msg("Bootstraping key cache.")
+
 	var err error
 
 	db := ent.FromContext(c.Ctx)
@@ -134,7 +143,9 @@ func (c *KeyCache[P]) Bootstrap(ctx context.Context, pair KeyPair[P]) error {
 		First(c.Ctx)
 
 	if err != nil || pk.Expires.Before(now) {
-		logger.Info().Msg("Could not retrieve private key. Generating a new one.")
+		logger.Info().
+			Msg("Could not retrieve private key. Generating a new one.")
+
 		pair, err = pair.Generate()
 		if err != nil {
 			logger.Error().Err(err).Msg("Could not generate private key")
@@ -165,18 +176,22 @@ func (c *KeyCache[P]) Bootstrap(ctx context.Context, pair KeyPair[P]) error {
 
 func (c *KeyCache[P]) Clean(ctx context.Context) {
 	logger := zerolog.Ctx(ctx)
-	_, span := tel.GetTracer().Start(ctx, "KeyCache.Clean")
+	ctx, span := tel.GetTracer().Start(ctx, "KeyCache.Clean")
 	defer span.End()
 
-	logger.Info().Msg("Cleaning key cache...")
+	logger.Info().
+		Func(otelzerolog.AddTracingContext(span)).
+		Msg("Cleaning key cache...")
 	logger.Debug().
+		Func(otelzerolog.AddTracingContext(span)).
 		Func(func(e *zerolog.Event) {
 			pkeyStrs := make([]string, len(c.keys))
 			for i, k := range c.keys {
 				pkeyStrs[i] = k.PublicString()
 			}
 			e.Strs("publicKeys", pkeyStrs)
-		}).Msg("Starting clean")
+		}).
+		Msg("Starting clean")
 
 	now := time.Now()
 	var valid []KeyPair[P]
@@ -189,6 +204,7 @@ func (c *KeyCache[P]) Clean(ctx context.Context) {
 	c.activeKey = len(c.keys) - 1
 
 	logger.Debug().
+		Func(otelzerolog.AddTracingContext(span)).
 		Func(func(e *zerolog.Event) {
 			pkeyStrs := make([]string, len(c.keys))
 			for i, k := range c.keys {
@@ -201,16 +217,21 @@ func (c *KeyCache[P]) Clean(ctx context.Context) {
 // Implements stoke.PublicKeyStore
 func (c *KeyCache[P]) ParseClaims(ctx context.Context, token string, claims *stoke.Claims, parserOpts ...jwt.ParserOption) (*jwt.Token, error) {
 	logger := zerolog.Ctx(ctx)
-	_, span := tel.GetTracer().Start(ctx, "KeyCache.ParseClaims")
+	ctx, span := tel.GetTracer().Start(ctx, "KeyCache.ParseClaims")
 	defer span.End()
 
 	jwtToken, err := jwt.ParseWithClaims(token, claims, c.publicKeys, parserOpts...)
 	if err != nil {
-		logger.Debug().Str("token", token).Err(err).Msg("Failed to validate claims")
+		logger.Debug().
+			Func(otelzerolog.AddTracingContext(span)).
+			Str("token", token).
+			Err(err).
+			Msg("Failed to validate claims")
 		return nil, err
 	}
 
 	logger.Debug().
+		Func(otelzerolog.AddTracingContext(span)).
 		Bool("valid", jwtToken.Valid).
 		Str("alg", jwtToken.Method.Alg()).
 		Func(func(e *zerolog.Event) {

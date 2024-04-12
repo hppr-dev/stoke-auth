@@ -2,7 +2,7 @@
 server:
   address: ""
   port: 8080
-  timeout: 500
+  timeout: 1000
   tls_private_key: stoke-private.key
   tls_public_cert: stoke-public.crt
 
@@ -15,7 +15,8 @@ database:
 logging:
   level: debug
   log_file: stoke.log
-  pretty_console: true
+  pretty_stdout: true
+  write_to_stdout: true
 
 tokens:
   algorithm: ECDSA
@@ -46,3 +47,10 @@ telemetry:
 #  metric_insecure: false
 
 users:
+  enable_ldap: false
+  server_url: ldap://localhost:389
+  skip_certificate_verification: true
+  group_search_filter: "(objectClass=group)"
+  group_attribute: "dn"
+  auto_add_groups: true
+

@@ -33,6 +33,7 @@ func NewServer(ctx context.Context) *http.Server {
 	logger := zerolog.Ctx(ctx)
 	config := cfg.Ctx(ctx).Server
 	logFile := cfg.Ctx(ctx).Logging.LogFile
+	telConf := cfg.Ctx(ctx).Telemetry
 	issuer := key.IssuerFromCtx(ctx)
 
 	mux := http.NewServeMux()
@@ -134,36 +135,45 @@ func NewServer(ctx context.Context) *http.Server {
 		),
 	)
 
-	mux.Handle(
-		"/metrics/logs",
-		AllowAllMethods(
-			stoke.AuthFunc(
-				func(res http.ResponseWriter, req *http.Request) {
-					logger := zerolog.Ctx(ctx)
-					f, err := os.Open(logFile)
-					if err != nil {
-						logger.Error().Err(err).Msg("Could not open log file")
-					}
+	if !telConf.DisableDefaultPrometheus {
+		metricsHandler := func(res http.ResponseWriter, req *http.Request) {
+			logger := zerolog.Ctx(ctx)
+			f, err := os.Open(logFile)
+			if err != nil {
+				logger.Error().Err(err).Msg("Could not open log file")
+			}
 
-					// Only return the last 6144 bytes of the logfile
-					newOffset, err := f.Seek(-6144, 2)
-					if err != nil {
-						logger.Debug().Err(err).Int64("newOffset", newOffset).Msg("Could not seek log file")
-					}
+			// Only return the last 6144 bytes of the logfile
+			newOffset, err := f.Seek(-6144, 2)
+			if err != nil {
+				logger.Debug().Err(err).Int64("newOffset", newOffset).Msg("Could not seek log file")
+			}
 
-					content, err := io.ReadAll(f)
-					if err != nil {
-						logger.Error().Err(err).Msg("Could not read log file")
-					}
+			content, err := io.ReadAll(f)
+			if err != nil {
+				logger.Error().Err(err).Msg("Could not read log file")
+			}
 
-					res.WriteHeader(http.StatusOK)
-					res.Write(content)
-				},
-				issuer,
-				stoke.WithToken().Requires("srol", "spr").ForAccess(),
-			),
-		),
-	)
+			res.WriteHeader(http.StatusOK)
+			res.Write(content)
+		}
+
+		if telConf.RequirePrometheusAuthentication {
+			mux.Handle(
+				"/metrics/logs",
+				AllowAllMethods(
+					stoke.AuthFunc(
+						metricsHandler,
+						issuer,
+						stoke.WithToken().Requires("srol", "spr").ForAccess(),
+					),
+				),
+			)
+		} else {
+			mux.Handle("/metrics/logs", AllowAllMethodsFunc(metricsHandler))
+		}
+
+	}
 
 	return server
 }

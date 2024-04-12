@@ -9,6 +9,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/rs/zerolog"
+	"github.com/vincentfree/opentelemetry/otelzerolog"
 )
 
 type Claims struct {
@@ -30,18 +31,25 @@ type AsymetricTokenIssuer[P PrivateKey]  struct {
 
 func (a *AsymetricTokenIssuer[P]) IssueToken(claims Claims, ctx context.Context) (string, string, error) {
 	logger := zerolog.Ctx(ctx)
-	_, span := tel.GetTracer().Start(ctx, "AsymetricTokenIssuer.IssueToken")
+	ctx, span := tel.GetTracer().Start(ctx, "AsymetricTokenIssuer.IssueToken")
 	defer span.End()
 
 	curr := a.CurrentKey()
 	token, err := jwt.NewWithClaims(curr.SigningMethod(), claims).SignedString(curr.Key())
 	if err != nil {
-		logger.Error().Err(err).Msg("Failed to sign auth token")
+		logger.Error().
+			Func(otelzerolog.AddTracingContext(span)).
+			Err(err).
+			Msg("Failed to sign auth token")
 		return "", "", err
 	}
+
 	refresh, err := curr.SigningMethod().Sign(token, curr.Key())
 	if err != nil {
-		logger.Error().Err(err).Msg("Failed to sign refresh token")
+		logger.Error().
+			Func(otelzerolog.AddTracingContext(span)).
+			Err(err).
+			Msg("Failed to sign refresh token")
 		return "", "", err
 	}
 	return token, base64.StdEncoding.EncodeToString(refresh), err
@@ -49,12 +57,13 @@ func (a *AsymetricTokenIssuer[P]) IssueToken(claims Claims, ctx context.Context)
 
 func (a *AsymetricTokenIssuer[P]) RefreshToken(jwtToken *jwt.Token, refreshToken string, extendTime time.Duration, ctx context.Context) (string, string, error) {
 	logger := zerolog.Ctx(ctx)
-	_, span := tel.GetTracer().Start(ctx, "AsymetricTokenIssuer.RefreshToken")
+	ctx, span := tel.GetTracer().Start(ctx, "AsymetricTokenIssuer.RefreshToken")
 	defer span.End()
 
 	refreshBytes, err := base64.StdEncoding.DecodeString(refreshToken)
 	if err != nil {
 		logger.Error().
+			Func(otelzerolog.AddTracingContext(span)).
 			Err(err).
 			Str("refreshToken", refreshToken).
 			Msg("Failed to decode refresh token")
@@ -63,6 +72,7 @@ func (a *AsymetricTokenIssuer[P]) RefreshToken(jwtToken *jwt.Token, refreshToken
 
 	if err := a.verifyRefreshToken(jwtToken, refreshBytes); err != nil {
 		logger.Debug().
+			Func(otelzerolog.AddTracingContext(span)).
 			Err(err).
 			Str("refreshToken", refreshToken).
 			Str("authToken", jwtToken.Raw).
@@ -73,6 +83,7 @@ func (a *AsymetricTokenIssuer[P]) RefreshToken(jwtToken *jwt.Token, refreshToken
 	stokeClaims, ok := jwtToken.Claims.(*stoke.Claims)
 	if !ok {
 		logger.Debug().
+			Func(otelzerolog.AddTracingContext(span)).
 			Err(err).
 			Str("refreshToken", refreshToken).
 			Str("authToken", jwtToken.Raw).
