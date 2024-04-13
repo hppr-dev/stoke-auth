@@ -47,7 +47,7 @@
                   :type="showOldPass? 'text' : 'password'"
                   :append-inner-icon="showOldPass ? 'mdi-eye' : 'mdi-eye-off'"
                   @click:append-inner="showOldPass = !showOldPass"
-                  @blur="updatePasswordForm"
+                  @update:modelValue="updatePasswordForm"
                 ></v-text-field>
               </v-col>
               <v-col cols="2">
@@ -68,7 +68,7 @@
                   no-resize
                   v-model="newPassword"
                   :rules="[require('New password'), matchPasswords]"
-                  @blur="updatePasswordForm"
+                  @update:modelValue="updatePasswordForm"
                 ></v-text-field>
               </v-col>
               <v-col>
@@ -79,7 +79,7 @@
                   no-resize
                   v-model="newPasswordRepeat"
                   :rules="[require('Repeat new password'), matchPasswords]"
-                  @blur="updatePasswordForm"
+                  @update:modelValue="updatePasswordForm"
                 ></v-text-field>
               </v-col>
             </v-row>

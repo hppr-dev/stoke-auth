@@ -6,7 +6,7 @@
         label="Name"
         v-model="name"
         :rules="[require('Name')]"
-        @blur="updateScratchGroup"
+        @update:modelValue="updateScratchGroup"
       ></v-text-field>
     </v-row>
     <v-row>
@@ -17,7 +17,7 @@
         rows="2"
         v-model="description"
         :rules="[require('Description')]"
-        @blur="updateScratchGroup"
+        @update:modelValue="updateScratchGroup"
       ></v-textarea>
     </v-row>
     <v-row class="mb-5 d-flex flex-grow-1 overflow-auto h-100">

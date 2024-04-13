@@ -6,7 +6,7 @@
         label="Name"
         v-model="name"
         :rules="[require('Name')]"
-        @blur="updateScratchClaim"
+        @update:modelValue="updateScratchClaim"
       ></v-text-field>
     </v-row>
     <v-row class="d-flex justify-center">
@@ -16,7 +16,7 @@
           label="Short Name"
           v-model="shortName"
           :rules="[require('Short name')]"
-          @blur="updateScratchClaim"
+          @update:modelValue="updateScratchClaim"
         ></v-text-field>
       </v-col>
       <v-col class="mx-n2 mt-2 text-center" cols="1">
@@ -28,7 +28,7 @@
           label="Value"
           v-model="value"
           :rules="[require('Value')]"
-          @blur="updateScratchClaim"
+          @update:modelValue="updateScratchClaim"
         ></v-text-field>
       </v-col>
     </v-row>
@@ -39,7 +39,7 @@
         no-resize
         v-model="description"
         :rules="[require('Description')]"
-        @blur="updateScratchClaim"
+        @update:modelValue="updateScratchClaim"
       ></v-textarea>
     </v-row>
   </v-sheet>

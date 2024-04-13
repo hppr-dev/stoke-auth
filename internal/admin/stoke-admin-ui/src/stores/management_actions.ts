@@ -163,10 +163,14 @@ export const managementActions = {
   resetCurrentUser: function() {
     this.currentUser = {}
     this.currentGroups = []
+
+    this.resetCurrentGroup()
   },
   resetCurrentGroup: function() {
     this.currentGroup = {}
     this.currentClaims = []
+
+    this.resetCurrentClaim()
   },
   resetCurrentClaim: function() {
     this.currentClaim = {}

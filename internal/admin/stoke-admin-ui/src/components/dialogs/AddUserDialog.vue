@@ -14,7 +14,7 @@
         label="First Name"
         v-model="fname"
         :rules="[require('First Name')]"
-        @blur="updateScratchUser"
+        @update:modelValue="updateScratchUser"
       ></v-text-field>
       <v-text-field
         class="ml-4"
@@ -22,7 +22,7 @@
         label="Last Name"
         v-model="lname"
         :rules="[require('Last Name')]"
-        @blur="updateScratchUser"
+        @update:modelValue="updateScratchUser"
       ></v-text-field>
     </v-row>
     <v-row>
@@ -31,7 +31,7 @@
         label="Email"
         v-model="email"
         :rules="[require('Email')]"
-        @blur="updateScratchUser"
+        @update:modelValue="updateScratchUser"
       ></v-text-field>
     </v-row>
     <v-row class="pb-3">
@@ -40,7 +40,7 @@
         type="password"
         v-model="password"
         :rules="[require('Password')]"
-        @blur="updateScratchUser"
+        @update:modelValue="updateScratchUser"
       > </v-text-field>
       <v-text-field
         class="ml-3"

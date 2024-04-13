@@ -5,7 +5,7 @@
     </template>
   </v-tooltip>
 
-  <v-dialog v-model="dialogOpen" width="auto" @afterLeave="onCancel" persistent>
+  <v-dialog v-model="dialogOpen" width="auto" @afterLeave="innerOnCancel" persistent>
     <v-alert
       class="mb-n16"
       type="error"
@@ -58,10 +58,15 @@
   const formValid = ref(false)
   const errorMsg = ref("")
 
-  function innerOnCancel() {
+  async function hideDialog() {
     dialogOpen.value = false
+    await new Promise(r => setTimeout(r, 250))
+  }
+
+  async function innerOnCancel() {
+    await hideDialog()
     if(props.onCancel) {
-      props.onCancel()
+      setTimeout(props.onCancel, 250)
     }
   }
 
@@ -72,13 +77,13 @@
     if (props.onSave) {
       try {
         await props.onSave()
-        dialogOpen.value = false
+        await hideDialog()
       } catch (err) {
         console.error(err)
-        errorMsg.value = err
+        errorMsg.value = err + ''
       }
     } else {
-      dialogOpen.value = false
+      await hideDialog()
     }
   }
 </script>
