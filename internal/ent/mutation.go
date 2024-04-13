@@ -1258,17 +1258,17 @@ func (m *ClaimGroupMutation) ResetEdge(name string) error {
 // GroupLinkMutation represents an operation that mutates the GroupLink nodes in the graph.
 type GroupLinkMutation struct {
 	config
-	op                  Op
-	typ                 string
-	id                  *int
-	_type               *string
-	resource_spec       *string
-	clearedFields       map[string]struct{}
-	claim_groups        *int
-	clearedclaim_groups bool
-	done                bool
-	oldValue            func(context.Context) (*GroupLink, error)
-	predicates          []predicate.GroupLink
+	op                 Op
+	typ                string
+	id                 *int
+	_type              *string
+	resource_spec      *string
+	clearedFields      map[string]struct{}
+	claim_group        *int
+	clearedclaim_group bool
+	done               bool
+	oldValue           func(context.Context) (*GroupLink, error)
+	predicates         []predicate.GroupLink
 }
 
 var _ ent.Mutation = (*GroupLinkMutation)(nil)
@@ -1441,43 +1441,43 @@ func (m *GroupLinkMutation) ResetResourceSpec() {
 	m.resource_spec = nil
 }
 
-// SetClaimGroupsID sets the "claim_groups" edge to the ClaimGroup entity by id.
-func (m *GroupLinkMutation) SetClaimGroupsID(id int) {
-	m.claim_groups = &id
+// SetClaimGroupID sets the "claim_group" edge to the ClaimGroup entity by id.
+func (m *GroupLinkMutation) SetClaimGroupID(id int) {
+	m.claim_group = &id
 }
 
-// ClearClaimGroups clears the "claim_groups" edge to the ClaimGroup entity.
-func (m *GroupLinkMutation) ClearClaimGroups() {
-	m.clearedclaim_groups = true
+// ClearClaimGroup clears the "claim_group" edge to the ClaimGroup entity.
+func (m *GroupLinkMutation) ClearClaimGroup() {
+	m.clearedclaim_group = true
 }
 
-// ClaimGroupsCleared reports if the "claim_groups" edge to the ClaimGroup entity was cleared.
-func (m *GroupLinkMutation) ClaimGroupsCleared() bool {
-	return m.clearedclaim_groups
+// ClaimGroupCleared reports if the "claim_group" edge to the ClaimGroup entity was cleared.
+func (m *GroupLinkMutation) ClaimGroupCleared() bool {
+	return m.clearedclaim_group
 }
 
-// ClaimGroupsID returns the "claim_groups" edge ID in the mutation.
-func (m *GroupLinkMutation) ClaimGroupsID() (id int, exists bool) {
-	if m.claim_groups != nil {
-		return *m.claim_groups, true
+// ClaimGroupID returns the "claim_group" edge ID in the mutation.
+func (m *GroupLinkMutation) ClaimGroupID() (id int, exists bool) {
+	if m.claim_group != nil {
+		return *m.claim_group, true
 	}
 	return
 }
 
-// ClaimGroupsIDs returns the "claim_groups" edge IDs in the mutation.
+// ClaimGroupIDs returns the "claim_group" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// ClaimGroupsID instead. It exists only for internal usage by the builders.
-func (m *GroupLinkMutation) ClaimGroupsIDs() (ids []int) {
-	if id := m.claim_groups; id != nil {
+// ClaimGroupID instead. It exists only for internal usage by the builders.
+func (m *GroupLinkMutation) ClaimGroupIDs() (ids []int) {
+	if id := m.claim_group; id != nil {
 		ids = append(ids, *id)
 	}
 	return
 }
 
-// ResetClaimGroups resets all changes to the "claim_groups" edge.
-func (m *GroupLinkMutation) ResetClaimGroups() {
-	m.claim_groups = nil
-	m.clearedclaim_groups = false
+// ResetClaimGroup resets all changes to the "claim_group" edge.
+func (m *GroupLinkMutation) ResetClaimGroup() {
+	m.claim_group = nil
+	m.clearedclaim_group = false
 }
 
 // Where appends a list predicates to the GroupLinkMutation builder.
@@ -1631,8 +1631,8 @@ func (m *GroupLinkMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *GroupLinkMutation) AddedEdges() []string {
 	edges := make([]string, 0, 1)
-	if m.claim_groups != nil {
-		edges = append(edges, grouplink.EdgeClaimGroups)
+	if m.claim_group != nil {
+		edges = append(edges, grouplink.EdgeClaimGroup)
 	}
 	return edges
 }
@@ -1641,8 +1641,8 @@ func (m *GroupLinkMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *GroupLinkMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case grouplink.EdgeClaimGroups:
-		if id := m.claim_groups; id != nil {
+	case grouplink.EdgeClaimGroup:
+		if id := m.claim_group; id != nil {
 			return []ent.Value{*id}
 		}
 	}
@@ -1664,8 +1664,8 @@ func (m *GroupLinkMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *GroupLinkMutation) ClearedEdges() []string {
 	edges := make([]string, 0, 1)
-	if m.clearedclaim_groups {
-		edges = append(edges, grouplink.EdgeClaimGroups)
+	if m.clearedclaim_group {
+		edges = append(edges, grouplink.EdgeClaimGroup)
 	}
 	return edges
 }
@@ -1674,8 +1674,8 @@ func (m *GroupLinkMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *GroupLinkMutation) EdgeCleared(name string) bool {
 	switch name {
-	case grouplink.EdgeClaimGroups:
-		return m.clearedclaim_groups
+	case grouplink.EdgeClaimGroup:
+		return m.clearedclaim_group
 	}
 	return false
 }
@@ -1684,8 +1684,8 @@ func (m *GroupLinkMutation) EdgeCleared(name string) bool {
 // if that edge is not defined in the schema.
 func (m *GroupLinkMutation) ClearEdge(name string) error {
 	switch name {
-	case grouplink.EdgeClaimGroups:
-		m.ClearClaimGroups()
+	case grouplink.EdgeClaimGroup:
+		m.ClearClaimGroup()
 		return nil
 	}
 	return fmt.Errorf("unknown GroupLink unique edge %s", name)
@@ -1695,8 +1695,8 @@ func (m *GroupLinkMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *GroupLinkMutation) ResetEdge(name string) error {
 	switch name {
-	case grouplink.EdgeClaimGroups:
-		m.ResetClaimGroups()
+	case grouplink.EdgeClaimGroup:
+		m.ResetClaimGroup()
 		return nil
 	}
 	return fmt.Errorf("unknown GroupLink edge %s", name)
@@ -2414,9 +2414,22 @@ func (m *UserMutation) OldPassword(ctx context.Context) (v string, err error) {
 	return oldValue.Password, nil
 }
 
+// ClearPassword clears the value of the "password" field.
+func (m *UserMutation) ClearPassword() {
+	m.password = nil
+	m.clearedFields[user.FieldPassword] = struct{}{}
+}
+
+// PasswordCleared returns if the "password" field was cleared in this mutation.
+func (m *UserMutation) PasswordCleared() bool {
+	_, ok := m.clearedFields[user.FieldPassword]
+	return ok
+}
+
 // ResetPassword resets all changes to the "password" field.
 func (m *UserMutation) ResetPassword() {
 	m.password = nil
+	delete(m.clearedFields, user.FieldPassword)
 }
 
 // SetSalt sets the "salt" field.
@@ -2450,9 +2463,22 @@ func (m *UserMutation) OldSalt(ctx context.Context) (v string, err error) {
 	return oldValue.Salt, nil
 }
 
+// ClearSalt clears the value of the "salt" field.
+func (m *UserMutation) ClearSalt() {
+	m.salt = nil
+	m.clearedFields[user.FieldSalt] = struct{}{}
+}
+
+// SaltCleared returns if the "salt" field was cleared in this mutation.
+func (m *UserMutation) SaltCleared() bool {
+	_, ok := m.clearedFields[user.FieldSalt]
+	return ok
+}
+
 // ResetSalt resets all changes to the "salt" field.
 func (m *UserMutation) ResetSalt() {
 	m.salt = nil
+	delete(m.clearedFields, user.FieldSalt)
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -2747,7 +2773,14 @@ func (m *UserMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *UserMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(user.FieldPassword) {
+		fields = append(fields, user.FieldPassword)
+	}
+	if m.FieldCleared(user.FieldSalt) {
+		fields = append(fields, user.FieldSalt)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -2760,6 +2793,14 @@ func (m *UserMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *UserMutation) ClearField(name string) error {
+	switch name {
+	case user.FieldPassword:
+		m.ClearPassword()
+		return nil
+	case user.FieldSalt:
+		m.ClearSalt()
+		return nil
+	}
 	return fmt.Errorf("unknown User nullable field %s", name)
 }
 

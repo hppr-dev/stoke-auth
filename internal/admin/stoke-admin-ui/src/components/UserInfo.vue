@@ -62,6 +62,7 @@
       return
     }
     await store.fetchClaimsForGroup(item.id)
+    await store.fetchLinksForGroup(item.id)
     store.$patch({
       currentGroup: item
     })

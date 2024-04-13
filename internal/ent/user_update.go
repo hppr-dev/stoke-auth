@@ -112,6 +112,12 @@ func (uu *UserUpdate) SetNillablePassword(s *string) *UserUpdate {
 	return uu
 }
 
+// ClearPassword clears the value of the "password" field.
+func (uu *UserUpdate) ClearPassword() *UserUpdate {
+	uu.mutation.ClearPassword()
+	return uu
+}
+
 // SetSalt sets the "salt" field.
 func (uu *UserUpdate) SetSalt(s string) *UserUpdate {
 	uu.mutation.SetSalt(s)
@@ -123,6 +129,12 @@ func (uu *UserUpdate) SetNillableSalt(s *string) *UserUpdate {
 	if s != nil {
 		uu.SetSalt(*s)
 	}
+	return uu
+}
+
+// ClearSalt clears the value of the "salt" field.
+func (uu *UserUpdate) ClearSalt() *UserUpdate {
+	uu.mutation.ClearSalt()
 	return uu
 }
 
@@ -221,8 +233,14 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := uu.mutation.Password(); ok {
 		_spec.SetField(user.FieldPassword, field.TypeString, value)
 	}
+	if uu.mutation.PasswordCleared() {
+		_spec.ClearField(user.FieldPassword, field.TypeString)
+	}
 	if value, ok := uu.mutation.Salt(); ok {
 		_spec.SetField(user.FieldSalt, field.TypeString, value)
+	}
+	if uu.mutation.SaltCleared() {
+		_spec.ClearField(user.FieldSalt, field.TypeString)
 	}
 	if uu.mutation.ClaimGroupsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -373,6 +391,12 @@ func (uuo *UserUpdateOne) SetNillablePassword(s *string) *UserUpdateOne {
 	return uuo
 }
 
+// ClearPassword clears the value of the "password" field.
+func (uuo *UserUpdateOne) ClearPassword() *UserUpdateOne {
+	uuo.mutation.ClearPassword()
+	return uuo
+}
+
 // SetSalt sets the "salt" field.
 func (uuo *UserUpdateOne) SetSalt(s string) *UserUpdateOne {
 	uuo.mutation.SetSalt(s)
@@ -384,6 +408,12 @@ func (uuo *UserUpdateOne) SetNillableSalt(s *string) *UserUpdateOne {
 	if s != nil {
 		uuo.SetSalt(*s)
 	}
+	return uuo
+}
+
+// ClearSalt clears the value of the "salt" field.
+func (uuo *UserUpdateOne) ClearSalt() *UserUpdateOne {
+	uuo.mutation.ClearSalt()
 	return uuo
 }
 
@@ -512,8 +542,14 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	if value, ok := uuo.mutation.Password(); ok {
 		_spec.SetField(user.FieldPassword, field.TypeString, value)
 	}
+	if uuo.mutation.PasswordCleared() {
+		_spec.ClearField(user.FieldPassword, field.TypeString)
+	}
 	if value, ok := uuo.mutation.Salt(); ok {
 		_spec.SetField(user.FieldSalt, field.TypeString, value)
+	}
+	if uuo.mutation.SaltCleared() {
+		_spec.ClearField(user.FieldSalt, field.TypeString)
 	}
 	if uuo.mutation.ClaimGroupsCleared() {
 		edge := &sqlgraph.EdgeSpec{

@@ -105,10 +105,10 @@ func (l LocalProvider) GetUserClaims(username, password string, ctx context.Cont
 					user.UsernameEQ(username),
 					user.EmailEQ(username),
 				),
-				user.SourceEQ("LOCAL"),
 			),
 		).
 		WithClaimGroups(func (q *ent.ClaimGroupQuery) {
+			q.Where(claimgroup.Not(claimgroup.HasGroupLinks()))
 			q.WithClaims()
 		}).
 		Only(ctx)
@@ -121,7 +121,7 @@ func (l LocalProvider) GetUserClaims(username, password string, ctx context.Cont
 		return nil, nil, err
 	}
 
-	if l.hashPass(password, usr.Salt) != usr.Password {
+	if usr.Source != "LDAP" && l.hashPass(password, usr.Salt) != usr.Password {
 		logger.Debug().
 			Func(otelzerolog.AddTracingContext(span)).
 			Str("username", username).
@@ -174,7 +174,7 @@ func (l LocalProvider) getOrCreateSuperGroup(ctx context.Context) (*ent.ClaimGro
 			),
 		).
 		WithUsers().
-		Only(ctx)
+		First(ctx)
 
 	if ent.IsNotFound(err) {
 		logger.Info().
@@ -207,6 +207,9 @@ func (l LocalProvider) getOrCreateSuperGroup(ctx context.Context) (*ent.ClaimGro
 }
 
 func (l LocalProvider) checkForSuperUser(ctx context.Context) error {
+	ctx, span := tel.GetTracer().Start(ctx, "LocalUserProvider.checkForSuperUser")
+	defer span.End()
+
 	superGroup, err := l.getOrCreateSuperGroup(ctx)
 	if err != nil {
 		return err

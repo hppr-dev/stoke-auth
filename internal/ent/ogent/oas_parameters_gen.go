@@ -2091,13 +2091,13 @@ func decodeReadGroupLinkParams(args [1]string, argsEscaped bool, r *http.Request
 	return params, nil
 }
 
-// ReadGroupLinkClaimGroupsParams is parameters of readGroupLinkClaimGroups operation.
-type ReadGroupLinkClaimGroupsParams struct {
+// ReadGroupLinkClaimGroupParams is parameters of readGroupLinkClaimGroup operation.
+type ReadGroupLinkClaimGroupParams struct {
 	// ID of the GroupLink.
 	ID int
 }
 
-func unpackReadGroupLinkClaimGroupsParams(packed middleware.Parameters) (params ReadGroupLinkClaimGroupsParams) {
+func unpackReadGroupLinkClaimGroupParams(packed middleware.Parameters) (params ReadGroupLinkClaimGroupParams) {
 	{
 		key := middleware.ParameterKey{
 			Name: "id",
@@ -2108,7 +2108,7 @@ func unpackReadGroupLinkClaimGroupsParams(packed middleware.Parameters) (params 
 	return params
 }
 
-func decodeReadGroupLinkClaimGroupsParams(args [1]string, argsEscaped bool, r *http.Request) (params ReadGroupLinkClaimGroupsParams, _ error) {
+func decodeReadGroupLinkClaimGroupParams(args [1]string, argsEscaped bool, r *http.Request) (params ReadGroupLinkClaimGroupParams, _ error) {
 	// Decode path: id.
 	if err := func() error {
 		param := args[0]

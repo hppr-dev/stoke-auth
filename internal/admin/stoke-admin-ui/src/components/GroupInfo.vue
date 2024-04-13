@@ -3,6 +3,7 @@
     <template #title>
       <div v-if="store.currentGroup.name">
         <v-icon class="mr-2" size="small" :icon="icons.GROUP"></v-icon>
+        <v-icon v-if="store.currentLinks.length > 0" color="success" class="mr-2" size="small" :icon="icons.LINK"></v-icon>
         <span> {{ store.currentGroup.name }} </span>
         <EditActivator
           tooltipText="Edit Group"

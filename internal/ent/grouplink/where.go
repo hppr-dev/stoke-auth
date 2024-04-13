@@ -194,21 +194,21 @@ func ResourceSpecContainsFold(v string) predicate.GroupLink {
 	return predicate.GroupLink(sql.FieldContainsFold(FieldResourceSpec, v))
 }
 
-// HasClaimGroups applies the HasEdge predicate on the "claim_groups" edge.
-func HasClaimGroups() predicate.GroupLink {
+// HasClaimGroup applies the HasEdge predicate on the "claim_group" edge.
+func HasClaimGroup() predicate.GroupLink {
 	return predicate.GroupLink(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, ClaimGroupsTable, ClaimGroupsColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, ClaimGroupTable, ClaimGroupColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasClaimGroupsWith applies the HasEdge predicate on the "claim_groups" edge with a given conditions (other predicates).
-func HasClaimGroupsWith(preds ...predicate.ClaimGroup) predicate.GroupLink {
+// HasClaimGroupWith applies the HasEdge predicate on the "claim_group" edge with a given conditions (other predicates).
+func HasClaimGroupWith(preds ...predicate.ClaimGroup) predicate.GroupLink {
 	return predicate.GroupLink(func(s *sql.Selector) {
-		step := newClaimGroupsStep()
+		step := newClaimGroupStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

@@ -482,31 +482,31 @@ func (gl *GroupLinkUpdate) Elem() GroupLinkUpdate {
 	return *gl
 }
 
-func NewGroupLinkClaimGroupsRead(e *ent.ClaimGroup) *GroupLinkClaimGroupsRead {
+func NewGroupLinkClaimGroupRead(e *ent.ClaimGroup) *GroupLinkClaimGroupRead {
 	if e == nil {
 		return nil
 	}
-	var ret GroupLinkClaimGroupsRead
+	var ret GroupLinkClaimGroupRead
 	ret.ID = e.ID
 	ret.Name = e.Name
 	ret.Description = e.Description
 	return &ret
 }
 
-func NewGroupLinkClaimGroupsReads(es []*ent.ClaimGroup) []GroupLinkClaimGroupsRead {
+func NewGroupLinkClaimGroupReads(es []*ent.ClaimGroup) []GroupLinkClaimGroupRead {
 	if len(es) == 0 {
 		return nil
 	}
-	r := make([]GroupLinkClaimGroupsRead, len(es))
+	r := make([]GroupLinkClaimGroupRead, len(es))
 	for i, e := range es {
-		r[i] = NewGroupLinkClaimGroupsRead(e).Elem()
+		r[i] = NewGroupLinkClaimGroupRead(e).Elem()
 	}
 	return r
 }
 
-func (cg *GroupLinkClaimGroupsRead) Elem() GroupLinkClaimGroupsRead {
+func (cg *GroupLinkClaimGroupRead) Elem() GroupLinkClaimGroupRead {
 	if cg == nil {
-		return GroupLinkClaimGroupsRead{}
+		return GroupLinkClaimGroupRead{}
 	}
 	return *cg
 }

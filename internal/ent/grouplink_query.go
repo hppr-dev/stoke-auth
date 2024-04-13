@@ -18,12 +18,12 @@ import (
 // GroupLinkQuery is the builder for querying GroupLink entities.
 type GroupLinkQuery struct {
 	config
-	ctx             *QueryContext
-	order           []grouplink.OrderOption
-	inters          []Interceptor
-	predicates      []predicate.GroupLink
-	withClaimGroups *ClaimGroupQuery
-	withFKs         bool
+	ctx            *QueryContext
+	order          []grouplink.OrderOption
+	inters         []Interceptor
+	predicates     []predicate.GroupLink
+	withClaimGroup *ClaimGroupQuery
+	withFKs        bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -60,8 +60,8 @@ func (glq *GroupLinkQuery) Order(o ...grouplink.OrderOption) *GroupLinkQuery {
 	return glq
 }
 
-// QueryClaimGroups chains the current query on the "claim_groups" edge.
-func (glq *GroupLinkQuery) QueryClaimGroups() *ClaimGroupQuery {
+// QueryClaimGroup chains the current query on the "claim_group" edge.
+func (glq *GroupLinkQuery) QueryClaimGroup() *ClaimGroupQuery {
 	query := (&ClaimGroupClient{config: glq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := glq.prepareQuery(ctx); err != nil {
@@ -74,7 +74,7 @@ func (glq *GroupLinkQuery) QueryClaimGroups() *ClaimGroupQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(grouplink.Table, grouplink.FieldID, selector),
 			sqlgraph.To(claimgroup.Table, claimgroup.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, grouplink.ClaimGroupsTable, grouplink.ClaimGroupsColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, grouplink.ClaimGroupTable, grouplink.ClaimGroupColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(glq.driver.Dialect(), step)
 		return fromU, nil
@@ -269,26 +269,26 @@ func (glq *GroupLinkQuery) Clone() *GroupLinkQuery {
 		return nil
 	}
 	return &GroupLinkQuery{
-		config:          glq.config,
-		ctx:             glq.ctx.Clone(),
-		order:           append([]grouplink.OrderOption{}, glq.order...),
-		inters:          append([]Interceptor{}, glq.inters...),
-		predicates:      append([]predicate.GroupLink{}, glq.predicates...),
-		withClaimGroups: glq.withClaimGroups.Clone(),
+		config:         glq.config,
+		ctx:            glq.ctx.Clone(),
+		order:          append([]grouplink.OrderOption{}, glq.order...),
+		inters:         append([]Interceptor{}, glq.inters...),
+		predicates:     append([]predicate.GroupLink{}, glq.predicates...),
+		withClaimGroup: glq.withClaimGroup.Clone(),
 		// clone intermediate query.
 		sql:  glq.sql.Clone(),
 		path: glq.path,
 	}
 }
 
-// WithClaimGroups tells the query-builder to eager-load the nodes that are connected to
-// the "claim_groups" edge. The optional arguments are used to configure the query builder of the edge.
-func (glq *GroupLinkQuery) WithClaimGroups(opts ...func(*ClaimGroupQuery)) *GroupLinkQuery {
+// WithClaimGroup tells the query-builder to eager-load the nodes that are connected to
+// the "claim_group" edge. The optional arguments are used to configure the query builder of the edge.
+func (glq *GroupLinkQuery) WithClaimGroup(opts ...func(*ClaimGroupQuery)) *GroupLinkQuery {
 	query := (&ClaimGroupClient{config: glq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	glq.withClaimGroups = query
+	glq.withClaimGroup = query
 	return glq
 }
 
@@ -372,10 +372,10 @@ func (glq *GroupLinkQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*G
 		withFKs     = glq.withFKs
 		_spec       = glq.querySpec()
 		loadedTypes = [1]bool{
-			glq.withClaimGroups != nil,
+			glq.withClaimGroup != nil,
 		}
 	)
-	if glq.withClaimGroups != nil {
+	if glq.withClaimGroup != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -399,16 +399,16 @@ func (glq *GroupLinkQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*G
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := glq.withClaimGroups; query != nil {
-		if err := glq.loadClaimGroups(ctx, query, nodes, nil,
-			func(n *GroupLink, e *ClaimGroup) { n.Edges.ClaimGroups = e }); err != nil {
+	if query := glq.withClaimGroup; query != nil {
+		if err := glq.loadClaimGroup(ctx, query, nodes, nil,
+			func(n *GroupLink, e *ClaimGroup) { n.Edges.ClaimGroup = e }); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
 }
 
-func (glq *GroupLinkQuery) loadClaimGroups(ctx context.Context, query *ClaimGroupQuery, nodes []*GroupLink, init func(*GroupLink), assign func(*GroupLink, *ClaimGroup)) error {
+func (glq *GroupLinkQuery) loadClaimGroup(ctx context.Context, query *ClaimGroupQuery, nodes []*GroupLink, init func(*GroupLink), assign func(*GroupLink, *ClaimGroup)) error {
 	ids := make([]int, 0, len(nodes))
 	nodeids := make(map[int][]*GroupLink)
 	for i := range nodes {

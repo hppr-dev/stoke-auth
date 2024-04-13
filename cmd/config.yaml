@@ -47,10 +47,21 @@ telemetry:
 #  metric_insecure: false
 
 users:
-  enable_ldap: false
-  server_url: ldap://localhost:389
+  enable_ldap: true
+  server_url: ldap://localhost:10389
+  bind_user_dn: "cn=admin,dc=planetexpress,dc=com"
+  bind_user_password: GoodNewsEveryone
+
+  group_search_root: "ou=people,dc=planetexpress,dc=com"
+  group_filter_template: "(&(objectClass=group)(member={{ .UserDN }}))"
+  ldap_group_name_field: "cn"
+
+  user_search_root: "ou=people,dc=planetexpress,dc=com"
+  user_filter_template: "(|(&(objectClass=inetOrgPerson)(uid={{ .Username }}))(&(objectClass=inetOrgPerson)(mail={{ .Username }})))"
+  ldap_first_name_field: "givenName"
+  ldap_last_name_field:  "sn"
+  ldap_email_field: "mail"
+
+  search_timeout: 0
   skip_certificate_verification: true
-  group_search_filter: "(objectClass=group)"
-  group_attribute: "dn"
-  auto_add_groups: true
 

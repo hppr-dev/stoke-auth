@@ -907,7 +907,7 @@
                   "resource_spec": {
                     "type": "string"
                   },
-                  "claim_groups": {
+                  "claim_group": {
                     "type": "integer"
                   }
                 },
@@ -1054,7 +1054,7 @@
                   "resource_spec": {
                     "type": "string"
                   },
-                  "claim_groups": {
+                  "claim_group": {
                     "type": "integer"
                   }
                 }
@@ -1089,14 +1089,14 @@
         }
       }
     },
-    "/group-links/{id}/claim-groups": {
+    "/group-links/{id}/claim-group": {
       "get": {
         "tags": [
           "GroupLink"
         ],
         "summary": "Find the attached ClaimGroup",
         "description": "Find the attached ClaimGroup of the GroupLink with the given ID",
-        "operationId": "readGroupLinkClaimGroups",
+        "operationId": "readGroupLinkClaimGroup",
         "parameters": [
           {
             "name": "id",
@@ -1114,7 +1114,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GroupLink_ClaimGroupsRead"
+                  "$ref": "#/components/schemas/GroupLink_ClaimGroupRead"
                 }
               }
             }
@@ -1377,12 +1377,6 @@
                     "type": "string"
                   },
                   "username": {
-                    "type": "string"
-                  },
-                  "password": {
-                    "type": "string"
-                  },
-                  "salt": {
                     "type": "string"
                   },
                   "claim_groups": {
@@ -1730,12 +1724,6 @@
           "username": {
             "type": "string"
           },
-          "password": {
-            "type": "string"
-          },
-          "salt": {
-            "type": "string"
-          },
           "created_at": {
             "type": "string",
             "format": "date-time"
@@ -1748,8 +1736,6 @@
           "source",
           "email",
           "username",
-          "password",
-          "salt",
           "created_at"
         ]
       },
@@ -1865,7 +1851,7 @@
           "resource_spec": {
             "type": "string"
           },
-          "claim_groups": {
+          "claim_group": {
             "$ref": "#/components/schemas/ClaimGroup"
           }
         },
@@ -1951,7 +1937,7 @@
           "resource_spec"
         ]
       },
-      "GroupLink_ClaimGroupsRead": {
+      "GroupLink_ClaimGroupRead": {
         "type": "object",
         "properties": {
           "id": {
@@ -2051,12 +2037,6 @@
           "username": {
             "type": "string"
           },
-          "password": {
-            "type": "string"
-          },
-          "salt": {
-            "type": "string"
-          },
           "created_at": {
             "type": "string",
             "format": "date-time"
@@ -2075,8 +2055,6 @@
           "source",
           "email",
           "username",
-          "password",
-          "salt",
           "created_at"
         ]
       },
@@ -2101,12 +2079,6 @@
           "username": {
             "type": "string"
           },
-          "password": {
-            "type": "string"
-          },
-          "salt": {
-            "type": "string"
-          },
           "created_at": {
             "type": "string",
             "format": "date-time"
@@ -2119,8 +2091,6 @@
           "source",
           "email",
           "username",
-          "password",
-          "salt",
           "created_at"
         ]
       },
@@ -2145,12 +2115,6 @@
           "username": {
             "type": "string"
           },
-          "password": {
-            "type": "string"
-          },
-          "salt": {
-            "type": "string"
-          },
           "created_at": {
             "type": "string",
             "format": "date-time"
@@ -2163,8 +2127,6 @@
           "source",
           "email",
           "username",
-          "password",
-          "salt",
           "created_at"
         ]
       },
@@ -2189,12 +2151,6 @@
           "username": {
             "type": "string"
           },
-          "password": {
-            "type": "string"
-          },
-          "salt": {
-            "type": "string"
-          },
           "created_at": {
             "type": "string",
             "format": "date-time"
@@ -2207,8 +2163,6 @@
           "source",
           "email",
           "username",
-          "password",
-          "salt",
           "created_at"
         ]
       },

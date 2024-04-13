@@ -30,22 +30,22 @@ type GroupLink struct {
 
 // GroupLinkEdges holds the relations/edges for other nodes in the graph.
 type GroupLinkEdges struct {
-	// ClaimGroups holds the value of the claim_groups edge.
-	ClaimGroups *ClaimGroup `json:"claim_groups,omitempty"`
+	// ClaimGroup holds the value of the claim_group edge.
+	ClaimGroup *ClaimGroup `json:"claim_group,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [1]bool
 }
 
-// ClaimGroupsOrErr returns the ClaimGroups value or an error if the edge
+// ClaimGroupOrErr returns the ClaimGroup value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e GroupLinkEdges) ClaimGroupsOrErr() (*ClaimGroup, error) {
-	if e.ClaimGroups != nil {
-		return e.ClaimGroups, nil
+func (e GroupLinkEdges) ClaimGroupOrErr() (*ClaimGroup, error) {
+	if e.ClaimGroup != nil {
+		return e.ClaimGroup, nil
 	} else if e.loadedTypes[0] {
 		return nil, &NotFoundError{label: claimgroup.Label}
 	}
-	return nil, &NotLoadedError{edge: "claim_groups"}
+	return nil, &NotLoadedError{edge: "claim_group"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -112,9 +112,9 @@ func (gl *GroupLink) Value(name string) (ent.Value, error) {
 	return gl.selectValues.Get(name)
 }
 
-// QueryClaimGroups queries the "claim_groups" edge of the GroupLink entity.
-func (gl *GroupLink) QueryClaimGroups() *ClaimGroupQuery {
-	return NewGroupLinkClient(gl.config).QueryClaimGroups(gl)
+// QueryClaimGroup queries the "claim_group" edge of the GroupLink entity.
+func (gl *GroupLink) QueryClaimGroup() *ClaimGroupQuery {
+	return NewGroupLinkClient(gl.config).QueryClaimGroup(gl)
 }
 
 // Update returns a builder for updating this GroupLink.

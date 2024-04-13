@@ -16,17 +16,17 @@ const (
 	FieldType = "type"
 	// FieldResourceSpec holds the string denoting the resource_spec field in the database.
 	FieldResourceSpec = "resource_spec"
-	// EdgeClaimGroups holds the string denoting the claim_groups edge name in mutations.
-	EdgeClaimGroups = "claim_groups"
+	// EdgeClaimGroup holds the string denoting the claim_group edge name in mutations.
+	EdgeClaimGroup = "claim_group"
 	// Table holds the table name of the grouplink in the database.
 	Table = "group_links"
-	// ClaimGroupsTable is the table that holds the claim_groups relation/edge.
-	ClaimGroupsTable = "group_links"
-	// ClaimGroupsInverseTable is the table name for the ClaimGroup entity.
+	// ClaimGroupTable is the table that holds the claim_group relation/edge.
+	ClaimGroupTable = "group_links"
+	// ClaimGroupInverseTable is the table name for the ClaimGroup entity.
 	// It exists in this package in order to avoid circular dependency with the "claimgroup" package.
-	ClaimGroupsInverseTable = "claim_groups"
-	// ClaimGroupsColumn is the table column denoting the claim_groups relation/edge.
-	ClaimGroupsColumn = "claim_group_group_links"
+	ClaimGroupInverseTable = "claim_groups"
+	// ClaimGroupColumn is the table column denoting the claim_group relation/edge.
+	ClaimGroupColumn = "claim_group_group_links"
 )
 
 // Columns holds all SQL columns for grouplink fields.
@@ -75,16 +75,16 @@ func ByResourceSpec(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldResourceSpec, opts...).ToFunc()
 }
 
-// ByClaimGroupsField orders the results by claim_groups field.
-func ByClaimGroupsField(field string, opts ...sql.OrderTermOption) OrderOption {
+// ByClaimGroupField orders the results by claim_group field.
+func ByClaimGroupField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newClaimGroupsStep(), sql.OrderByField(field, opts...))
+		sqlgraph.OrderByNeighborTerms(s, newClaimGroupStep(), sql.OrderByField(field, opts...))
 	}
 }
-func newClaimGroupsStep() *sqlgraph.Step {
+func newClaimGroupStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(ClaimGroupsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, ClaimGroupsTable, ClaimGroupsColumn),
+		sqlgraph.To(ClaimGroupInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, ClaimGroupTable, ClaimGroupColumn),
 	)
 }

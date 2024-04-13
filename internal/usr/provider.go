@@ -51,11 +51,10 @@ func (m *MultiProvider) Init(ctx context.Context) error {
 }
 
 func (m *MultiProvider) AddUser(provider ProviderType, fname, lname, email, username, password string, superUser bool, ctx context.Context) error {
-	p, ok := m.providers[provider]
-	if !ok {
+	if provider != LOCAL {
 		return ProviderTypeNotSupported
 	}
-	return p.AddUser(provider, fname, lname, email, username, password, superUser, ctx)
+	return m.providers[LOCAL].AddUser(provider, fname, lname, email, username, password, superUser, ctx)
 }
 
 func (m *MultiProvider) UpdateUserPassword(provider ProviderType, username, oldPassword, newPassword string, force bool, ctx context.Context) error {
@@ -66,9 +65,18 @@ func (m *MultiProvider) UpdateUserPassword(provider ProviderType, username, oldP
 }
 
 func (m *MultiProvider) GetUserClaims(username, password string, ctx context.Context) (*ent.User, ent.Claims, error) {
+	var claims ent.Claims
+	var ldapErr error
+	var ldapUser *ent.User
+
 	p, ok := m.providers[LDAP]
 	if ok {
-		return p.GetUserClaims(username, password, ctx)
+		ldapUser, claims, ldapErr = p.GetUserClaims(username, password, ctx)
 	}
-	return m.providers[LOCAL].GetUserClaims(username, password, ctx)
+	usr, localClaims, err := m.providers[LOCAL].GetUserClaims(username, password, ctx)
+	claims = append(claims, localClaims...)
+	if ldapErr == nil {
+		return ldapUser, claims, nil
+	}
+	return usr, claims, err
 }

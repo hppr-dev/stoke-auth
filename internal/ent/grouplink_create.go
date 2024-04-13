@@ -32,23 +32,23 @@ func (glc *GroupLinkCreate) SetResourceSpec(s string) *GroupLinkCreate {
 	return glc
 }
 
-// SetClaimGroupsID sets the "claim_groups" edge to the ClaimGroup entity by ID.
-func (glc *GroupLinkCreate) SetClaimGroupsID(id int) *GroupLinkCreate {
-	glc.mutation.SetClaimGroupsID(id)
+// SetClaimGroupID sets the "claim_group" edge to the ClaimGroup entity by ID.
+func (glc *GroupLinkCreate) SetClaimGroupID(id int) *GroupLinkCreate {
+	glc.mutation.SetClaimGroupID(id)
 	return glc
 }
 
-// SetNillableClaimGroupsID sets the "claim_groups" edge to the ClaimGroup entity by ID if the given value is not nil.
-func (glc *GroupLinkCreate) SetNillableClaimGroupsID(id *int) *GroupLinkCreate {
+// SetNillableClaimGroupID sets the "claim_group" edge to the ClaimGroup entity by ID if the given value is not nil.
+func (glc *GroupLinkCreate) SetNillableClaimGroupID(id *int) *GroupLinkCreate {
 	if id != nil {
-		glc = glc.SetClaimGroupsID(*id)
+		glc = glc.SetClaimGroupID(*id)
 	}
 	return glc
 }
 
-// SetClaimGroups sets the "claim_groups" edge to the ClaimGroup entity.
-func (glc *GroupLinkCreate) SetClaimGroups(c *ClaimGroup) *GroupLinkCreate {
-	return glc.SetClaimGroupsID(c.ID)
+// SetClaimGroup sets the "claim_group" edge to the ClaimGroup entity.
+func (glc *GroupLinkCreate) SetClaimGroup(c *ClaimGroup) *GroupLinkCreate {
+	return glc.SetClaimGroupID(c.ID)
 }
 
 // Mutation returns the GroupLinkMutation object of the builder.
@@ -125,12 +125,12 @@ func (glc *GroupLinkCreate) createSpec() (*GroupLink, *sqlgraph.CreateSpec) {
 		_spec.SetField(grouplink.FieldResourceSpec, field.TypeString, value)
 		_node.ResourceSpec = value
 	}
-	if nodes := glc.mutation.ClaimGroupsIDs(); len(nodes) > 0 {
+	if nodes := glc.mutation.ClaimGroupIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   grouplink.ClaimGroupsTable,
-			Columns: []string{grouplink.ClaimGroupsColumn},
+			Table:   grouplink.ClaimGroupTable,
+			Columns: []string{grouplink.ClaimGroupColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(claimgroup.FieldID, field.TypeInt),

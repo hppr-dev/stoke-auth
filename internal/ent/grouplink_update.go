@@ -56,23 +56,23 @@ func (glu *GroupLinkUpdate) SetNillableResourceSpec(s *string) *GroupLinkUpdate 
 	return glu
 }
 
-// SetClaimGroupsID sets the "claim_groups" edge to the ClaimGroup entity by ID.
-func (glu *GroupLinkUpdate) SetClaimGroupsID(id int) *GroupLinkUpdate {
-	glu.mutation.SetClaimGroupsID(id)
+// SetClaimGroupID sets the "claim_group" edge to the ClaimGroup entity by ID.
+func (glu *GroupLinkUpdate) SetClaimGroupID(id int) *GroupLinkUpdate {
+	glu.mutation.SetClaimGroupID(id)
 	return glu
 }
 
-// SetNillableClaimGroupsID sets the "claim_groups" edge to the ClaimGroup entity by ID if the given value is not nil.
-func (glu *GroupLinkUpdate) SetNillableClaimGroupsID(id *int) *GroupLinkUpdate {
+// SetNillableClaimGroupID sets the "claim_group" edge to the ClaimGroup entity by ID if the given value is not nil.
+func (glu *GroupLinkUpdate) SetNillableClaimGroupID(id *int) *GroupLinkUpdate {
 	if id != nil {
-		glu = glu.SetClaimGroupsID(*id)
+		glu = glu.SetClaimGroupID(*id)
 	}
 	return glu
 }
 
-// SetClaimGroups sets the "claim_groups" edge to the ClaimGroup entity.
-func (glu *GroupLinkUpdate) SetClaimGroups(c *ClaimGroup) *GroupLinkUpdate {
-	return glu.SetClaimGroupsID(c.ID)
+// SetClaimGroup sets the "claim_group" edge to the ClaimGroup entity.
+func (glu *GroupLinkUpdate) SetClaimGroup(c *ClaimGroup) *GroupLinkUpdate {
+	return glu.SetClaimGroupID(c.ID)
 }
 
 // Mutation returns the GroupLinkMutation object of the builder.
@@ -80,9 +80,9 @@ func (glu *GroupLinkUpdate) Mutation() *GroupLinkMutation {
 	return glu.mutation
 }
 
-// ClearClaimGroups clears the "claim_groups" edge to the ClaimGroup entity.
-func (glu *GroupLinkUpdate) ClearClaimGroups() *GroupLinkUpdate {
-	glu.mutation.ClearClaimGroups()
+// ClearClaimGroup clears the "claim_group" edge to the ClaimGroup entity.
+func (glu *GroupLinkUpdate) ClearClaimGroup() *GroupLinkUpdate {
+	glu.mutation.ClearClaimGroup()
 	return glu
 }
 
@@ -128,12 +128,12 @@ func (glu *GroupLinkUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := glu.mutation.ResourceSpec(); ok {
 		_spec.SetField(grouplink.FieldResourceSpec, field.TypeString, value)
 	}
-	if glu.mutation.ClaimGroupsCleared() {
+	if glu.mutation.ClaimGroupCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   grouplink.ClaimGroupsTable,
-			Columns: []string{grouplink.ClaimGroupsColumn},
+			Table:   grouplink.ClaimGroupTable,
+			Columns: []string{grouplink.ClaimGroupColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(claimgroup.FieldID, field.TypeInt),
@@ -141,12 +141,12 @@ func (glu *GroupLinkUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := glu.mutation.ClaimGroupsIDs(); len(nodes) > 0 {
+	if nodes := glu.mutation.ClaimGroupIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   grouplink.ClaimGroupsTable,
-			Columns: []string{grouplink.ClaimGroupsColumn},
+			Table:   grouplink.ClaimGroupTable,
+			Columns: []string{grouplink.ClaimGroupColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(claimgroup.FieldID, field.TypeInt),
@@ -205,23 +205,23 @@ func (gluo *GroupLinkUpdateOne) SetNillableResourceSpec(s *string) *GroupLinkUpd
 	return gluo
 }
 
-// SetClaimGroupsID sets the "claim_groups" edge to the ClaimGroup entity by ID.
-func (gluo *GroupLinkUpdateOne) SetClaimGroupsID(id int) *GroupLinkUpdateOne {
-	gluo.mutation.SetClaimGroupsID(id)
+// SetClaimGroupID sets the "claim_group" edge to the ClaimGroup entity by ID.
+func (gluo *GroupLinkUpdateOne) SetClaimGroupID(id int) *GroupLinkUpdateOne {
+	gluo.mutation.SetClaimGroupID(id)
 	return gluo
 }
 
-// SetNillableClaimGroupsID sets the "claim_groups" edge to the ClaimGroup entity by ID if the given value is not nil.
-func (gluo *GroupLinkUpdateOne) SetNillableClaimGroupsID(id *int) *GroupLinkUpdateOne {
+// SetNillableClaimGroupID sets the "claim_group" edge to the ClaimGroup entity by ID if the given value is not nil.
+func (gluo *GroupLinkUpdateOne) SetNillableClaimGroupID(id *int) *GroupLinkUpdateOne {
 	if id != nil {
-		gluo = gluo.SetClaimGroupsID(*id)
+		gluo = gluo.SetClaimGroupID(*id)
 	}
 	return gluo
 }
 
-// SetClaimGroups sets the "claim_groups" edge to the ClaimGroup entity.
-func (gluo *GroupLinkUpdateOne) SetClaimGroups(c *ClaimGroup) *GroupLinkUpdateOne {
-	return gluo.SetClaimGroupsID(c.ID)
+// SetClaimGroup sets the "claim_group" edge to the ClaimGroup entity.
+func (gluo *GroupLinkUpdateOne) SetClaimGroup(c *ClaimGroup) *GroupLinkUpdateOne {
+	return gluo.SetClaimGroupID(c.ID)
 }
 
 // Mutation returns the GroupLinkMutation object of the builder.
@@ -229,9 +229,9 @@ func (gluo *GroupLinkUpdateOne) Mutation() *GroupLinkMutation {
 	return gluo.mutation
 }
 
-// ClearClaimGroups clears the "claim_groups" edge to the ClaimGroup entity.
-func (gluo *GroupLinkUpdateOne) ClearClaimGroups() *GroupLinkUpdateOne {
-	gluo.mutation.ClearClaimGroups()
+// ClearClaimGroup clears the "claim_group" edge to the ClaimGroup entity.
+func (gluo *GroupLinkUpdateOne) ClearClaimGroup() *GroupLinkUpdateOne {
+	gluo.mutation.ClearClaimGroup()
 	return gluo
 }
 
@@ -307,12 +307,12 @@ func (gluo *GroupLinkUpdateOne) sqlSave(ctx context.Context) (_node *GroupLink, 
 	if value, ok := gluo.mutation.ResourceSpec(); ok {
 		_spec.SetField(grouplink.FieldResourceSpec, field.TypeString, value)
 	}
-	if gluo.mutation.ClaimGroupsCleared() {
+	if gluo.mutation.ClaimGroupCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   grouplink.ClaimGroupsTable,
-			Columns: []string{grouplink.ClaimGroupsColumn},
+			Table:   grouplink.ClaimGroupTable,
+			Columns: []string{grouplink.ClaimGroupColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(claimgroup.FieldID, field.TypeInt),
@@ -320,12 +320,12 @@ func (gluo *GroupLinkUpdateOne) sqlSave(ctx context.Context) (_node *GroupLink, 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := gluo.mutation.ClaimGroupsIDs(); len(nodes) > 0 {
+	if nodes := gluo.mutation.ClaimGroupIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   grouplink.ClaimGroupsTable,
-			Columns: []string{grouplink.ClaimGroupsColumn},
+			Table:   grouplink.ClaimGroupTable,
+			Columns: []string{grouplink.ClaimGroupColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(claimgroup.FieldID, field.TypeInt),

@@ -184,12 +184,12 @@ func (UnimplementedHandler) ReadGroupLink(ctx context.Context, params ReadGroupL
 	return r, ht.ErrNotImplemented
 }
 
-// ReadGroupLinkClaimGroups implements readGroupLinkClaimGroups operation.
+// ReadGroupLinkClaimGroup implements readGroupLinkClaimGroup operation.
 //
 // Find the attached ClaimGroup of the GroupLink with the given ID.
 //
-// GET /group-links/{id}/claim-groups
-func (UnimplementedHandler) ReadGroupLinkClaimGroups(ctx context.Context, params ReadGroupLinkClaimGroupsParams) (r ReadGroupLinkClaimGroupsRes, _ error) {
+// GET /group-links/{id}/claim-group
+func (UnimplementedHandler) ReadGroupLinkClaimGroup(ctx context.Context, params ReadGroupLinkClaimGroupParams) (r ReadGroupLinkClaimGroupRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 

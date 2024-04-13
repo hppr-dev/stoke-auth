@@ -122,12 +122,12 @@ type Handler interface {
 	//
 	// GET /group-links/{id}
 	ReadGroupLink(ctx context.Context, params ReadGroupLinkParams) (ReadGroupLinkRes, error)
-	// ReadGroupLinkClaimGroups implements readGroupLinkClaimGroups operation.
+	// ReadGroupLinkClaimGroup implements readGroupLinkClaimGroup operation.
 	//
 	// Find the attached ClaimGroup of the GroupLink with the given ID.
 	//
-	// GET /group-links/{id}/claim-groups
-	ReadGroupLinkClaimGroups(ctx context.Context, params ReadGroupLinkClaimGroupsParams) (ReadGroupLinkClaimGroupsRes, error)
+	// GET /group-links/{id}/claim-group
+	ReadGroupLinkClaimGroup(ctx context.Context, params ReadGroupLinkClaimGroupParams) (ReadGroupLinkClaimGroupRes, error)
 	// ReadPrivateKey implements readPrivateKey operation.
 	//
 	// Finds the PrivateKey with the requested ID and returns it.

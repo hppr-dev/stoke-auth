@@ -8,6 +8,7 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AddActivator: typeof import('./components/AddActivator.vue')['default']
+    AddLinkDialog: typeof import('./components/dialogs/AddLinkDialog.vue')['default']
     AddUserDialog: typeof import('./components/dialogs/AddUserDialog.vue')['default']
     AppFooter: typeof import('./components/AppFooter.vue')['default']
     ClaimInfo: typeof import('./components/ClaimInfo.vue')['default']
@@ -18,6 +19,7 @@ declare module 'vue' {
     EditUserDialog: typeof import('./components/dialogs/EditUserDialog.vue')['default']
     EntityList: typeof import('./components/EntityList.vue')['default']
     GroupInfo: typeof import('./components/GroupInfo.vue')['default']
+    GroupLinkList: typeof import('./components/GroupLinkList.vue')['default']
     GroupList: typeof import('./components/GroupList.vue')['default']
     HistogramMetric: typeof import('./components/HistogramMetric.vue')['default']
     LogView: typeof import('./components/LogView.vue')['default']

@@ -1,6 +1,6 @@
 // Utilities
 import { defineStore } from 'pinia'
-import { User, UserWithCreds, Group, Claim } from '../util/entityTypes'
+import { User, UserWithCreds, Group, Claim, GroupLink } from '../util/entityTypes'
 import { MetricDataMap } from '../util/prometheus'
 import { appActions } from './app_actions'
 import { managementActions } from './management_actions'
@@ -31,9 +31,11 @@ export const useAppStore = defineStore('app', {
     scratchUser : {} as User | UserWithCreds,
     scratchGroup: {} as Group,
     scratchClaim: {} as Claim,
+    scratchLink:  {} as GroupLink,
 
     currentGroups: [] as Group[],
     currentClaims: [] as Claim[],
+    currentLinks: [] as GroupLink[],
 
     scratchGroups: [] as Group[],
     scratchClaims: [] as Claim[],

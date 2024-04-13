@@ -1160,7 +1160,7 @@ func (s *ClaimGroupUsersList) encodeFields(e *jx.Encoder) {
 	}
 }
 
-var jsonFieldsNameOfClaimGroupUsersList = [9]string{
+var jsonFieldsNameOfClaimGroupUsersList = [7]string{
 	0: "id",
 	1: "fname",
 	2: "lname",
@@ -1175,7 +1175,7 @@ func (s *ClaimGroupUsersList) Decode(d *jx.Decoder) error {
 	if s == nil {
 		return errors.New("invalid: unable to decode ClaimGroupUsersList to nil")
 	}
-	var requiredBitSet [2]uint8
+	var requiredBitSet [1]uint8
 
 	if err := d.ObjBytes(func(d *jx.Decoder, k []byte) error {
 		switch string(k) {
@@ -1252,7 +1252,7 @@ func (s *ClaimGroupUsersList) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"username\"")
 			}
 		case "created_at":
-			requiredBitSet[1] |= 1 << 0
+			requiredBitSet[0] |= 1 << 6
 			if err := func() error {
 				v, err := json.DecodeDateTime(d)
 				s.CreatedAt = v
@@ -1272,9 +1272,8 @@ func (s *ClaimGroupUsersList) Decode(d *jx.Decoder) error {
 	}
 	// Validate required fields.
 	var failures []validate.FieldError
-	for i, mask := range [2]uint8{
-		0b11111111,
-		0b00000001,
+	for i, mask := range [1]uint8{
+		0b01111111,
 	} {
 		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
 			// Mask only required fields and check equality to mask using XOR.
@@ -2210,9 +2209,9 @@ func (s *CreateGroupLinkReq) encodeFields(e *jx.Encoder) {
 		e.Str(s.ResourceSpec)
 	}
 	{
-		if s.ClaimGroups.Set {
-			e.FieldStart("claim_groups")
-			s.ClaimGroups.Encode(e)
+		if s.ClaimGroup.Set {
+			e.FieldStart("claim_group")
+			s.ClaimGroup.Encode(e)
 		}
 	}
 }
@@ -2220,7 +2219,7 @@ func (s *CreateGroupLinkReq) encodeFields(e *jx.Encoder) {
 var jsonFieldsNameOfCreateGroupLinkReq = [3]string{
 	0: "type",
 	1: "resource_spec",
-	2: "claim_groups",
+	2: "claim_group",
 }
 
 // Decode decodes CreateGroupLinkReq from json.
@@ -2256,15 +2255,15 @@ func (s *CreateGroupLinkReq) Decode(d *jx.Decoder) error {
 			}(); err != nil {
 				return errors.Wrap(err, "decode field \"resource_spec\"")
 			}
-		case "claim_groups":
+		case "claim_group":
 			if err := func() error {
-				s.ClaimGroups.Reset()
-				if err := s.ClaimGroups.Decode(d); err != nil {
+				s.ClaimGroup.Reset()
+				if err := s.ClaimGroup.Decode(d); err != nil {
 					return err
 				}
 				return nil
 			}(); err != nil {
-				return errors.Wrap(err, "decode field \"claim_groups\"")
+				return errors.Wrap(err, "decode field \"claim_group\"")
 			}
 		default:
 			return d.Skip()
@@ -2323,14 +2322,14 @@ func (s *CreateGroupLinkReq) UnmarshalJSON(data []byte) error {
 }
 
 // Encode implements json.Marshaler.
-func (s *GroupLinkClaimGroupsRead) Encode(e *jx.Encoder) {
+func (s *GroupLinkClaimGroupRead) Encode(e *jx.Encoder) {
 	e.ObjStart()
 	s.encodeFields(e)
 	e.ObjEnd()
 }
 
 // encodeFields encodes fields.
-func (s *GroupLinkClaimGroupsRead) encodeFields(e *jx.Encoder) {
+func (s *GroupLinkClaimGroupRead) encodeFields(e *jx.Encoder) {
 	{
 		e.FieldStart("id")
 		e.Int(s.ID)
@@ -2345,16 +2344,16 @@ func (s *GroupLinkClaimGroupsRead) encodeFields(e *jx.Encoder) {
 	}
 }
 
-var jsonFieldsNameOfGroupLinkClaimGroupsRead = [3]string{
+var jsonFieldsNameOfGroupLinkClaimGroupRead = [3]string{
 	0: "id",
 	1: "name",
 	2: "description",
 }
 
-// Decode decodes GroupLinkClaimGroupsRead from json.
-func (s *GroupLinkClaimGroupsRead) Decode(d *jx.Decoder) error {
+// Decode decodes GroupLinkClaimGroupRead from json.
+func (s *GroupLinkClaimGroupRead) Decode(d *jx.Decoder) error {
 	if s == nil {
-		return errors.New("invalid: unable to decode GroupLinkClaimGroupsRead to nil")
+		return errors.New("invalid: unable to decode GroupLinkClaimGroupRead to nil")
 	}
 	var requiredBitSet [1]uint8
 
@@ -2401,7 +2400,7 @@ func (s *GroupLinkClaimGroupsRead) Decode(d *jx.Decoder) error {
 		}
 		return nil
 	}); err != nil {
-		return errors.Wrap(err, "decode GroupLinkClaimGroupsRead")
+		return errors.Wrap(err, "decode GroupLinkClaimGroupRead")
 	}
 	// Validate required fields.
 	var failures []validate.FieldError
@@ -2418,8 +2417,8 @@ func (s *GroupLinkClaimGroupsRead) Decode(d *jx.Decoder) error {
 				bitIdx := bits.TrailingZeros8(result)
 				fieldIdx := i*8 + bitIdx
 				var name string
-				if fieldIdx < len(jsonFieldsNameOfGroupLinkClaimGroupsRead) {
-					name = jsonFieldsNameOfGroupLinkClaimGroupsRead[fieldIdx]
+				if fieldIdx < len(jsonFieldsNameOfGroupLinkClaimGroupRead) {
+					name = jsonFieldsNameOfGroupLinkClaimGroupRead[fieldIdx]
 				} else {
 					name = strconv.Itoa(fieldIdx)
 				}
@@ -2440,14 +2439,14 @@ func (s *GroupLinkClaimGroupsRead) Decode(d *jx.Decoder) error {
 }
 
 // MarshalJSON implements stdjson.Marshaler.
-func (s *GroupLinkClaimGroupsRead) MarshalJSON() ([]byte, error) {
+func (s *GroupLinkClaimGroupRead) MarshalJSON() ([]byte, error) {
 	e := jx.Encoder{}
 	s.Encode(&e)
 	return e.Bytes(), nil
 }
 
 // UnmarshalJSON implements stdjson.Unmarshaler.
-func (s *GroupLinkClaimGroupsRead) UnmarshalJSON(data []byte) error {
+func (s *GroupLinkClaimGroupRead) UnmarshalJSON(data []byte) error {
 	d := jx.DecodeBytes(data)
 	return s.Decode(d)
 }
@@ -4662,9 +4661,9 @@ func (s *UpdateGroupLinkReq) encodeFields(e *jx.Encoder) {
 		}
 	}
 	{
-		if s.ClaimGroups.Set {
-			e.FieldStart("claim_groups")
-			s.ClaimGroups.Encode(e)
+		if s.ClaimGroup.Set {
+			e.FieldStart("claim_group")
+			s.ClaimGroup.Encode(e)
 		}
 	}
 }
@@ -4672,7 +4671,7 @@ func (s *UpdateGroupLinkReq) encodeFields(e *jx.Encoder) {
 var jsonFieldsNameOfUpdateGroupLinkReq = [3]string{
 	0: "type",
 	1: "resource_spec",
-	2: "claim_groups",
+	2: "claim_group",
 }
 
 // Decode decodes UpdateGroupLinkReq from json.
@@ -4703,15 +4702,15 @@ func (s *UpdateGroupLinkReq) Decode(d *jx.Decoder) error {
 			}(); err != nil {
 				return errors.Wrap(err, "decode field \"resource_spec\"")
 			}
-		case "claim_groups":
+		case "claim_group":
 			if err := func() error {
-				s.ClaimGroups.Reset()
-				if err := s.ClaimGroups.Decode(d); err != nil {
+				s.ClaimGroup.Reset()
+				if err := s.ClaimGroup.Decode(d); err != nil {
 					return err
 				}
 				return nil
 			}(); err != nil {
-				return errors.Wrap(err, "decode field \"claim_groups\"")
+				return errors.Wrap(err, "decode field \"claim_group\"")
 			}
 		default:
 			return d.Skip()
@@ -4788,7 +4787,7 @@ func (s *UpdateUserReq) encodeFields(e *jx.Encoder) {
 	}
 }
 
-var jsonFieldsNameOfUpdateUserReq = [8]string{
+var jsonFieldsNameOfUpdateUserReq = [6]string{
 	0: "fname",
 	1: "lname",
 	2: "source",
@@ -5067,7 +5066,7 @@ func (s *UserList) encodeFields(e *jx.Encoder) {
 	}
 }
 
-var jsonFieldsNameOfUserList = [9]string{
+var jsonFieldsNameOfUserList = [7]string{
 	0: "id",
 	1: "fname",
 	2: "lname",
@@ -5082,7 +5081,7 @@ func (s *UserList) Decode(d *jx.Decoder) error {
 	if s == nil {
 		return errors.New("invalid: unable to decode UserList to nil")
 	}
-	var requiredBitSet [2]uint8
+	var requiredBitSet [1]uint8
 
 	if err := d.ObjBytes(func(d *jx.Decoder, k []byte) error {
 		switch string(k) {
@@ -5159,7 +5158,7 @@ func (s *UserList) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"username\"")
 			}
 		case "created_at":
-			requiredBitSet[1] |= 1 << 0
+			requiredBitSet[0] |= 1 << 6
 			if err := func() error {
 				v, err := json.DecodeDateTime(d)
 				s.CreatedAt = v
@@ -5179,9 +5178,8 @@ func (s *UserList) Decode(d *jx.Decoder) error {
 	}
 	// Validate required fields.
 	var failures []validate.FieldError
-	for i, mask := range [2]uint8{
-		0b11111111,
-		0b00000001,
+	for i, mask := range [1]uint8{
+		0b01111111,
 	} {
 		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
 			// Mask only required fields and check equality to mask using XOR.
@@ -5266,7 +5264,7 @@ func (s *UserRead) encodeFields(e *jx.Encoder) {
 	}
 }
 
-var jsonFieldsNameOfUserRead = [9]string{
+var jsonFieldsNameOfUserRead = [7]string{
 	0: "id",
 	1: "fname",
 	2: "lname",
@@ -5281,7 +5279,7 @@ func (s *UserRead) Decode(d *jx.Decoder) error {
 	if s == nil {
 		return errors.New("invalid: unable to decode UserRead to nil")
 	}
-	var requiredBitSet [2]uint8
+	var requiredBitSet [1]uint8
 
 	if err := d.ObjBytes(func(d *jx.Decoder, k []byte) error {
 		switch string(k) {
@@ -5358,7 +5356,7 @@ func (s *UserRead) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"username\"")
 			}
 		case "created_at":
-			requiredBitSet[1] |= 1 << 0
+			requiredBitSet[0] |= 1 << 6
 			if err := func() error {
 				v, err := json.DecodeDateTime(d)
 				s.CreatedAt = v
@@ -5378,9 +5376,8 @@ func (s *UserRead) Decode(d *jx.Decoder) error {
 	}
 	// Validate required fields.
 	var failures []validate.FieldError
-	for i, mask := range [2]uint8{
-		0b11111111,
-		0b00000001,
+	for i, mask := range [1]uint8{
+		0b01111111,
 	} {
 		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
 			// Mask only required fields and check equality to mask using XOR.
@@ -5465,7 +5462,7 @@ func (s *UserUpdate) encodeFields(e *jx.Encoder) {
 	}
 }
 
-var jsonFieldsNameOfUserUpdate = [9]string{
+var jsonFieldsNameOfUserUpdate = [7]string{
 	0: "id",
 	1: "fname",
 	2: "lname",
@@ -5480,7 +5477,7 @@ func (s *UserUpdate) Decode(d *jx.Decoder) error {
 	if s == nil {
 		return errors.New("invalid: unable to decode UserUpdate to nil")
 	}
-	var requiredBitSet [2]uint8
+	var requiredBitSet [1]uint8
 
 	if err := d.ObjBytes(func(d *jx.Decoder, k []byte) error {
 		switch string(k) {
@@ -5557,7 +5554,7 @@ func (s *UserUpdate) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"username\"")
 			}
 		case "created_at":
-			requiredBitSet[1] |= 1 << 0
+			requiredBitSet[0] |= 1 << 6
 			if err := func() error {
 				v, err := json.DecodeDateTime(d)
 				s.CreatedAt = v
@@ -5577,9 +5574,8 @@ func (s *UserUpdate) Decode(d *jx.Decoder) error {
 	}
 	// Validate required fields.
 	var failures []validate.FieldError
-	for i, mask := range [2]uint8{
-		0b11111111,
-		0b00000001,
+	for i, mask := range [1]uint8{
+		0b01111111,
 	} {
 		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
 			// Mask only required fields and check equality to mask using XOR.

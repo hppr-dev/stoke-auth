@@ -73,8 +73,8 @@ type ReadClaimRes interface {
 	readClaimRes()
 }
 
-type ReadGroupLinkClaimGroupsRes interface {
-	readGroupLinkClaimGroupsRes()
+type ReadGroupLinkClaimGroupRes interface {
+	readGroupLinkClaimGroupRes()
 }
 
 type ReadGroupLinkRes interface {

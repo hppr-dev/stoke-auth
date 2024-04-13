@@ -3342,7 +3342,7 @@ func decodeReadGroupLinkResponse(resp *http.Response) (res ReadGroupLinkRes, _ e
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
 
-func decodeReadGroupLinkClaimGroupsResponse(resp *http.Response) (res ReadGroupLinkClaimGroupsRes, _ error) {
+func decodeReadGroupLinkClaimGroupResponse(resp *http.Response) (res ReadGroupLinkClaimGroupRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -3358,7 +3358,7 @@ func decodeReadGroupLinkClaimGroupsResponse(resp *http.Response) (res ReadGroupL
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response GroupLinkClaimGroupsRead
+			var response GroupLinkClaimGroupRead
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err

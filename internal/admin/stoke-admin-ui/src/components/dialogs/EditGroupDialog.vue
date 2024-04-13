@@ -14,20 +14,26 @@
         variant="solo-filled"
         label="Description"
         no-resize
+        rows="2"
         v-model="description"
         :rules="[require('Description')]"
         @blur="updateScratchGroup"
       ></v-textarea>
     </v-row>
     <v-row class="mb-5 d-flex flex-grow-1 overflow-auto h-100">
-      <ClaimList
-        showFooter
-        showSearch
-        addButton
-        :claims="store.allClaims"
-        :rowClick="addOrRemoveClaim"
-        :rowProps="setRowProps"
-      />
+      <v-col cols="9">
+        <ClaimList
+          showFooter
+          showSearch
+          addButton
+          :claims="store.allClaims"
+          :rowClick="addOrRemoveClaim"
+          :rowProps="setRowProps"
+        />
+      </v-col>
+      <v-col cols="3">
+        <GroupLinkList v-if="!props.add" :links="store.currentLinks"/>
+      </v-col>
     </v-row>
   </v-sheet>
 </template>

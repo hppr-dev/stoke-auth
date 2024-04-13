@@ -544,8 +544,8 @@ func (h *OgentHandler) CreateGroupLink(ctx context.Context, req *CreateGroupLink
 	b.SetType(req.Type)
 	b.SetResourceSpec(req.ResourceSpec)
 	// Add all edges.
-	if v, ok := req.ClaimGroups.Get(); ok {
-		b.SetClaimGroupsID(v)
+	if v, ok := req.ClaimGroup.Get(); ok {
+		b.SetClaimGroupID(v)
 	}
 	// Persist to storage.
 	e, err := b.Save(ctx)
@@ -615,8 +615,8 @@ func (h *OgentHandler) UpdateGroupLink(ctx context.Context, req *UpdateGroupLink
 		b.SetResourceSpec(v)
 	}
 	// Add all edges.
-	if v, ok := req.ClaimGroups.Get(); ok {
-		b.SetClaimGroupsID(v)
+	if v, ok := req.ClaimGroup.Get(); ok {
+		b.SetClaimGroupID(v)
 	}
 	// Persist to storage.
 	e, err := b.Save(ctx)
@@ -712,9 +712,9 @@ func (h *OgentHandler) ListGroupLink(ctx context.Context, params ListGroupLinkPa
 	return (*ListGroupLinkOKApplicationJSON)(&r), nil
 }
 
-// ReadGroupLinkClaimGroups handles GET /group-links/{id}/claim-groups requests.
-func (h *OgentHandler) ReadGroupLinkClaimGroups(ctx context.Context, params ReadGroupLinkClaimGroupsParams) (ReadGroupLinkClaimGroupsRes, error) {
-	q := h.client.GroupLink.Query().Where(grouplink.IDEQ(params.ID)).QueryClaimGroups()
+// ReadGroupLinkClaimGroup handles GET /group-links/{id}/claim-group requests.
+func (h *OgentHandler) ReadGroupLinkClaimGroup(ctx context.Context, params ReadGroupLinkClaimGroupParams) (ReadGroupLinkClaimGroupRes, error) {
+	q := h.client.GroupLink.Query().Where(grouplink.IDEQ(params.ID)).QueryClaimGroup()
 	e, err := q.Only(ctx)
 	if err != nil {
 		switch {
@@ -735,7 +735,7 @@ func (h *OgentHandler) ReadGroupLinkClaimGroups(ctx context.Context, params Read
 			return nil, err
 		}
 	}
-	return NewGroupLinkClaimGroupsRead(e), nil
+	return NewGroupLinkClaimGroupRead(e), nil
 }
 
 // ListPrivateKey handles GET /private-keys requests.

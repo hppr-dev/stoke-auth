@@ -372,9 +372,9 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 						return
 					}
 					switch elem[0] {
-					case '/': // Prefix: "/claim-groups"
+					case '/': // Prefix: "/claim-group"
 						origElem := elem
-						if l := len("/claim-groups"); len(elem) >= l && elem[0:l] == "/claim-groups" {
+						if l := len("/claim-group"); len(elem) >= l && elem[0:l] == "/claim-group" {
 							elem = elem[l:]
 						} else {
 							break
@@ -384,7 +384,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 							// Leaf node.
 							switch r.Method {
 							case "GET":
-								s.handleReadGroupLinkClaimGroupsRequest([1]string{
+								s.handleReadGroupLinkClaimGroupRequest([1]string{
 									args[0],
 								}, elemIsEscaped, w, r)
 							default:
@@ -1007,9 +1007,9 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 						}
 					}
 					switch elem[0] {
-					case '/': // Prefix: "/claim-groups"
+					case '/': // Prefix: "/claim-group"
 						origElem := elem
-						if l := len("/claim-groups"); len(elem) >= l && elem[0:l] == "/claim-groups" {
+						if l := len("/claim-group"); len(elem) >= l && elem[0:l] == "/claim-group" {
 							elem = elem[l:]
 						} else {
 							break
@@ -1018,11 +1018,11 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 						if len(elem) == 0 {
 							switch method {
 							case "GET":
-								// Leaf: ReadGroupLinkClaimGroups
-								r.name = "ReadGroupLinkClaimGroups"
+								// Leaf: ReadGroupLinkClaimGroup
+								r.name = "ReadGroupLinkClaimGroup"
 								r.summary = "Find the attached ClaimGroup"
-								r.operationID = "readGroupLinkClaimGroups"
-								r.pathPattern = "/group-links/{id}/claim-groups"
+								r.operationID = "readGroupLinkClaimGroup"
+								r.pathPattern = "/group-links/{id}/claim-group"
 								r.args = args
 								r.count = 1
 								return r, true

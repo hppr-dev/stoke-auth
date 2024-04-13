@@ -676,15 +676,15 @@ func (c *GroupLinkClient) GetX(ctx context.Context, id int) *GroupLink {
 	return obj
 }
 
-// QueryClaimGroups queries the claim_groups edge of a GroupLink.
-func (c *GroupLinkClient) QueryClaimGroups(gl *GroupLink) *ClaimGroupQuery {
+// QueryClaimGroup queries the claim_group edge of a GroupLink.
+func (c *GroupLinkClient) QueryClaimGroup(gl *GroupLink) *ClaimGroupQuery {
 	query := (&ClaimGroupClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := gl.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(grouplink.Table, grouplink.FieldID, id),
 			sqlgraph.To(claimgroup.Table, claimgroup.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, grouplink.ClaimGroupsTable, grouplink.ClaimGroupsColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, grouplink.ClaimGroupTable, grouplink.ClaimGroupColumn),
 		)
 		fromV = sqlgraph.Neighbors(gl.driver.Dialect(), step)
 		return fromV, nil

@@ -1319,9 +1319,9 @@ func encodeReadGroupLinkResponse(response ReadGroupLinkRes, w http.ResponseWrite
 	}
 }
 
-func encodeReadGroupLinkClaimGroupsResponse(response ReadGroupLinkClaimGroupsRes, w http.ResponseWriter, span trace.Span) error {
+func encodeReadGroupLinkClaimGroupResponse(response ReadGroupLinkClaimGroupRes, w http.ResponseWriter, span trace.Span) error {
 	switch response := response.(type) {
-	case *GroupLinkClaimGroupsRead:
+	case *GroupLinkClaimGroupRead:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(200)
 		span.SetStatus(codes.Ok, http.StatusText(200))

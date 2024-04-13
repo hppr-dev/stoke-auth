@@ -2094,20 +2094,20 @@ func (s *Server) handleReadGroupLinkRequest(args [1]string, argsEscaped bool, w 
 	}
 }
 
-// handleReadGroupLinkClaimGroupsRequest handles readGroupLinkClaimGroups operation.
+// handleReadGroupLinkClaimGroupRequest handles readGroupLinkClaimGroup operation.
 //
 // Find the attached ClaimGroup of the GroupLink with the given ID.
 //
-// GET /group-links/{id}/claim-groups
-func (s *Server) handleReadGroupLinkClaimGroupsRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
+// GET /group-links/{id}/claim-group
+func (s *Server) handleReadGroupLinkClaimGroupRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("readGroupLinkClaimGroups"),
+		otelogen.OperationID("readGroupLinkClaimGroup"),
 		semconv.HTTPMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/group-links/{id}/claim-groups"),
+		semconv.HTTPRouteKey.String("/group-links/{id}/claim-group"),
 	}
 
 	// Start a span for this request.
-	ctx, span := s.cfg.Tracer.Start(r.Context(), "ReadGroupLinkClaimGroups",
+	ctx, span := s.cfg.Tracer.Start(r.Context(), "ReadGroupLinkClaimGroup",
 		trace.WithAttributes(otelAttrs...),
 		serverSpanKind,
 	)
@@ -2132,11 +2132,11 @@ func (s *Server) handleReadGroupLinkClaimGroupsRequest(args [1]string, argsEscap
 		}
 		err          error
 		opErrContext = ogenerrors.OperationContext{
-			Name: "ReadGroupLinkClaimGroups",
-			ID:   "readGroupLinkClaimGroups",
+			Name: "ReadGroupLinkClaimGroup",
+			ID:   "readGroupLinkClaimGroup",
 		}
 	)
-	params, err := decodeReadGroupLinkClaimGroupsParams(args, argsEscaped, r)
+	params, err := decodeReadGroupLinkClaimGroupParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
 			OperationContext: opErrContext,
@@ -2147,13 +2147,13 @@ func (s *Server) handleReadGroupLinkClaimGroupsRequest(args [1]string, argsEscap
 		return
 	}
 
-	var response ReadGroupLinkClaimGroupsRes
+	var response ReadGroupLinkClaimGroupRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
 			Context:          ctx,
-			OperationName:    "ReadGroupLinkClaimGroups",
+			OperationName:    "ReadGroupLinkClaimGroup",
 			OperationSummary: "Find the attached ClaimGroup",
-			OperationID:      "readGroupLinkClaimGroups",
+			OperationID:      "readGroupLinkClaimGroup",
 			Body:             nil,
 			Params: middleware.Parameters{
 				{
@@ -2166,8 +2166,8 @@ func (s *Server) handleReadGroupLinkClaimGroupsRequest(args [1]string, argsEscap
 
 		type (
 			Request  = struct{}
-			Params   = ReadGroupLinkClaimGroupsParams
-			Response = ReadGroupLinkClaimGroupsRes
+			Params   = ReadGroupLinkClaimGroupParams
+			Response = ReadGroupLinkClaimGroupRes
 		)
 		response, err = middleware.HookMiddleware[
 			Request,
@@ -2176,14 +2176,14 @@ func (s *Server) handleReadGroupLinkClaimGroupsRequest(args [1]string, argsEscap
 		](
 			m,
 			mreq,
-			unpackReadGroupLinkClaimGroupsParams,
+			unpackReadGroupLinkClaimGroupParams,
 			func(ctx context.Context, request Request, params Params) (response Response, err error) {
-				response, err = s.h.ReadGroupLinkClaimGroups(ctx, params)
+				response, err = s.h.ReadGroupLinkClaimGroup(ctx, params)
 				return response, err
 			},
 		)
 	} else {
-		response, err = s.h.ReadGroupLinkClaimGroups(ctx, params)
+		response, err = s.h.ReadGroupLinkClaimGroup(ctx, params)
 	}
 	if err != nil {
 		recordError("Internal", err)
@@ -2191,7 +2191,7 @@ func (s *Server) handleReadGroupLinkClaimGroupsRequest(args [1]string, argsEscap
 		return
 	}
 
-	if err := encodeReadGroupLinkClaimGroupsResponse(response, w, span); err != nil {
+	if err := encodeReadGroupLinkClaimGroupResponse(response, w, span); err != nil {
 		recordError("EncodeResponse", err)
 		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
 			s.cfg.ErrorHandler(ctx, w, r, err)

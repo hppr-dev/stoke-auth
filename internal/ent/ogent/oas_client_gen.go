@@ -137,12 +137,12 @@ type Invoker interface {
 	//
 	// GET /group-links/{id}
 	ReadGroupLink(ctx context.Context, params ReadGroupLinkParams) (ReadGroupLinkRes, error)
-	// ReadGroupLinkClaimGroups invokes readGroupLinkClaimGroups operation.
+	// ReadGroupLinkClaimGroup invokes readGroupLinkClaimGroup operation.
 	//
 	// Find the attached ClaimGroup of the GroupLink with the given ID.
 	//
-	// GET /group-links/{id}/claim-groups
-	ReadGroupLinkClaimGroups(ctx context.Context, params ReadGroupLinkClaimGroupsParams) (ReadGroupLinkClaimGroupsRes, error)
+	// GET /group-links/{id}/claim-group
+	ReadGroupLinkClaimGroup(ctx context.Context, params ReadGroupLinkClaimGroupParams) (ReadGroupLinkClaimGroupRes, error)
 	// ReadPrivateKey invokes readPrivateKey operation.
 	//
 	// Finds the PrivateKey with the requested ID and returns it.
@@ -2189,21 +2189,21 @@ func (c *Client) sendReadGroupLink(ctx context.Context, params ReadGroupLinkPara
 	return result, nil
 }
 
-// ReadGroupLinkClaimGroups invokes readGroupLinkClaimGroups operation.
+// ReadGroupLinkClaimGroup invokes readGroupLinkClaimGroup operation.
 //
 // Find the attached ClaimGroup of the GroupLink with the given ID.
 //
-// GET /group-links/{id}/claim-groups
-func (c *Client) ReadGroupLinkClaimGroups(ctx context.Context, params ReadGroupLinkClaimGroupsParams) (ReadGroupLinkClaimGroupsRes, error) {
-	res, err := c.sendReadGroupLinkClaimGroups(ctx, params)
+// GET /group-links/{id}/claim-group
+func (c *Client) ReadGroupLinkClaimGroup(ctx context.Context, params ReadGroupLinkClaimGroupParams) (ReadGroupLinkClaimGroupRes, error) {
+	res, err := c.sendReadGroupLinkClaimGroup(ctx, params)
 	return res, err
 }
 
-func (c *Client) sendReadGroupLinkClaimGroups(ctx context.Context, params ReadGroupLinkClaimGroupsParams) (res ReadGroupLinkClaimGroupsRes, err error) {
+func (c *Client) sendReadGroupLinkClaimGroup(ctx context.Context, params ReadGroupLinkClaimGroupParams) (res ReadGroupLinkClaimGroupRes, err error) {
 	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("readGroupLinkClaimGroups"),
+		otelogen.OperationID("readGroupLinkClaimGroup"),
 		semconv.HTTPMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/group-links/{id}/claim-groups"),
+		semconv.HTTPRouteKey.String("/group-links/{id}/claim-group"),
 	}
 
 	// Run stopwatch.
@@ -2218,7 +2218,7 @@ func (c *Client) sendReadGroupLinkClaimGroups(ctx context.Context, params ReadGr
 	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, "ReadGroupLinkClaimGroups",
+	ctx, span := c.cfg.Tracer.Start(ctx, "ReadGroupLinkClaimGroup",
 		trace.WithAttributes(otelAttrs...),
 		clientSpanKind,
 	)
@@ -2255,7 +2255,7 @@ func (c *Client) sendReadGroupLinkClaimGroups(ctx context.Context, params ReadGr
 		}
 		pathParts[1] = encoded
 	}
-	pathParts[2] = "/claim-groups"
+	pathParts[2] = "/claim-group"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeRequest"
@@ -2272,7 +2272,7 @@ func (c *Client) sendReadGroupLinkClaimGroups(ctx context.Context, params ReadGr
 	defer resp.Body.Close()
 
 	stage = "DecodeResponse"
-	result, err := decodeReadGroupLinkClaimGroupsResponse(resp)
+	result, err := decodeReadGroupLinkClaimGroupResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}

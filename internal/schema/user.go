@@ -24,9 +24,15 @@ func (User) Fields() []ent.Field {
 				field.String("username").
 					Unique(),
 				field.String("password").
-					Annotations(entoas.ListOperation(entoas.OperationPolicy(entoas.PolicyExclude))),
+					Optional().
+					Annotations(
+						entoas.Skip(true),
+					),
 				field.String("salt").
-					Annotations(entoas.ListOperation(entoas.OperationPolicy(entoas.PolicyExclude))),
+					Optional().
+					Annotations(
+						entoas.Skip(true),
+					),
 				field.Time("created_at").
 					Immutable().
 					Default(time.Now).

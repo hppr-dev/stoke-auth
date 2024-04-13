@@ -10,7 +10,7 @@
       <AddActivator
         v-if="props.addButton"
         buttonText="Add Group"
-        titleIcon="mdi-account-multiple"
+        :titleIcon="icons.GROUP"
         :onSave="store.addScratchGroup"
         :onCancel="store.resetScratchGroup"
       >
@@ -42,6 +42,5 @@
   ]
 
   const store = useAppStore()
-
 
 </script>

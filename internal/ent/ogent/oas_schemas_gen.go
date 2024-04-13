@@ -432,7 +432,6 @@ func (s *ClaimGroupUsersList) SetUsername(val string) {
 	s.Username = val
 }
 
-
 // SetCreatedAt sets the value of CreatedAt.
 func (s *ClaimGroupUsersList) SetCreatedAt(val time.Time) {
 	s.CreatedAt = val
@@ -738,7 +737,7 @@ func (s *CreateClaimReq) SetClaimGroups(val []int) {
 type CreateGroupLinkReq struct {
 	Type         string `json:"type"`
 	ResourceSpec string `json:"resource_spec"`
-	ClaimGroups  OptInt `json:"claim_groups"`
+	ClaimGroup   OptInt `json:"claim_group"`
 }
 
 // GetType returns the value of Type.
@@ -751,9 +750,9 @@ func (s *CreateGroupLinkReq) GetResourceSpec() string {
 	return s.ResourceSpec
 }
 
-// GetClaimGroups returns the value of ClaimGroups.
-func (s *CreateGroupLinkReq) GetClaimGroups() OptInt {
-	return s.ClaimGroups
+// GetClaimGroup returns the value of ClaimGroup.
+func (s *CreateGroupLinkReq) GetClaimGroup() OptInt {
+	return s.ClaimGroup
 }
 
 // SetType sets the value of Type.
@@ -766,9 +765,9 @@ func (s *CreateGroupLinkReq) SetResourceSpec(val string) {
 	s.ResourceSpec = val
 }
 
-// SetClaimGroups sets the value of ClaimGroups.
-func (s *CreateGroupLinkReq) SetClaimGroups(val OptInt) {
-	s.ClaimGroups = val
+// SetClaimGroup sets the value of ClaimGroup.
+func (s *CreateGroupLinkReq) SetClaimGroup(val OptInt) {
+	s.ClaimGroup = val
 }
 
 // DeleteClaimGroupNoContent is response for DeleteClaimGroup operation.
@@ -786,44 +785,44 @@ type DeleteGroupLinkNoContent struct{}
 
 func (*DeleteGroupLinkNoContent) deleteGroupLinkRes() {}
 
-// Ref: #/components/schemas/GroupLink_ClaimGroupsRead
-type GroupLinkClaimGroupsRead struct {
+// Ref: #/components/schemas/GroupLink_ClaimGroupRead
+type GroupLinkClaimGroupRead struct {
 	ID          int    `json:"id"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
 }
 
 // GetID returns the value of ID.
-func (s *GroupLinkClaimGroupsRead) GetID() int {
+func (s *GroupLinkClaimGroupRead) GetID() int {
 	return s.ID
 }
 
 // GetName returns the value of Name.
-func (s *GroupLinkClaimGroupsRead) GetName() string {
+func (s *GroupLinkClaimGroupRead) GetName() string {
 	return s.Name
 }
 
 // GetDescription returns the value of Description.
-func (s *GroupLinkClaimGroupsRead) GetDescription() string {
+func (s *GroupLinkClaimGroupRead) GetDescription() string {
 	return s.Description
 }
 
 // SetID sets the value of ID.
-func (s *GroupLinkClaimGroupsRead) SetID(val int) {
+func (s *GroupLinkClaimGroupRead) SetID(val int) {
 	s.ID = val
 }
 
 // SetName sets the value of Name.
-func (s *GroupLinkClaimGroupsRead) SetName(val string) {
+func (s *GroupLinkClaimGroupRead) SetName(val string) {
 	s.Name = val
 }
 
 // SetDescription sets the value of Description.
-func (s *GroupLinkClaimGroupsRead) SetDescription(val string) {
+func (s *GroupLinkClaimGroupRead) SetDescription(val string) {
 	s.Description = val
 }
 
-func (*GroupLinkClaimGroupsRead) readGroupLinkClaimGroupsRes() {}
+func (*GroupLinkClaimGroupRead) readGroupLinkClaimGroupRes() {}
 
 // Ref: #/components/schemas/GroupLinkCreate
 type GroupLinkCreate struct {
@@ -1241,7 +1240,7 @@ func (*R400) listUserClaimGroupsRes()      {}
 func (*R400) listUserRes()                 {}
 func (*R400) readClaimGroupRes()           {}
 func (*R400) readClaimRes()                {}
-func (*R400) readGroupLinkClaimGroupsRes() {}
+func (*R400) readGroupLinkClaimGroupRes()  {}
 func (*R400) readGroupLinkRes()            {}
 func (*R400) readPrivateKeyRes()           {}
 func (*R400) readUserRes()                 {}
@@ -1301,7 +1300,7 @@ func (*R404) listUserClaimGroupsRes()      {}
 func (*R404) listUserRes()                 {}
 func (*R404) readClaimGroupRes()           {}
 func (*R404) readClaimRes()                {}
-func (*R404) readGroupLinkClaimGroupsRes() {}
+func (*R404) readGroupLinkClaimGroupRes()  {}
 func (*R404) readGroupLinkRes()            {}
 func (*R404) readPrivateKeyRes()           {}
 func (*R404) readUserRes()                 {}
@@ -1364,7 +1363,7 @@ func (*R409) listUserClaimGroupsRes()      {}
 func (*R409) listUserRes()                 {}
 func (*R409) readClaimGroupRes()           {}
 func (*R409) readClaimRes()                {}
-func (*R409) readGroupLinkClaimGroupsRes() {}
+func (*R409) readGroupLinkClaimGroupRes()  {}
 func (*R409) readGroupLinkRes()            {}
 func (*R409) readPrivateKeyRes()           {}
 func (*R409) readUserRes()                 {}
@@ -1427,7 +1426,7 @@ func (*R500) listUserClaimGroupsRes()      {}
 func (*R500) listUserRes()                 {}
 func (*R500) readClaimGroupRes()           {}
 func (*R500) readClaimRes()                {}
-func (*R500) readGroupLinkClaimGroupsRes() {}
+func (*R500) readGroupLinkClaimGroupRes()  {}
 func (*R500) readGroupLinkRes()            {}
 func (*R500) readPrivateKeyRes()           {}
 func (*R500) readUserRes()                 {}
@@ -1555,7 +1554,7 @@ func (s *UpdateClaimReq) SetClaimGroups(val []int) {
 type UpdateGroupLinkReq struct {
 	Type         OptString `json:"type"`
 	ResourceSpec OptString `json:"resource_spec"`
-	ClaimGroups  OptInt    `json:"claim_groups"`
+	ClaimGroup   OptInt    `json:"claim_group"`
 }
 
 // GetType returns the value of Type.
@@ -1568,9 +1567,9 @@ func (s *UpdateGroupLinkReq) GetResourceSpec() OptString {
 	return s.ResourceSpec
 }
 
-// GetClaimGroups returns the value of ClaimGroups.
-func (s *UpdateGroupLinkReq) GetClaimGroups() OptInt {
-	return s.ClaimGroups
+// GetClaimGroup returns the value of ClaimGroup.
+func (s *UpdateGroupLinkReq) GetClaimGroup() OptInt {
+	return s.ClaimGroup
 }
 
 // SetType sets the value of Type.
@@ -1583,9 +1582,9 @@ func (s *UpdateGroupLinkReq) SetResourceSpec(val OptString) {
 	s.ResourceSpec = val
 }
 
-// SetClaimGroups sets the value of ClaimGroups.
-func (s *UpdateGroupLinkReq) SetClaimGroups(val OptInt) {
-	s.ClaimGroups = val
+// SetClaimGroup sets the value of ClaimGroup.
+func (s *UpdateGroupLinkReq) SetClaimGroup(val OptInt) {
+	s.ClaimGroup = val
 }
 
 type UpdateUserReq struct {

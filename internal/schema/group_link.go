@@ -19,7 +19,7 @@ func (GroupLink) Fields() []ent.Field {
 
 func (GroupLink) Edges() []ent.Edge {
 	return []ent.Edge {
-		edge.From("claim_groups", ClaimGroup.Type).
+		edge.From("claim_group", ClaimGroup.Type).
 			Ref("group_links").
 			Unique(),
 	}

@@ -34,6 +34,9 @@ export const managementActions = {
   fetchClaimsForGroup: async function(groupId: number) {
     await this.simpleGet(`/api/admin/claim-groups/${groupId}/claims`, "currentClaims", true)
   },
+  fetchLinksForGroup: async function(groupId: number) {
+    await this.simpleGet(`/api/admin/claim-groups/${groupId}/group-links`, "currentLinks", true)
+  },
   simplePatch: async function(endpoint : string, stateToSend : string) {
     const value : User | Claim | Group = this[stateToSend]
     const response = await fetch(`${this.api_url}${endpoint}/${value.id}`, {
@@ -100,7 +103,6 @@ export const managementActions = {
       .then(this.fetchAllUsers)
   },
   addScratchGroup: function() {
-
     return this.simplePost("/api/admin/claim-groups", "scratchGroup")
       .then( () => this.scratchGroup = {} )
       .then(this.fetchAllGroups)
@@ -109,6 +111,13 @@ export const managementActions = {
     return this.simplePost("/api/admin/claims", "scratchClaim")
       .then( () => this.scratchClaim = {} )
       .then(this.fetchAllClaims)
+  },
+  addScratchLink: function() {
+    return this.simplePost("/api/admin/group-links", "scratchLink")
+      .then( () => {
+        this.scratchLink = {}
+        this.fetchLinksForGroup(this.currentGroup.id)
+      })
   },
   resetScratchUser: function() {
     this.scratchUser = {}
@@ -131,6 +140,9 @@ export const managementActions = {
   },
   resetCurrentClaim: function() {
     this.currentClaim = {}
+  },
+  resetCurrentLink: function() {
+    this.currentLink = {}
   },
   resetSelections: function() {
     this.scratchUser = {}
