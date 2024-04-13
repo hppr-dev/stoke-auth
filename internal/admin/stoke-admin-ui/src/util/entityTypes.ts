@@ -1,11 +1,11 @@
 export interface User {
-  id: number,
-  fname: string,
-  lname: string,
-  username: string,
-  email: string,
-  created_at: string,
-  provider: string,
+  id: number
+  fname: string
+  lname: string
+  username: string
+  email: string
+  created_at: string
+  source: string
 }
 
 export interface UserWithCreds {
@@ -16,13 +16,13 @@ export interface UserWithCreds {
   email: string
   created_at: string
   password: string
-  provider: string
 }
 
 export interface Group {
   id: number
   name: string
   description: string
+  claims: number[]
 }
 
 export interface Claim {

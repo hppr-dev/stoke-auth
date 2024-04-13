@@ -6,6 +6,7 @@ export default {
   CLAIM_SEARCH: "mdi-book-search",
   USER_SEARCH: "mdi-account-search",
   GROUP_SEARCH: "mdi-folder-search",
+  LOCAL: "mdi-account-cowboy-hat",
   LINK: "mdi-link-variant",
   ADD_LINK: "mdi-link-variant-plus",
   DELETE_LINK: "mdi-link-variant-remove",
@@ -17,4 +18,5 @@ export default {
   KEYS: "mdi-key-chain",
   EDIT: "mdi-pencil",
   ADD:  "mdi-plus",
+  DELETE: "mdi-trash-can",
 }

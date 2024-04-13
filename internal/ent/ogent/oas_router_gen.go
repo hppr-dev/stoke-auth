@@ -489,6 +489,10 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 					if len(elem) == 0 {
 						switch r.Method {
+						case "DELETE":
+							s.handleDeleteUserRequest([1]string{
+								args[0],
+							}, elemIsEscaped, w, r)
 						case "GET":
 							s.handleReadUserRequest([1]string{
 								args[0],
@@ -498,7 +502,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 								args[0],
 							}, elemIsEscaped, w, r)
 						default:
-							s.notAllowed(w, r, "GET,PATCH")
+							s.notAllowed(w, r, "DELETE,GET,PATCH")
 						}
 
 						return
@@ -1136,6 +1140,14 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 
 					if len(elem) == 0 {
 						switch method {
+						case "DELETE":
+							r.name = "DeleteUser"
+							r.summary = "Deletes a User by ID"
+							r.operationID = "deleteUser"
+							r.pathPattern = "/users/{id}"
+							r.args = args
+							r.count = 1
+							return r, true
 						case "GET":
 							r.name = "ReadUser"
 							r.summary = "Find a User by ID"

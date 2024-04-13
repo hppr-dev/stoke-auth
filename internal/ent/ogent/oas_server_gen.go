@@ -44,6 +44,12 @@ type Handler interface {
 	//
 	// DELETE /group-links/{id}
 	DeleteGroupLink(ctx context.Context, params DeleteGroupLinkParams) (DeleteGroupLinkRes, error)
+	// DeleteUser implements deleteUser operation.
+	//
+	// Deletes the User with the requested ID.
+	//
+	// DELETE /users/{id}
+	DeleteUser(ctx context.Context, params DeleteUserParams) (DeleteUserRes, error)
 	// ListClaim implements listClaim operation.
 	//
 	// List Claims.

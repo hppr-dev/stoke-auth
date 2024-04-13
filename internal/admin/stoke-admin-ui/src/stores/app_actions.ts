@@ -25,6 +25,7 @@ export const appActions = {
       }
 
       // Artificial wait to make it seem as robust as it is
+      // and wait for any updates that need to happen
       await new Promise((r) => setTimeout(r, 500))
 
       callback()

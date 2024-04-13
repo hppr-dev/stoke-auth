@@ -9,6 +9,7 @@
           :claims="store.allClaims"
           :rowClick="setCurrentClaim"
           :rowProps="highlightSelected"
+          :deleteClick="store.deleteClaim"
         />
       </v-col>
       <v-col class="ml-n3 h-100" lg="5" md="6" sm="12">

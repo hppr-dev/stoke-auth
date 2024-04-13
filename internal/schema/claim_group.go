@@ -2,6 +2,7 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
@@ -21,7 +22,10 @@ func (ClaimGroup) Fields() []ent.Field {
 func (ClaimGroup) Edges() []ent.Edge {
 	return []ent.Edge {
 		edge.To("users", User.Type),
-		edge.To("group_links", GroupLink.Type),
+		edge.To("group_links", GroupLink.Type).
+			Annotations(
+				entsql.OnDelete(entsql.Cascade),
+			),
 		edge.From("claims", Claim.Type).
 			Ref("claim_groups"),
 	}

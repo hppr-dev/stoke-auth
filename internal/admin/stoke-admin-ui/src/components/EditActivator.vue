@@ -75,7 +75,7 @@
         dialogOpen.value = false
       } catch (err) {
         console.error(err)
-        errorMessage.value = err
+        errorMsg.value = err
       }
     } else {
       dialogOpen.value = false

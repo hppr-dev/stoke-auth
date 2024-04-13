@@ -801,6 +801,32 @@ func (h *OgentHandler) ReadPrivateKey(ctx context.Context, params ReadPrivateKey
 	return NewPrivateKeyRead(e), nil
 }
 
+// DeleteUser handles DELETE /users/{id} requests.
+func (h *OgentHandler) DeleteUser(ctx context.Context, params DeleteUserParams) (DeleteUserRes, error) {
+	err := h.client.User.DeleteOneID(params.ID).Exec(ctx)
+	if err != nil {
+		switch {
+		case ent.IsNotFound(err):
+			return &R404{
+				Code:   http.StatusNotFound,
+				Status: http.StatusText(http.StatusNotFound),
+				Errors: rawError(err),
+			}, nil
+		case ent.IsConstraintError(err):
+			return &R409{
+				Code:   http.StatusConflict,
+				Status: http.StatusText(http.StatusConflict),
+				Errors: rawError(err),
+			}, nil
+		default:
+			// Let the server handle the error.
+			return nil, err
+		}
+	}
+	return new(DeleteUserNoContent), nil
+
+}
+
 // ListUser handles GET /users requests.
 func (h *OgentHandler) ListUser(ctx context.Context, params ListUserParams) (ListUserRes, error) {
 	q := h.client.User.Query()

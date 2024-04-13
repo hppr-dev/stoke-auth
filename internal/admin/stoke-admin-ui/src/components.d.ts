@@ -13,6 +13,7 @@ declare module 'vue' {
     AppFooter: typeof import('./components/AppFooter.vue')['default']
     ClaimInfo: typeof import('./components/ClaimInfo.vue')['default']
     ClaimList: typeof import('./components/ClaimList.vue')['default']
+    DeleteActivator: typeof import('./components/DeleteActivator.vue')['default']
     EditActivator: typeof import('./components/EditActivator.vue')['default']
     EditClaimDialog: typeof import('./components/dialogs/EditClaimDialog.vue')['default']
     EditGroupDialog: typeof import('./components/dialogs/EditGroupDialog.vue')['default']

@@ -67,6 +67,15 @@ func (UnimplementedHandler) DeleteGroupLink(ctx context.Context, params DeleteGr
 	return r, ht.ErrNotImplemented
 }
 
+// DeleteUser implements deleteUser operation.
+//
+// Deletes the User with the requested ID.
+//
+// DELETE /users/{id}
+func (UnimplementedHandler) DeleteUser(ctx context.Context, params DeleteUserParams) (r DeleteUserRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
 // ListClaim implements listClaim operation.
 //
 // List Claims.

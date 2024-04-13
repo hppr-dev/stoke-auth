@@ -1,11 +1,14 @@
 <template>
   <EntityList
+    deleteItemKey="name"
     :items="groups"
     :headers="headers"
     :showSearch="props.showSearch"
     :searchIcon="icons.GROUP_SEARCH"
     :showFooter="props.showFooter"
-    :rowClick="props.rowClick">
+    :rowClick="props.rowClick"
+    :deleteClick="props.deleteGroup"
+    >
     <template #footer-prepend>
       <AddActivator
         v-if="props.addButton"
@@ -33,10 +36,10 @@
     addButton?: boolean,
     showSearch?: boolean,
     showFooter?: boolean,
+    deleteGroup?: Function
   }>()
 
   const headers = [
-    { key : "id", title: "ID" },
     { key : "name", title: "Group Name" },
     { key : "description", title: "Description"},
   ]

@@ -22,11 +22,7 @@ func (l LocalProvider) Init(ctx context.Context) error {
 	return l.checkForSuperUser(ctx)
 }
 
-func (l LocalProvider) AddUser(provider ProviderType, fname, lname, email, username, password string, superUser bool, ctx context.Context) error {
-	if provider != LOCAL {
-		return ProviderTypeNotSupported
-	}
-
+func (l LocalProvider) AddUser(fname, lname, email, username, password string, superUser bool, ctx context.Context) error {
 	logger := zerolog.Ctx(ctx)
 	ctx, span := tel.GetTracer().Start(ctx, "LoginApiHandler.ServeHTTP")
 	defer span.End()
@@ -108,7 +104,6 @@ func (l LocalProvider) GetUserClaims(username, password string, ctx context.Cont
 			),
 		).
 		WithClaimGroups(func (q *ent.ClaimGroupQuery) {
-			q.Where(claimgroup.Not(claimgroup.HasGroupLinks()))
 			q.WithClaims()
 		}).
 		Only(ctx)
@@ -216,7 +211,7 @@ func (l LocalProvider) checkForSuperUser(ctx context.Context) error {
 	}
 	if len(superGroup.Edges.Users) == 0 {
 		randomPass := l.genSalt()
-		l.AddUser(LOCAL, "Stoke", "Admin", "sadmin@localhost", "sadmin", randomPass, true, ctx)
+		l.AddUser("Stoke", "Admin", "sadmin@localhost", "sadmin", randomPass, true, ctx)
 		zerolog.Ctx(ctx).Info().
 			Str("password", randomPass).
 			Msg("Created superuser 'sadmin'")
@@ -224,11 +219,7 @@ func (l LocalProvider) checkForSuperUser(ctx context.Context) error {
 	return nil
 }
 
-func (l LocalProvider) UpdateUserPassword(provider ProviderType, username, oldPassword, newPassword string, force bool, ctx context.Context) error {
-	if provider != LOCAL {
-		return ProviderTypeNotSupported
-	}
-
+func (l LocalProvider) UpdateUserPassword(username, oldPassword, newPassword string, force bool, ctx context.Context) error {
 	logger := zerolog.Ctx(ctx)
 	ctx, span := tel.GetTracer().Start(ctx, "LocalUserProvider.UpdateUser")
 	defer span.End()

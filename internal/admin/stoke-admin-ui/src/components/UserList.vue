@@ -1,12 +1,14 @@
 <template>
   <EntityList
-    searchIcon="mdi-account-search"
+    searchIcon="icons.USER_SEARCH"
+    deleteItemKey="username"
     :items="store.allUsers"
     :headers="headers"
     :showSearch="props.showSearch"
     :showFooter="props.showFooter"
     :rowClick="setCurrentUser"
     :rowProps="highlightSelected"
+    :deleteClick="store.deleteUser"
   >
     <template #footer-prepend>
       <AddActivator
@@ -19,6 +21,12 @@
         <AddUserDialog />
       </AddActivator>
     </template>
+  <template #row-icon="{ item }">
+      <v-icon
+        :icon="item.source == 'LDAP'? icons.LINK: icons.LOCAL"
+        :color="item.source == 'LDAP'? 'success': 'warning'"
+      > </v-icon>
+    </template>
   </EntityList>
 </template>
 
@@ -26,6 +34,7 @@
   import { defineProps, onMounted } from "vue"
   import { useAppStore } from "../stores/app"
   import { User } from "../util/entityTypes"
+  import icons from "../util/icons"
   import AddUserDialog from "./dialogs/AddUserDialog.vue";
 
   const props= defineProps<{
@@ -35,10 +44,10 @@
   }>()
 
   const headers = [
-    { key: "id",  title: "ID" },
+    { key: "username", title: "Username" },
+    { key: "row-icon", title:"Type", value: "source" },
     { key: "fname", title: "First Name" },
     { key: "lname", title: "Last Name" },
-    { key: "username", title: "Username" },
     { key: "email", title: "Email" },
   ]
 

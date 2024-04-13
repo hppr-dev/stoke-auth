@@ -785,6 +785,11 @@ type DeleteGroupLinkNoContent struct{}
 
 func (*DeleteGroupLinkNoContent) deleteGroupLinkRes() {}
 
+// DeleteUserNoContent is response for DeleteUser operation.
+type DeleteUserNoContent struct{}
+
+func (*DeleteUserNoContent) deleteUserRes() {}
+
 // Ref: #/components/schemas/GroupLink_ClaimGroupRead
 type GroupLinkClaimGroupRead struct {
 	ID          int    `json:"id"`
@@ -1228,6 +1233,7 @@ func (*R400) createGroupLinkRes()          {}
 func (*R400) deleteClaimGroupRes()         {}
 func (*R400) deleteClaimRes()              {}
 func (*R400) deleteGroupLinkRes()          {}
+func (*R400) deleteUserRes()               {}
 func (*R400) listClaimClaimGroupsRes()     {}
 func (*R400) listClaimGroupClaimsRes()     {}
 func (*R400) listClaimGroupGroupLinksRes() {}
@@ -1288,6 +1294,7 @@ func (s *R404) SetErrors(val jx.Raw) {
 func (*R404) deleteClaimGroupRes()         {}
 func (*R404) deleteClaimRes()              {}
 func (*R404) deleteGroupLinkRes()          {}
+func (*R404) deleteUserRes()               {}
 func (*R404) listClaimClaimGroupsRes()     {}
 func (*R404) listClaimGroupClaimsRes()     {}
 func (*R404) listClaimGroupGroupLinksRes() {}
@@ -1351,6 +1358,7 @@ func (*R409) createGroupLinkRes()          {}
 func (*R409) deleteClaimGroupRes()         {}
 func (*R409) deleteClaimRes()              {}
 func (*R409) deleteGroupLinkRes()          {}
+func (*R409) deleteUserRes()               {}
 func (*R409) listClaimClaimGroupsRes()     {}
 func (*R409) listClaimGroupClaimsRes()     {}
 func (*R409) listClaimGroupGroupLinksRes() {}
@@ -1414,6 +1422,7 @@ func (*R500) createGroupLinkRes()          {}
 func (*R500) deleteClaimGroupRes()         {}
 func (*R500) deleteClaimRes()              {}
 func (*R500) deleteGroupLinkRes()          {}
+func (*R500) deleteUserRes()               {}
 func (*R500) listClaimClaimGroupsRes()     {}
 func (*R500) listClaimGroupClaimsRes()     {}
 func (*R500) listClaimGroupGroupLinksRes() {}

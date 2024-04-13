@@ -1,11 +1,13 @@
 <template>
   <EntityList
+    deleteItemKey="name"
     :items="claims"
     :headers="headers"
     :showSearch="props.showSearch"
     :searchIcon="icons.CLAIM_SEARCH"
     :showFooter="props.showFooter"
     :rowClick="props.rowClick"
+    :deleteClick="props.deleteClick"
   >
     <template #footer-prepend>
       <AddActivator
@@ -34,6 +36,7 @@
     addButton?: boolean,
     showSearch?: boolean,
     showFooter?: boolean,
+    deleteClick?: Function,
   }>()
 
   const headers = [

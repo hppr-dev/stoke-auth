@@ -9,6 +9,7 @@
           :groups="store.allGroups"
           :rowClick="setCurrentGroup"
           :rowProps="highlightSelected"
+          :deleteClick="store.deleteGroup"
         />
       </v-col>
       <v-col class="ml-n3 h-100" lg="5" md="6" sm="12">

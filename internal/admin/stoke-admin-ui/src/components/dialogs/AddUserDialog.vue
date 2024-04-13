@@ -81,7 +81,6 @@
         username: username.value,
         email: email.value,
         password: password.value,
-        provider: "local",
       } as UserWithCreds,
     })
   }

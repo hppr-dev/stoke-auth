@@ -47,10 +47,7 @@ type Users struct {
 
 func (u Users) withContext(ctx context.Context) context.Context {
 	logger := zerolog.Ctx(ctx)
-	multiProvider := &usr.MultiProvider{}
-
-	// Will always have local user database
-	multiProvider.Add(usr.LOCAL, usr.LocalProvider{})
+	var provider usr.Provider
 
 	if u.EnableLDAP {
 		groupFilterTemplate := template.New("group-filter")
@@ -71,7 +68,7 @@ func (u Users) withContext(ctx context.Context) context.Context {
 				Msg("Could not parse user filter template")
 		}
 
-		multiProvider.Add(usr.LDAP, usr.LDAPUserProvider{
+		provider = usr.LDAPUserProvider{
 			ServerURL: u.ServerURL,
 			BindUserDN: u.BindUserDN,
 			BindUserPassword: u.BindUserPassword,
@@ -89,15 +86,17 @@ func (u Users) withContext(ctx context.Context) context.Context {
 
 			SearchTimeout: u.SearchTimeout,
 			SkipCertificateVerify: u.SkipCertificateVerify,
-		})
+		}
+	} else {
+		provider = usr.LocalProvider{}
 	}
 
-	err := multiProvider.Init(ctx)
+	err := provider.Init(ctx)
 	if err != nil {
 		logger.Fatal().
 			Err(err).
-			Msg("Could not initialize user providers")
+			Msg("Could not initialize user provider")
 	}
 
-	return context.WithValue(ctx, "user-provider", multiProvider)
+	return context.WithValue(ctx, "user-provider", provider)
 }

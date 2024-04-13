@@ -25,6 +25,10 @@ type DeleteGroupLinkRes interface {
 	deleteGroupLinkRes()
 }
 
+type DeleteUserRes interface {
+	deleteUserRes()
+}
+
 type ListClaimClaimGroupsRes interface {
 	listClaimClaimGroupsRes()
 }

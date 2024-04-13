@@ -31,7 +31,7 @@ func (h UserHandler) handleCreate(res http.ResponseWriter, req *http.Request) {
 	_, span := tel.GetTracer().Start(ctx, "UserHandler.handleCreate")
 	defer span.End()
 
-	var fname, lname, email, username, password, provider, superuser string
+	var fname, lname, email, username, password, superuser string
 
 	decoder := jx.Decode(req.Body, 256)
 	err := decoder.Obj(func (d *jx.Decoder, key string) error {
@@ -47,8 +47,6 @@ func (h UserHandler) handleCreate(res http.ResponseWriter, req *http.Request) {
 			username, err = d.Str()
 		case "password":
 			password, err = d.Str()
-		case "provider":
-			provider, err = d.Str()
 		case "superuser":
 			superuser, err = d.Str()
 		default:
@@ -63,31 +61,18 @@ func (h UserHandler) handleCreate(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if fname == "" || lname == "" || email == "" || username == "" || provider == "" {
+	if fname == "" || lname == "" || email == "" || username == "" {
 		logger.Debug().
 			Str("fname", fname).
 			Str("lname", lname).
 			Str("email", email).
 			Str("username", username).
-			Str("provider", provider).
 			Msg("Request validation failed.")
 		BadRequest.Write(res)
 		return
 	}
 
-	var providerType usr.ProviderType
-	switch provider {
-	case "LDAP", "ldap":
-		providerType = usr.LDAP
-	case "LOCAL", "local":
-		providerType = usr.LOCAL
-	default:
-		logger.Error().Str("provider", provider).Msg("Unsupported Provider Type")
-		BadRequest.Write(res)
-		return
-	}
-
-	if err := usr.ProviderFromCtx(ctx).AddUser(providerType, fname, lname, email, username, password, superuser == "yes", ctx) ; err != nil {
+	if err := usr.ProviderFromCtx(ctx).AddUser(fname, lname, email, username, password, superuser == "yes", ctx) ; err != nil {
 		BadRequest.WriteWithError(res, err)
 		return
 	}
@@ -135,7 +120,7 @@ func (h UserHandler) handleUpdate(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if err := usr.ProviderFromCtx(ctx).UpdateUserPassword(usr.LOCAL, username, oldPassword, newPassword, force, ctx); err != nil {
+	if err := usr.ProviderFromCtx(ctx).UpdateUserPassword(username, oldPassword, newPassword, force, ctx); err != nil {
 		logger.Error().Err(err).Msg("Failed to update user")
 		BadRequest.WriteWithError(res, err)
 		return

@@ -58,7 +58,7 @@ var (
 				Symbol:     "group_links_claim_groups_group_links",
 				Columns:    []*schema.Column{GroupLinksColumns[3]},
 				RefColumns: []*schema.Column{ClaimGroupsColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.Cascade,
 			},
 		},
 	}

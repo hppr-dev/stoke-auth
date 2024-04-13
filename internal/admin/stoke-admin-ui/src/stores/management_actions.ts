@@ -103,6 +103,7 @@ export const managementActions = {
       .then(this.fetchAllUsers)
   },
   addScratchGroup: function() {
+    this.scratchGroup.claims = this.scratchClaims.map((c : Claim) => c.id)
     return this.simplePost("/api/admin/claim-groups", "scratchGroup")
       .then( () => this.scratchGroup = {} )
       .then(this.fetchAllGroups)
@@ -118,6 +119,35 @@ export const managementActions = {
         this.scratchLink = {}
         this.fetchLinksForGroup(this.currentGroup.id)
       })
+  },
+  simpleDelete: async function(endpoint : string, value : User | Claim | Group) {
+    const response = await fetch(`${this.api_url}${endpoint}/${value.id}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type"  : "application/json",
+        "Authorization" : `Token ${this.token}`,
+      },
+      body : JSON.stringify(value),
+    })
+
+    if ( !response.ok ){
+      throw new Error(response.statusText)
+    }
+  },
+  deleteUser: function(user: User) {
+    return this.simpleDelete("/api/admin/users", user)
+      .then(() => this.currentUser = {})
+      .then(this.fetchAllUsers)
+  },
+  deleteGroup: function(group: Group) {
+    return this.simpleDelete("/api/admin/claim-groups", group)
+      .then(() => this.currentGroup = {})
+      .then(this.fetchAllGroups)
+  },
+  deleteClaim: function(claim: Claim) {
+    return this.simpleDelete("/api/admin/claims", claim)
+      .then(() => this.currentClaim = {})
+      .then(this.fetchAllClaims)
   },
   resetScratchUser: function() {
     this.scratchUser = {}
