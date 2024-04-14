@@ -77,26 +77,39 @@ TODO document endpoint usage
 
 # Performance/Load Benchmarks
 
-The following results were found using the scripts in the benchmark and benchmark/k6 directory.
-Tests were run with a sqlite file database.
-Logins (AKA token requests) were done with a user with 5 groups with 50 seperate claims.
-
 Tests were run with the following failure conditions:
     * If more than 1% of requests fail, the tests stop
-    * If more than 1% of requests take more than 300 ms , the tests stop
+    * If more than 1% of requests take more than 300 ms, the tests stop
+
+The server was configured as follows
+    * Log level Info
+    * Pretty logging disabled
+    * Log to stdout only
+    * Tracing enabled
+    * Local sqlite database
+    * ECDSA keys
+    * 1s request timeout
+    * Connected to a test LDAP container instance
+    * Token issued for a user with 3 groups and 30 seperate claims
 
 Default run environment:
-    * X nanoseconds / token in isolation
-    * Breakpoint:       X tokens / second
-    * High Load Test:   X tokens / second
-    * Medium Load Test: X tokens / second
-    * Suggested Max Nominal Load: X tokens / second
+    * 273-662 microseconds / token in isolation
+    * Breakpoint:            241 tokens / second
+    * ✓ High Load Test:      200 tokens / second for 10m with no loss
+    * ✓ Medium Load Test:    150 tokens / second for 20m with no loss
+    * Max Nominal Load Test: 100 tokens / second for 2h with no loss
 
 GOMAXPROCS=1:
-    * X nanoseconds / token in isolation
-    * Breakpoint:       X tokens / second
-    * High Load Test:   X tokens / second
-    * Medium Load Test: X tokens / second
-    * Suggested Max Nominal Load: X tokens / second
+    * 161-525 microseconds / token in isolation
+    * Breakpoint:       58 tokens / second
+    * ✓ High Load Test:   50 tokens / second for 10m with no loss
+    * ✓ Medium Load Test: 25 tokens / second for 20m with no loss
+    * Max Nominal Load Test: 15 tokens / second for 2h with no loss
 
+In resource constrained environments with low traffic expectations,GOMAXPROCS=1 can be used to limit the memory/cpu footprint of the server.
+Otherwise it is recommended to run the server without modifying GOMAXPROCS.
 
+# High Availablility
+
+TODO
+Load balancing and high availability are features that are planned for the future.
