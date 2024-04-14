@@ -2,9 +2,15 @@ package cfg
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
+	"io"
+	"os"
 	"stoke/internal/usr"
+	"strings"
 	"text/template"
 
+	"github.com/go-ldap/ldap/v3"
 	"github.com/rs/zerolog"
 )
 
@@ -41,7 +47,9 @@ type Users struct {
 	// Timeout for LDAP searches
 	SearchTimeout         int    `json:"search_timeout"`
 
-	// Skip verifying the certificate TODO implement
+	// LDAP public ca certificate file
+	LDAPCACert        string `json:"ldap_ca_cert"`
+	// Skip verifying the certificate
 	SkipCertificateVerify bool   `json:"skip_certificate_verify"`
 }
 
@@ -68,6 +76,40 @@ func (u Users) withContext(ctx context.Context) context.Context {
 				Msg("Could not parse user filter template")
 		}
 
+		var dialOpts []ldap.DialOpt
+
+		if strings.HasPrefix(u.ServerURL, "ldaps://") {
+			certPool, err := x509.SystemCertPool()
+			if err != nil {
+				logger.Error().
+					Err(err).
+					Str("serverUrl", u.ServerURL).
+					Str("ldapCert", u.LDAPCACert).
+					Msg("Could not load system cert pool. Using new empty pool.")
+				certPool = x509.NewCertPool()
+			}
+			if u.LDAPCACert != "" {
+				publicCerts, err := readPublicCertFile(u.LDAPCACert)
+				if err != nil {
+					logger.Fatal().
+						Err(err).
+						Str("ldapCert", u.LDAPCACert).
+						Msg("Could not read ldap cert file")
+				}
+				for _, cert := range publicCerts {
+					certPool.AddCert(cert)
+				}
+			}
+			dialOpts = append(dialOpts,
+				ldap.DialWithTLSConfig(
+					&tls.Config{
+						ClientCAs: certPool,
+						InsecureSkipVerify: u.SkipCertificateVerify,
+					},
+				),
+			)
+		}
+
 		provider = usr.LDAPUserProvider{
 			ServerURL: u.ServerURL,
 			BindUserDN: u.BindUserDN,
@@ -85,7 +127,7 @@ func (u Users) withContext(ctx context.Context) context.Context {
 			EmailField: u.EmailField,
 
 			SearchTimeout: u.SearchTimeout,
-			SkipCertificateVerify: u.SkipCertificateVerify,
+			DialOpts: dialOpts,
 		}
 	} else {
 		provider = usr.LocalProvider{}
@@ -99,4 +141,18 @@ func (u Users) withContext(ctx context.Context) context.Context {
 	}
 
 	return context.WithValue(ctx, "user-provider", provider)
+}
+
+func readPublicCertFile(name string) ([]*x509.Certificate, error) {
+	certFile, err := os.Open(name)
+	if err != nil {
+		return nil, err
+	}
+
+	certBytes, err := io.ReadAll(certFile)
+	if err != nil {
+		return nil, err
+	}
+
+	return x509.ParseCertificates(certBytes)
 }

@@ -11,7 +11,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/go-ldap/ldap"
+	"github.com/go-ldap/ldap/v3"
 	"github.com/rs/zerolog"
 	"github.com/vincentfree/opentelemetry/otelzerolog"
 )
@@ -34,7 +34,8 @@ type LDAPUserProvider struct {
 	EmailField            string
 
 	SearchTimeout         int
-	SkipCertificateVerify bool
+
+	DialOpts 							[]ldap.DialOpt
 }
 
 type templateValues struct {
@@ -68,7 +69,7 @@ func (l LDAPUserProvider) GetUserClaims(username, password string, ctx context.C
 		Str("username", username).
 		Msg("Getting user claims")
 
-	conn, err := ldap.DialURL(l.ServerURL)
+	conn, err := ldap.DialURL(l.ServerURL, l.DialOpts...)
 	if err != nil {
 		logger.Error().
 			Func(otelzerolog.AddTracingContext(span)).
@@ -113,7 +114,7 @@ func (l LDAPUserProvider) GetUserClaims(username, password string, ctx context.C
 		claimGroups = append(claimGroups, grouplink.Edges.ClaimGroup)
 	}
 
-	// TODO figure out a way to update local groups with ldap in a better way
+	// TODO implement LDAP group removal if user is no longer a member
 	if _, err := usr.Update().AddClaimGroups(claimGroups...).Save(ctx); err != nil {
 		logger.Error().
 			Func(otelzerolog.AddTracingContext(span)).
@@ -134,7 +135,6 @@ func (l LDAPUserProvider) UpdateUserPassword(username, oldPassword, newPassword 
 }
 
 // Creates the user if it exists in LDAP
-// TODO search for groups first to verify we need 
 func (l LDAPUserProvider) getOrCreateUser(username, password string, conn ldap.Client, ctx context.Context) (*ent.User, ent.GroupLinks, error) {
 	logger := zerolog.Ctx(ctx)
 
@@ -202,7 +202,7 @@ func (l LDAPUserProvider) getOrCreateUser(username, password string, conn ldap.C
 func (l LDAPUserProvider) getLDAPUser(username, password string, conn ldap.Client, ctx context.Context) (*ldap.Entry, error) {
 	result, err := l.ldapSearch(
 		l.UserSearchRoot,
-		templateValues{ Username: username },
+		templateValues{ Username: ldap.EscapeFilter(username) },
 		l.UserFilter,
 		[]string{ l.EmailField, l.FirstNameField, l.LastNameField },
 		conn,
@@ -227,7 +227,10 @@ func (l LDAPUserProvider) getLDAPUser(username, password string, conn ldap.Clien
 func (l LDAPUserProvider) getUserLDAPGroupLinks(username, userDN string, conn ldap.Client, ctx context.Context) (ent.GroupLinks, error) {
 	response, err := l.ldapSearch(
 		l.GroupSearchRoot,
-		templateValues{ Username: username, UserDN: userDN },
+		templateValues{
+			Username: ldap.EscapeFilter(username),
+			UserDN: ldap.EscapeDN(userDN),
+		},
 		l.GroupFilter,
 		[]string{l.GroupAttribute},
 		conn,

@@ -22,6 +22,7 @@ type KeyCache[P PrivateKey] struct {
 	Ctx context.Context
 	KeyDuration time.Duration
 	TokenDuration time.Duration
+	PersistKeys bool
 }
 
 // Implements stoke.PublicKeyStore
@@ -122,6 +123,22 @@ func (c *KeyCache[P]) Generate(ctx context.Context) error {
 		Str("publicKey", newKey.PublicString()).
 		Msg("Generated new key.")
 
+	if c.PersistKeys {
+		_, err = ent.FromContext(ctx).PrivateKey.Create().
+			SetText(newKey.Encode()).
+			SetExpires(newKey.ExpiresAt()).
+			Save(ctx)
+		if err != nil {
+			logger.Error().
+				Func(otelzerolog.AddTracingContext(span)).
+				Err(err).
+				Time("expires", expires).
+				Str("publicKey", newKey.PublicString()).
+				Msg("Could not save new key")
+			// Don't return error here to allow continued operation
+		}
+	}
+
 	return nil
 }
 
@@ -182,6 +199,7 @@ func (c *KeyCache[P]) Clean(ctx context.Context) {
 	logger.Info().
 		Func(otelzerolog.AddTracingContext(span)).
 		Msg("Cleaning key cache...")
+
 	logger.Debug().
 		Func(otelzerolog.AddTracingContext(span)).
 		Func(func(e *zerolog.Event) {
@@ -202,6 +220,20 @@ func (c *KeyCache[P]) Clean(ctx context.Context) {
 	}
 	c.keys = valid
 	c.activeKey = len(c.keys) - 1
+
+	if c.PersistKeys {
+		_, err := ent.FromContext(ctx).PrivateKey.Delete().
+			Where(
+				privatekey.ExpiresLT(time.Now()),
+			).
+			Exec(ctx)
+		if err != nil {
+			logger.Error().
+				Func(otelzerolog.AddTracingContext(span)).
+				Err(err).
+				Msg("Could not delete expired keys from database.")
+		}
+	}
 
 	logger.Debug().
 		Func(otelzerolog.AddTracingContext(span)).

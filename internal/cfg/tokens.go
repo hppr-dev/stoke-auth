@@ -47,8 +47,6 @@ func (t *Tokens) ParseDurations() {
 }
 
 func (t *Tokens) withContext(ctx context.Context) context.Context {
-	// TODO Also should be an option to persist or not persist in db
-	// type, key and token duration must be configurable
 	var issuer key.TokenIssuer
 
 	t.ParseDurations()
@@ -110,6 +108,7 @@ func createAsymetricIssuer[P key.PrivateKey](t *Tokens, ctx context.Context, pai
 		Ctx: augmentContext(ctx, "KeyCache"),
 		KeyDuration:   t.KeyDuration,
 		TokenDuration: t.TokenDuration,
+		PersistKeys:   t.PersistKeys,
 	}
 
 	err := cache.Bootstrap(ctx, pair)

@@ -1,67 +1,95 @@
 ---
+# Web Server configuration
 server:
-  address: ""
-  port: 8080
-  timeout: 1000
-  tls_private_key: stoke-private.key
-  tls_public_cert: stoke-public.crt
+  address: ""                         # Address to listen on
+  port: 8080                          # Port to listen on 
+  timeout: 1000                       # Request timeout (milliseconds)
+  tls_private_key: stoke-private.key  # Private key to use for https TLS
+  tls_public_cert: stoke-public.crt   # Public key to use for https TLS
 
+# Local database configuration
 database:
-  type: sqlite
+  type: sqlite # Type of database to use ( sqlite, postgres or mysql )
+
   sqlite:
-    file: stoke.db
-    flags: "cache=shared&_fk=1"
+    file: stoke.db              # SQLite database file location
+    flags: "cache=shared&_fk=1" # SQLite database flags
 
+  postgres:
+    host: 127.0.0.1    # Postgres server addres
+    port: 5432         # Postgres server port
+    database: "stoke"  # Postgres database name
+    user: "stoke_user" # Postgres database user
+    password: "pass"   # Postgres database password
+    extra_args: ""     # Extra arguments to add at the end of the connection string
+
+  mysql:
+    host: 127.0.0.1    # Mysql server addres
+    port: 3306         # Mysql server port
+    database: "stoke"  # Mysql database name
+    user: "stoke_user" # Mysql database user
+    password: "pass"   # Mysql database password
+    flags: ""          # Extra flags to add to the connection string
+
+# Logging configuration
 logging:
-  level: debug
-  log_file: stoke.log
-  pretty_stdout: true
-  write_to_stdout: true
+  level: debug          # Log level (trace, debug, info, error)
+  log_file: ""          # Log file to write to. Creates if it does not exist.
+  pretty_stdout: true   # Whether to prettify stdout logs
+  write_to_stdout: true # Whether to write to stdout at all
 
+# Token generation and key rotation configuration
 tokens:
-  algorithm: ECDSA
-  num_bits: 256
-  persist_keys: true
-  key_duration: 3h
-  token_duration: 30m
-  issuer: "stk"
-#  subject: "ath"
-#  audience: ["users"]
-#  include_issued_at: yes
-#  include_not_before: yes
+  algorithm: ECDSA       # Algorithm to use for signing keys (ECDSA, EdDSA, or RSA)
+  num_bits: 256          # Number of bits to use in the algorithm. Only applies for ECDSA or RSA (512, 384, or 256)
+
+  persist_keys: true     # Whether to save private keys in the database
+  key_duration: 10m      # How long signing keys are valid
+  token_duration: 1m     # How long tokens are valid
+
+  issuer: "stk"          # Issuer field in all tokens
+  subject: ""            # Subject field in all tokens
+  audience: []           # Audience field in all tokens
+  include_issued_at: no  # Whether to set the issued at field in all tokens
+  include_not_before: no # Whether to set the not before field in all tokens
+
   user_info:
-    full_name: "n"
-    username: "u"
-    email: "e"
-#    first_name: "fn"
-#    last_name: "ln"
+    full_name: "n" # Token field to hold full name
+    username: "u"  # Token field to hold username
+    email: "e"     # Token field to hold email
+    first_name: "" # Token field to hold first name
+    last_name: ""  # Token field to hold last name
 
+# OpenTelemetry Configuration
 telemetry:
-  trace_provider: grpc
-  trace_export_url: https://localhost:4317
-  trace_insecure: true
+  trace_provider: grpc                      # Type of trace provider. (http or grpc)
+  trace_export_url: https://localhost:4317  # Where to publish traces
+  trace_insecure: true                      # Whether to use insecure transport to export traces
 
-  # Set this to anything but http/grpc to only use the internal prometheus endpoint
-  metric_provider: prometheus_only
-#  metric_export_url: https://localhost:4317
-#  metric_insecure: false
+  metric_provider: none                     # Type of metric provider. (http, grpc, or none)
+  metric_export_url: https://localhost:4317 # Where to publish traces
+  metric_insecure: false                    # Whether to use insecure transport to export metrics
 
+# User Provider configuration
 users:
-  enable_ldap: true
-  server_url: ldap://localhost:10389
-  bind_user_dn: "cn=admin,dc=planetexpress,dc=com"
-  bind_user_password: GoodNewsEveryone
+  enable_ldap: true                         # Whether to  use LDAP
+  server_url: ldap://localhost:10389        # LDAP Server URL. Must begin with ldap://, ldaps:// or ldapi://
 
-  group_search_root: "ou=people,dc=planetexpress,dc=com"
-  group_filter_template: "(&(objectClass=group)(member={{ .UserDN }}))"
-  ldap_group_name_field: "cn"
+  bind_user_dn: "cn=admin,dc=planetexpress,dc=com" # Bind user distinguished name. Should only have read permissions
+  bind_user_password: GoodNewsEveryone             # Password for user specified in bind_user_dn
 
-  user_search_root: "ou=people,dc=planetexpress,dc=com"
-  user_filter_template: "(|(&(objectClass=inetOrgPerson)(uid={{ .Username }}))(&(objectClass=inetOrgPerson)(mail={{ .Username }})))"
-  ldap_first_name_field: "givenName"
-  ldap_last_name_field:  "sn"
-  ldap_email_field: "mail"
+  group_search_root: "ou=people,dc=planetexpress,dc=com"                 # Where to search in LDAP for groups
+  group_filter_template: "(&(objectClass=group)(member={{ .UserDN }}))"  # Filter template to select groups. May use {{.UserDN}} or {{.Username}} to inject user info
 
-  search_timeout: 0
-  skip_certificate_verification: true
+  user_search_root: "ou=people,dc=planetexpress,dc=com"                       # Where to search in LDAP for users
+  user_filter_template: "(&(objectClass=inetOrgPerson)(uid={{ .Username }}))" # Filter template to select users. Must return only one entry. May use {{.Username}} to inject user supplied username
+
+  ldap_group_name_field: "cn"        # Field in LDAP groups which determines the group's name
+  ldap_first_name_field: "givenName" # Field in LDAP user which determines the user's first name
+  ldap_last_name_field:  "sn"        # Field in LDAP user which determines the user's last name
+  ldap_email_field: "mail"           # Field in LDAP user which determines the user's email
+
+  search_timeout: 0                   # LDAP search timeout. Set to 0 for unlimited.
+  ldap_ca_cert: ""                    # Certificate to use when verifying connections to LDAP
+  skip_certificate_verification: true # Whether to skip certificate verification for secure LDAP server
 
