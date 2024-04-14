@@ -29,7 +29,7 @@
 
   const store = useAppStore()
 
-  const linkType = "LDAP"
+  const linkType = ref("LDAP")
   const resourceSpec = ref("")
 
   function updateScratchLink() {
