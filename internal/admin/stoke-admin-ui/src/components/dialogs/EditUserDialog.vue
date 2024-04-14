@@ -10,7 +10,7 @@
         variant="solo-filled"
         label="First Name"
         v-model="fname"
-        :rules="[require('First Name')]"
+        :rules="[require('First Name'), hasAChange]"
         @update:modelValue="updateScratchUser"
       ></v-text-field>
       <v-text-field
@@ -18,7 +18,7 @@
         variant="solo-filled"
         label="Last Name"
         v-model="lname"
-        :rules="[require('Last Name')]"
+        :rules="[require('Last Name'), hasAChange]"
         @update:modelValue="updateScratchUser"
       ></v-text-field>
     </v-row>
@@ -27,7 +27,7 @@
         variant="solo-filled"
         label="Email"
         v-model="email"
-        :rules="[require('Email')]"
+        :rules="[require('Email'), hasAChange]"
         @update:modelValue="updateScratchUser"
       ></v-text-field>
     </v-row>
@@ -59,7 +59,13 @@ import UpdateUserPassword from "./UpdateUserPassword.vue";
   const username = ref(store.currentUser.username)
   const email = ref(store.currentUser.email)
 
+  let changed = false
+  function hasAChange() {
+    return changed || "At least one value must be updated"
+  }
+
   function updateScratchUser() {
+    changed = true
     store.$patch({
       scratchUser: {
         ...store.scratchUser,
@@ -95,6 +101,7 @@ import UpdateUserPassword from "./UpdateUserPassword.vue";
   }
 
   function addOrRemoveGroup(_ : PointerEvent,  { item } : { item : Group } ) {
+    changed = true
     let isGroup = (g : Group) => g.id === item.id
     let inScratch = store.scratchGroups.find(isGroup)
     if ( inScratch ) {

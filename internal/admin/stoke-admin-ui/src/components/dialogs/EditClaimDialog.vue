@@ -5,7 +5,7 @@
         variant="solo-filled"
         label="Name"
         v-model="name"
-        :rules="[require('Name')]"
+        :rules="[require('Name'), hasAChange]"
         @update:modelValue="updateScratchClaim"
       ></v-text-field>
     </v-row>
@@ -15,7 +15,7 @@
           variant="outlined"
           label="Short Name"
           v-model="shortName"
-          :rules="[require('Short name')]"
+          :rules="[require('Short name'), hasAChange]"
           @update:modelValue="updateScratchClaim"
         ></v-text-field>
       </v-col>
@@ -27,7 +27,7 @@
           variant="outlined"
           label="Value"
           v-model="value"
-          :rules="[require('Value')]"
+          :rules="[require('Value'), hasAChange]"
           @update:modelValue="updateScratchClaim"
         ></v-text-field>
       </v-col>
@@ -38,7 +38,7 @@
         label="Description"
         no-resize
         v-model="description"
-        :rules="[require('Description')]"
+        :rules="[require('Description'), hasAChange]"
         @update:modelValue="updateScratchClaim"
       ></v-textarea>
     </v-row>
@@ -56,6 +56,7 @@
 
   const store = useAppStore()
 
+
   const name = ref(store.currentClaim.name)
   const shortName = ref(store.currentClaim.short_name)
   const value = ref(store.currentClaim.value)
@@ -68,7 +69,13 @@
     description.value = ""
   }
 
+  let changed = false
+  function hasAChange() {
+    return changed || "At least one value must be updated"
+  }
+
   function updateScratchClaim() {
+    changed = true
     store.$patch({
       scratchClaim: {
         ...store.scratchClaim,

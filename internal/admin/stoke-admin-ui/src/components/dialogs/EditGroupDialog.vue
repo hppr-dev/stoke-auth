@@ -5,7 +5,7 @@
         variant="solo-filled"
         label="Name"
         v-model="name"
-        :rules="[require('Name')]"
+        :rules="[require('Name'), hasAChange]"
         @update:modelValue="updateScratchGroup"
       ></v-text-field>
     </v-row>
@@ -16,7 +16,7 @@
         no-resize
         rows="2"
         v-model="description"
-        :rules="[require('Description')]"
+        :rules="[require('Description'), hasAChange]"
         @update:modelValue="updateScratchGroup"
       ></v-textarea>
     </v-row>
@@ -57,7 +57,13 @@
     description.value = ""
   }
 
+  let changed = false
+  function hasAChange() {
+    return changed || "At least one value must be updated."
+  }
+
   function updateScratchGroup() {
+    changed = true
     store.$patch({
       scratchGroup: {
         ...store.scratchGroup,
@@ -92,6 +98,7 @@
   }
 
   function addOrRemoveClaim(_ : PointerEvent,  { item } : { item : Claim } ) {
+    changed = true
     let isClaim = (g : Claim) => g.id === item.id
     let inScratch = store.scratchClaims.find(isClaim)
     if ( inScratch ) {
