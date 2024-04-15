@@ -26,6 +26,12 @@ type Handler interface {
 	//
 	// POST /group-links
 	CreateGroupLink(ctx context.Context, req *CreateGroupLinkReq) (CreateGroupLinkRes, error)
+	// CreateLocalUser implements createLocalUser operation.
+	//
+	// Create a new local user.
+	//
+	// POST /localuser
+	CreateLocalUser(ctx context.Context, req OptCreateLocalUserReq) (CreateLocalUserRes, error)
 	// DeleteClaim implements deleteClaim operation.
 	//
 	// Deletes the Claim with the requested ID.
@@ -146,6 +152,12 @@ type Handler interface {
 	//
 	// GET /users/{id}
 	ReadUser(ctx context.Context, params ReadUserParams) (ReadUserRes, error)
+	// Totals implements totals operation.
+	//
+	// Get entity count totals.
+	//
+	// GET /totals
+	Totals(ctx context.Context) (*TotalsOK, error)
 	// UpdateClaim implements updateClaim operation.
 	//
 	// Updates a Claim and persists changes to storage.
@@ -164,6 +176,12 @@ type Handler interface {
 	//
 	// PATCH /group-links/{id}
 	UpdateGroupLink(ctx context.Context, req *UpdateGroupLinkReq, params UpdateGroupLinkParams) (UpdateGroupLinkRes, error)
+	// UpdateLocalUserPassword implements updateLocalUserPassword operation.
+	//
+	// Update local user's password.
+	//
+	// PATCH /localuser
+	UpdateLocalUserPassword(ctx context.Context, req OptUpdateLocalUserPasswordReq) (UpdateLocalUserPasswordRes, error)
 	// UpdateUser implements updateUser operation.
 	//
 	// Updates a User and persists changes to storage.

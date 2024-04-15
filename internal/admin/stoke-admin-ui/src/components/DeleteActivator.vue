@@ -60,6 +60,7 @@
 
 <script setup lang="ts">
   import { ref, defineProps } from 'vue'
+  import icons from '../util/icons'
 
  const compProps = defineProps<{
     toDelete: string,

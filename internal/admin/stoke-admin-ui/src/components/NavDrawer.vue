@@ -30,7 +30,7 @@
       <v-list>
         <v-list-item>
           <template #prepend>
-            <v-icon :icon="icons.LOGOUT" color="info" @click="logoutAndReturn"></v-icon>
+            <v-icon :icon="icons.LOGOUT" color="info" @click="store.logout"></v-icon>
           </template>
           <template #title>
             <span class="text-h7 text-weight-thin"> {{ store.username }} </span>
@@ -63,11 +63,6 @@ function go(path : string) {
   } else {
     router.push("/")
   }
-}
-
-function logoutAndReturn() {
-  store.logout()
-  router.push("/")
 }
 
 </script>

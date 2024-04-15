@@ -8,6 +8,9 @@
     :showFooter="props.showFooter"
     :rowClick="props.rowClick"
     :deleteClick="props.deleteGroup"
+    :totalItems="store.entityTotals.claim_groups"
+    :perPage="12"
+    :onNext="loadPageIfNeeded"
     >
     <template #footer-prepend>
       <AddActivator
@@ -45,5 +48,11 @@
   ]
 
   const store = useAppStore()
+
+  async function loadPageIfNeeded(page: number) {
+    if ( store.allGroups.length < store.entityTotals.claim_groups && store.allGroups.length < (page - 1) * 12) {
+      await store.fetchAllGroups(false, (store.allGroups.length/store.pageLoadSize) + 1)
+    }
+  }
 
 </script>

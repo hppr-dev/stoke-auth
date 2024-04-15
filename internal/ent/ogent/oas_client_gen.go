@@ -41,6 +41,12 @@ type Invoker interface {
 	//
 	// POST /group-links
 	CreateGroupLink(ctx context.Context, request *CreateGroupLinkReq) (CreateGroupLinkRes, error)
+	// CreateLocalUser invokes createLocalUser operation.
+	//
+	// Create a new local user.
+	//
+	// POST /localuser
+	CreateLocalUser(ctx context.Context, request OptCreateLocalUserReq) (CreateLocalUserRes, error)
 	// DeleteClaim invokes deleteClaim operation.
 	//
 	// Deletes the Claim with the requested ID.
@@ -161,6 +167,12 @@ type Invoker interface {
 	//
 	// GET /users/{id}
 	ReadUser(ctx context.Context, params ReadUserParams) (ReadUserRes, error)
+	// Totals invokes totals operation.
+	//
+	// Get entity count totals.
+	//
+	// GET /totals
+	Totals(ctx context.Context) (*TotalsOK, error)
 	// UpdateClaim invokes updateClaim operation.
 	//
 	// Updates a Claim and persists changes to storage.
@@ -179,6 +191,12 @@ type Invoker interface {
 	//
 	// PATCH /group-links/{id}
 	UpdateGroupLink(ctx context.Context, request *UpdateGroupLinkReq, params UpdateGroupLinkParams) (UpdateGroupLinkRes, error)
+	// UpdateLocalUserPassword invokes updateLocalUserPassword operation.
+	//
+	// Update local user's password.
+	//
+	// PATCH /localuser
+	UpdateLocalUserPassword(ctx context.Context, request OptUpdateLocalUserPasswordReq) (UpdateLocalUserPasswordRes, error)
 	// UpdateUser invokes updateUser operation.
 	//
 	// Updates a User and persists changes to storage.
@@ -453,6 +471,81 @@ func (c *Client) sendCreateGroupLink(ctx context.Context, request *CreateGroupLi
 
 	stage = "DecodeResponse"
 	result, err := decodeCreateGroupLinkResponse(resp)
+	if err != nil {
+		return res, errors.Wrap(err, "decode response")
+	}
+
+	return result, nil
+}
+
+// CreateLocalUser invokes createLocalUser operation.
+//
+// Create a new local user.
+//
+// POST /localuser
+func (c *Client) CreateLocalUser(ctx context.Context, request OptCreateLocalUserReq) (CreateLocalUserRes, error) {
+	res, err := c.sendCreateLocalUser(ctx, request)
+	return res, err
+}
+
+func (c *Client) sendCreateLocalUser(ctx context.Context, request OptCreateLocalUserReq) (res CreateLocalUserRes, err error) {
+	otelAttrs := []attribute.KeyValue{
+		otelogen.OperationID("createLocalUser"),
+		semconv.HTTPMethodKey.String("POST"),
+		semconv.HTTPRouteKey.String("/localuser"),
+	}
+
+	// Run stopwatch.
+	startTime := time.Now()
+	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		elapsedDuration := time.Since(startTime)
+		c.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
+	}()
+
+	// Increment request counter.
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+
+	// Start a span for this request.
+	ctx, span := c.cfg.Tracer.Start(ctx, "CreateLocalUser",
+		trace.WithAttributes(otelAttrs...),
+		clientSpanKind,
+	)
+	// Track stage for error reporting.
+	var stage string
+	defer func() {
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, stage)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+		}
+		span.End()
+	}()
+
+	stage = "BuildURL"
+	u := uri.Clone(c.requestURL(ctx))
+	var pathParts [1]string
+	pathParts[0] = "/localuser"
+	uri.AddPathParts(u, pathParts[:]...)
+
+	stage = "EncodeRequest"
+	r, err := ht.NewRequest(ctx, "POST", u)
+	if err != nil {
+		return res, errors.Wrap(err, "create request")
+	}
+	if err := encodeCreateLocalUserRequest(request, r); err != nil {
+		return res, errors.Wrap(err, "encode request")
+	}
+
+	stage = "SendRequest"
+	resp, err := c.cfg.Client.Do(r)
+	if err != nil {
+		return res, errors.Wrap(err, "do request")
+	}
+	defer resp.Body.Close()
+
+	stage = "DecodeResponse"
+	result, err := decodeCreateLocalUserResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -2556,6 +2649,78 @@ func (c *Client) sendReadUser(ctx context.Context, params ReadUserParams) (res R
 	return result, nil
 }
 
+// Totals invokes totals operation.
+//
+// Get entity count totals.
+//
+// GET /totals
+func (c *Client) Totals(ctx context.Context) (*TotalsOK, error) {
+	res, err := c.sendTotals(ctx)
+	return res, err
+}
+
+func (c *Client) sendTotals(ctx context.Context) (res *TotalsOK, err error) {
+	otelAttrs := []attribute.KeyValue{
+		otelogen.OperationID("totals"),
+		semconv.HTTPMethodKey.String("GET"),
+		semconv.HTTPRouteKey.String("/totals"),
+	}
+
+	// Run stopwatch.
+	startTime := time.Now()
+	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		elapsedDuration := time.Since(startTime)
+		c.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
+	}()
+
+	// Increment request counter.
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+
+	// Start a span for this request.
+	ctx, span := c.cfg.Tracer.Start(ctx, "Totals",
+		trace.WithAttributes(otelAttrs...),
+		clientSpanKind,
+	)
+	// Track stage for error reporting.
+	var stage string
+	defer func() {
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, stage)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+		}
+		span.End()
+	}()
+
+	stage = "BuildURL"
+	u := uri.Clone(c.requestURL(ctx))
+	var pathParts [1]string
+	pathParts[0] = "/totals"
+	uri.AddPathParts(u, pathParts[:]...)
+
+	stage = "EncodeRequest"
+	r, err := ht.NewRequest(ctx, "GET", u)
+	if err != nil {
+		return res, errors.Wrap(err, "create request")
+	}
+
+	stage = "SendRequest"
+	resp, err := c.cfg.Client.Do(r)
+	if err != nil {
+		return res, errors.Wrap(err, "do request")
+	}
+	defer resp.Body.Close()
+
+	stage = "DecodeResponse"
+	result, err := decodeTotalsResponse(resp)
+	if err != nil {
+		return res, errors.Wrap(err, "decode response")
+	}
+
+	return result, nil
+}
+
 // UpdateClaim invokes updateClaim operation.
 //
 // Updates a Claim and persists changes to storage.
@@ -2828,6 +2993,81 @@ func (c *Client) sendUpdateGroupLink(ctx context.Context, request *UpdateGroupLi
 
 	stage = "DecodeResponse"
 	result, err := decodeUpdateGroupLinkResponse(resp)
+	if err != nil {
+		return res, errors.Wrap(err, "decode response")
+	}
+
+	return result, nil
+}
+
+// UpdateLocalUserPassword invokes updateLocalUserPassword operation.
+//
+// Update local user's password.
+//
+// PATCH /localuser
+func (c *Client) UpdateLocalUserPassword(ctx context.Context, request OptUpdateLocalUserPasswordReq) (UpdateLocalUserPasswordRes, error) {
+	res, err := c.sendUpdateLocalUserPassword(ctx, request)
+	return res, err
+}
+
+func (c *Client) sendUpdateLocalUserPassword(ctx context.Context, request OptUpdateLocalUserPasswordReq) (res UpdateLocalUserPasswordRes, err error) {
+	otelAttrs := []attribute.KeyValue{
+		otelogen.OperationID("updateLocalUserPassword"),
+		semconv.HTTPMethodKey.String("PATCH"),
+		semconv.HTTPRouteKey.String("/localuser"),
+	}
+
+	// Run stopwatch.
+	startTime := time.Now()
+	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		elapsedDuration := time.Since(startTime)
+		c.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
+	}()
+
+	// Increment request counter.
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+
+	// Start a span for this request.
+	ctx, span := c.cfg.Tracer.Start(ctx, "UpdateLocalUserPassword",
+		trace.WithAttributes(otelAttrs...),
+		clientSpanKind,
+	)
+	// Track stage for error reporting.
+	var stage string
+	defer func() {
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, stage)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+		}
+		span.End()
+	}()
+
+	stage = "BuildURL"
+	u := uri.Clone(c.requestURL(ctx))
+	var pathParts [1]string
+	pathParts[0] = "/localuser"
+	uri.AddPathParts(u, pathParts[:]...)
+
+	stage = "EncodeRequest"
+	r, err := ht.NewRequest(ctx, "PATCH", u)
+	if err != nil {
+		return res, errors.Wrap(err, "create request")
+	}
+	if err := encodeUpdateLocalUserPasswordRequest(request, r); err != nil {
+		return res, errors.Wrap(err, "encode request")
+	}
+
+	stage = "SendRequest"
+	resp, err := c.cfg.Client.Do(r)
+	if err != nil {
+		return res, errors.Wrap(err, "do request")
+	}
+	defer resp.Body.Close()
+
+	stage = "DecodeResponse"
+	result, err := decodeUpdateLocalUserPasswordResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}

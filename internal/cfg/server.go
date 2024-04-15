@@ -11,5 +11,8 @@ type Server struct {
 	// Private TLS Key
 	TLSPrivateKey string `json:"tls_private_key"`
 	// Public TLS Cert
-	TLSPublicCert  string `json:"tls_public_cert"`
+	TLSPublicCert string `json:"tls_public_cert"`
+
+	// Allowed Hosts
+	AllowedHosts []string `json:"allowed_hosts"`
 }

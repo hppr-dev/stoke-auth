@@ -13,6 +13,12 @@ interface PasswordForm {
   force : boolean
 }
 
+interface EntityTotals {
+  users: number
+  claims: number
+  claim_groups: number
+}
+
 export interface ChartDatasets {
   [k : string] : ChartData
 }
@@ -21,9 +27,14 @@ export const useAppStore = defineStore('app', {
   state: () => ({
     api_url: import.meta.env.DEV? import.meta.env.VITE_API_URL : "",
     username: "",
+
     token: "",
     refreshToken: "",
     refreshTimeout: 0,
+
+    pageLoadSize: 200,
+
+    entityTotals: {} as EntityTotals,
     currentUser : {} as User,
     currentGroup: {} as Group,
     currentClaim: {} as Claim,

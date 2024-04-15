@@ -13,6 +13,10 @@ type CreateGroupLinkRes interface {
 	createGroupLinkRes()
 }
 
+type CreateLocalUserRes interface {
+	createLocalUserRes()
+}
+
 type DeleteClaimGroupRes interface {
 	deleteClaimGroupRes()
 }
@@ -103,6 +107,10 @@ type UpdateClaimRes interface {
 
 type UpdateGroupLinkRes interface {
 	updateGroupLinkRes()
+}
+
+type UpdateLocalUserPasswordRes interface {
+	updateLocalUserPasswordRes()
 }
 
 type UpdateUserRes interface {

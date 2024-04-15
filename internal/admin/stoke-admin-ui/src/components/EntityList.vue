@@ -5,8 +5,11 @@
     :headerProps="headerProps"
     :headers="props.deleteClick? [ ...props.headers, { key: 'row-delete'} ] : props.headers "
     :items="props.items"
+    :itemsPerPage="props.perPage"
     :search="search"
     :rowProps="rowProps"
+    :loading="loading"
+    v-model:page="page"
     @click:row="rowClick"
   >
     <template #top>
@@ -21,20 +24,32 @@
         ></v-text-field>
       </div>
     </template>
-    <template #footer.prepend>
-      <slot name="footer-prepend"></slot>
-    </template>
+
+
     <template #item.row-icon="{ item }">
       <slot name="row-icon" :item="item"></slot>
     </template>
-    <template v-if="!props.showFooter" #bottom></template>
+
     <template v-if="props.deleteClick" #item.row-delete="{ item }">
       <DeleteActivator
         :titleIcon="icons.USER"
-        :deleteIcon="props.deleteIcon? props.deleteIcon: icons.DELETE"
-        :onDelete="async () => await innerOnDelete(item)"
         :toDelete="item[props.deleteItemKey]"
       />
+    </template>
+
+    <template #bottom>
+      <div v-if="props.showFooter">
+        <div class="text-center">
+          <slot name="footer-prepend"></slot>
+          <v-pagination
+            v-model="page"
+            :length="pageCount()"
+            @next="innerOnNext"
+          >
+          </v-pagination>
+        </div>
+      </div>
+      <div v-else></div>
     </template>
   </v-data-table>
   <slot></slot>
@@ -43,7 +58,7 @@
 <script setup lang="ts">
   import { ref, defineProps } from "vue"
   import icons from "../util/icons"
-import DeleteActivator from "./DeleteActivator.vue";
+  import DeleteActivator from "./DeleteActivator.vue";
 
   interface Headers {
     key: string,
@@ -54,6 +69,9 @@ import DeleteActivator from "./DeleteActivator.vue";
     headers : Headers,
     items: Array<Object>,
     rowClick: Function,
+    totalItems: number,
+    perPage: number,
+    onNext?: Function,
     searchIcon?: string,
     showSearch?: boolean,
     showFooter?: boolean,
@@ -64,14 +82,30 @@ import DeleteActivator from "./DeleteActivator.vue";
   }>()
 
   const search = ref("")
+  const page = ref(1)
+  const loading = ref(false)
 
   const headerProps = {
     class : "bg-blue-grey",
     height: "3em",
   }
 
+  async function innerOnNext(inPage: number) {
+    loading.value = true
+    if ( props.onNext ) {
+      await props.onNext(inPage)
+    }
+    loading.value = false
+  }
+
   async function innerOnDelete(item) {
-    await props.deleteClick(item)
+    if ( props.deleteClick ) {
+      await props.deleteClick(item)
+    }
+  }
+
+  function pageCount() {
+    return Math.ceil(props.totalItems / props.perPage)
   }
 
 </script>

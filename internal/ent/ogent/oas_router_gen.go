@@ -401,6 +401,29 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				}
 
 				elem = origElem
+			case 'l': // Prefix: "localuser"
+				origElem := elem
+				if l := len("localuser"); len(elem) >= l && elem[0:l] == "localuser" {
+					elem = elem[l:]
+				} else {
+					break
+				}
+
+				if len(elem) == 0 {
+					// Leaf node.
+					switch r.Method {
+					case "PATCH":
+						s.handleUpdateLocalUserPasswordRequest([0]string{}, elemIsEscaped, w, r)
+					case "POST":
+						s.handleCreateLocalUserRequest([0]string{}, elemIsEscaped, w, r)
+					default:
+						s.notAllowed(w, r, "PATCH,POST")
+					}
+
+					return
+				}
+
+				elem = origElem
 			case 'p': // Prefix: "private-keys"
 				origElem := elem
 				if l := len("private-keys"); len(elem) >= l && elem[0:l] == "private-keys" {
@@ -448,6 +471,27 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 					}
 
 					elem = origElem
+				}
+
+				elem = origElem
+			case 't': // Prefix: "totals"
+				origElem := elem
+				if l := len("totals"); len(elem) >= l && elem[0:l] == "totals" {
+					elem = elem[l:]
+				} else {
+					break
+				}
+
+				if len(elem) == 0 {
+					// Leaf node.
+					switch r.Method {
+					case "GET":
+						s.handleTotalsRequest([0]string{}, elemIsEscaped, w, r)
+					default:
+						s.notAllowed(w, r, "GET")
+					}
+
+					return
 				}
 
 				elem = origElem
@@ -1042,6 +1086,40 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 				}
 
 				elem = origElem
+			case 'l': // Prefix: "localuser"
+				origElem := elem
+				if l := len("localuser"); len(elem) >= l && elem[0:l] == "localuser" {
+					elem = elem[l:]
+				} else {
+					break
+				}
+
+				if len(elem) == 0 {
+					switch method {
+					case "PATCH":
+						// Leaf: UpdateLocalUserPassword
+						r.name = "UpdateLocalUserPassword"
+						r.summary = "Update local user's password"
+						r.operationID = "updateLocalUserPassword"
+						r.pathPattern = "/localuser"
+						r.args = args
+						r.count = 0
+						return r, true
+					case "POST":
+						// Leaf: CreateLocalUser
+						r.name = "CreateLocalUser"
+						r.summary = "Create a new local user"
+						r.operationID = "createLocalUser"
+						r.pathPattern = "/localuser"
+						r.args = args
+						r.count = 0
+						return r, true
+					default:
+						return
+					}
+				}
+
+				elem = origElem
 			case 'p': // Prefix: "private-keys"
 				origElem := elem
 				if l := len("private-keys"); len(elem) >= l && elem[0:l] == "private-keys" {
@@ -1095,6 +1173,31 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 					}
 
 					elem = origElem
+				}
+
+				elem = origElem
+			case 't': // Prefix: "totals"
+				origElem := elem
+				if l := len("totals"); len(elem) >= l && elem[0:l] == "totals" {
+					elem = elem[l:]
+				} else {
+					break
+				}
+
+				if len(elem) == 0 {
+					switch method {
+					case "GET":
+						// Leaf: Totals
+						r.name = "Totals"
+						r.summary = "Get entity count totals"
+						r.operationID = "totals"
+						r.pathPattern = "/totals"
+						r.args = args
+						r.count = 0
+						return r, true
+					default:
+						return
+					}
 				}
 
 				elem = origElem

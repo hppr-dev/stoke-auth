@@ -1134,6 +1134,158 @@
         }
       }
     },
+    "/localuser": {
+      "description": "Local user modification functions",
+      "post": {
+        "summary": "Create a new local user",
+        "operationId": "createLocalUser",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "description": "User to create",
+                "type": "object",
+                "properties": {
+                  "fname": {
+                    "description": "New user's first name",
+                    "type": "string"
+                  },
+                  "lname": {
+                    "description": "New user's last name",
+                    "type": "string"
+                  },
+                  "username": {
+                    "description": "New user's username",
+                    "type": "string"
+                  },
+                  "email": {
+                    "description": "New user's email",
+                    "type": "string"
+                  },
+                  "password": {
+                    "description": "New user's password",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "fname",
+                  "lname",
+                  "username",
+                  "email",
+                  "password"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "default": "User Created"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "description": "Error Message",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update local user's password",
+        "operationId": "updateLocalUserPassword",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "description": "Password update data",
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "description": "User's username",
+                    "type": "string"
+                  },
+                  "oldPassword": {
+                    "description": "Old user password",
+                    "type": "string"
+                  },
+                  "newPassword": {
+                    "description": "New user password",
+                    "type": "string"
+                  },
+                  "force": {
+                    "description": "Set to change user's password without checking the old password",
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "username",
+                  "newPassword"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "default": "Password Updated"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "description": "Error Message",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/private-keys": {
       "get": {
         "tags": [
@@ -1233,6 +1385,43 @@
           },
           "500": {
             "$ref": "#/components/responses/500"
+          }
+        }
+      }
+    },
+    "/totals": {
+      "description": "Entity count totals",
+      "get": {
+        "summary": "Get entity count totals",
+        "operationId": "totals",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "users": {
+                      "description": "Count of users",
+                      "type": "integer"
+                    },
+                    "claims": {
+                      "description": "Count of claims",
+                      "type": "integer"
+                    },
+                    "claim_groups": {
+                      "description": "Count of claim groups",
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "users",
+                    "claims",
+                    "claim_groups"
+                  ]
+                }
+              }
+            }
           }
         }
       }

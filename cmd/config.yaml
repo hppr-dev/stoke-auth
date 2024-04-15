@@ -6,6 +6,8 @@ server:
   timeout: 1000                       # Request timeout (milliseconds)
   tls_private_key: stoke-private.key  # Private key to use for https TLS
   tls_public_cert: stoke-public.crt   # Public key to use for https TLS
+  allowed_hosts:
+    - "*"
 
 # Local database configuration
 database:
@@ -69,6 +71,9 @@ telemetry:
   metric_provider: none                     # Type of metric provider. (http, grpc, or none)
   metric_export_url: https://localhost:4317 # Where to publish traces
   metric_insecure: false                    # Whether to use insecure transport to export metrics
+
+  disable_monitoring: false                 # Whether to disable the default /metrics and /metrics/logs endpoints
+  require_prometheus_authentication: false  # Whether to require authentication to reach default prometheus metrics
 
 # User Provider configuration
 users:

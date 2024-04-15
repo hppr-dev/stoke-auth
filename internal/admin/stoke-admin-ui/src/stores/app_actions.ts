@@ -84,14 +84,7 @@ export const appActions = {
     } catch (err) {
       console.error(err)
 
-      this.username = ""
-      this.token = ""
-      this.refreshToken = ""
-      this.refreshTimeout = 0
-      sessionStorage.setItem("token", "")
-      sessionStorage.setItem("refresh", "")
-      sessionStorage.setItem("username", "")
-
+      this.logout()
       throw err
     }
   },
@@ -106,6 +99,7 @@ export const appActions = {
     sessionStorage.setItem("refresh", "")
     sessionStorage.setItem("username", "")
 
+    window.location.replace("/admin/")
     clearTimeout(this.refreshTimeout)
   },
 }

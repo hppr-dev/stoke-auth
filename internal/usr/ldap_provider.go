@@ -229,7 +229,7 @@ func (l LDAPUserProvider) getUserLDAPGroupLinks(username, userDN string, conn ld
 		l.GroupSearchRoot,
 		templateValues{
 			Username: ldap.EscapeFilter(username),
-			UserDN: ldap.EscapeDN(userDN),
+			UserDN: userDN,
 		},
 		l.GroupFilter,
 		[]string{l.GroupAttribute},

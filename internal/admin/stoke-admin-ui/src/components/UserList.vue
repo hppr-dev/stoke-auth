@@ -9,6 +9,9 @@
     :rowClick="setCurrentUser"
     :rowProps="highlightSelected"
     :deleteClick="store.deleteUser"
+    :totalItems="store.entityTotals.users"
+    :perPage="12"
+    :onNext="loadPageIfNeeded"
   >
     <template #footer-prepend>
       <AddActivator
@@ -69,6 +72,12 @@
       return {
         class : "bg-grey-lighten-1",
       }
+    }
+  }
+
+  async function loadPageIfNeeded(page: number) {
+    if ( store.allUsers.length < store.entityTotals.users && store.allUsers.length < (page - 1) * 12) {
+      await store.fetchAllUsers(false, (store.allUsers.length/store.pageLoadSize) + 1)
     }
   }
 

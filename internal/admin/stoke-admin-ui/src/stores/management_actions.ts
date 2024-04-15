@@ -1,12 +1,12 @@
 import { User, Claim, Group } from '../util/entityTypes'
 
 export const managementActions = {
-  simpleGet: async function(endpoint : string, stateName : string, refresh? : boolean) {
-    if ( !refresh ) {
+  simpleGet: async function(endpoint : string, stateName : string, page: number, refresh? : boolean) {
+    if ( !refresh && page == 1) {
       return
     }
 
-    const response = await fetch(`${this.api_url}${endpoint}`, {
+    const response = await fetch(`${this.api_url}${endpoint}?itemsPerPage=${this.pageLoadSize}&page=${page}`, {
       method: "GET",
       headers: {
         "Authorization" : `Token ${this.token}`,
@@ -17,25 +17,37 @@ export const managementActions = {
       throw new Error(response.statusText)
     }
 
-    this[stateName] = await response.json()
+    const jres = await response.json()
+
+    if ( page > 1 ) {
+      this[stateName] = [...this[stateName], ...jres]
+    } else {
+      this[stateName] = jres
+    }
   },
-  fetchAllUsers: async function(refresh? : boolean) {
-    await this.simpleGet("/api/admin/users", "allUsers", this.allUsers.length == 0 || refresh)
+  fetchEntityTotals: async function() {
+    await this.simpleGet("/api/admin/totals", "entityTotals", 1, true)
   },
-  fetchAllGroups: async function(refresh? : boolean) {
-    await this.simpleGet("/api/admin/claim-groups", "allGroups", this.allGroups.length == 0 || refresh)
+  fetchAllUsers: async function(refresh? : boolean, page: number = 1) {
+    await this.simpleGet("/api/admin/users", "allUsers", page, this.allUsers.length == 0 || refresh)
+    await this.fetchEntityTotals()
+  },
+  fetchAllGroups: async function(refresh? : boolean, page: number = 1) {
+    await this.simpleGet("/api/admin/claim-groups", "allGroups", page, this.allGroups.length == 0 || refresh)
+    await this.fetchEntityTotals()
+  },
+  fetchAllClaims: async function(refresh? : boolean, page: number = 1) {
+    await this.simpleGet(`/api/admin/claims`, "allClaims", page, this.allClaims.length == 0 || refresh)
+    await this.fetchEntityTotals()
   },
   fetchGroupsForUser: async function(userId: number) {
-    await this.simpleGet(`/api/admin/users/${userId}/claim-groups`, "currentGroups", true)
-  },
-  fetchAllClaims: async function(refresh? : boolean) {
-    await this.simpleGet("/api/admin/claims", "allClaims", this.allClaims.length == 0 || refresh)
+    await this.simpleGet(`/api/admin/users/${userId}/claim-groups`, "currentGroups", 1, true)
   },
   fetchClaimsForGroup: async function(groupId: number) {
-    await this.simpleGet(`/api/admin/claim-groups/${groupId}/claims`, "currentClaims", true)
+    await this.simpleGet(`/api/admin/claim-groups/${groupId}/claims`, "currentClaims", 1, true)
   },
   fetchLinksForGroup: async function(groupId: number) {
-    await this.simpleGet(`/api/admin/claim-groups/${groupId}/group-links`, "currentLinks", true)
+    await this.simpleGet(`/api/admin/claim-groups/${groupId}/group-links`, "currentLinks", 1, true)
   },
   simplePatch: async function(endpoint : string, stateToSend : string) {
     const value : User | Claim | Group = this[stateToSend]
@@ -72,7 +84,7 @@ export const managementActions = {
       .then(() => this.scratchClaim = {})
   },
   savePasswordForm: async function() {
-    const response = await fetch(`${this.api_url}/api/admin_users`, {
+    const response = await fetch(`${this.api_url}/api/admin/localuser`, {
       method: "PATCH",
       headers: {
         "Content-Type"  : "application/json",
@@ -98,7 +110,7 @@ export const managementActions = {
     }
   },
   addScratchUser: function() {
-    return this.simplePost("/api/admin_users", "scratchUser")
+    return this.simplePost("/api/admin/localuser", "scratchUser")
       .then( () => this.scratchUser = {} )
       .then(this.fetchAllUsers)
   },

@@ -37,7 +37,7 @@ type Telemetry struct {
 	TraceInsecure  bool `json:"trace_insecure"`
 
 	// Disable exposing default prometheus metrics
-	DisableDefaultPrometheus bool `json:"disable_default_prometheus"`
+	DisableMonitoring               bool `json:"disable_monitoring"`
 	// Require authentication for default prometheus
 	RequirePrometheusAuthentication bool `json:"require_prometheus_authentication"`
 

@@ -38,7 +38,6 @@ func NewServer(ctx context.Context) *http.Server {
 
 	mux := http.NewServeMux()
 
-	
 	dLogger := debugLogger{ logger: logger.With().Str("component", "http.Server").Logger() }
 
 	server := &http.Server{
@@ -75,25 +74,22 @@ func NewServer(ctx context.Context) *http.Server {
 	// Static files
 	mux.Handle("/admin/", http.StripPrefix("/admin/", http.FileServerFS(admin.Pages)))
 
+	allowedHosts := strings.Join(config.AllowedHosts,",")
 
-	// TODO restrict methods/origins
 	mux.Handle(
 		"/api/login",
-		AllowAllMethods(
+		ConfigureCORS(
+			"POST,OPTIONS",
+			allowedHosts,
 			LoginApiHandler{},
 		),
 	)
 
 	mux.Handle(
-		"/api/pkeys",
-		AllowAllMethods(
-			PkeyApiHandler{},
-		),
-	)
-
-	mux.Handle(
 		"/api/refresh",
-		AllowAllMethods(
+		ConfigureCORS(
+			"POST,OPTIONS",
+			allowedHosts,
 			stoke.Auth(
 				RefreshApiHandler{},
 				issuer,
@@ -101,21 +97,21 @@ func NewServer(ctx context.Context) *http.Server {
 			),
 		),
 	)
-
+	
 	mux.Handle(
-		"/api/admin_users",
-		AllowAllMethods(
-			stoke.Auth(
-				UserHandler{},
-				issuer,
-				stoke.WithToken().Requires("srol", "spr").ForAccess(),
-			),
+		"/api/pkeys",
+		ConfigureCORS(
+			"GET,OPTIONS",
+			allowedHosts,
+			PkeyApiHandler{},
 		),
 	)
 
 	mux.Handle(
 		"/api/admin/",
-		AllowAllMethods(
+		ConfigureCORS(
+			"GET,POST,PATCH,DELETE,OPTIONS",
+			allowedHosts,
 			stoke.Auth(
 				NewEntityAPIHandler("/api/admin/", ctx),
 				issuer,
@@ -124,19 +120,9 @@ func NewServer(ctx context.Context) *http.Server {
 		),
 	)
 
-	mux.Handle(
-		"/metrics",
-		AllowAllMethods(
-			stoke.Auth(
-				promhttp.Handler(),
-				issuer,
-				stoke.WithToken().Requires("srol", "spr").ForAccess(),
-			),
-		),
-	)
 
-	if !telConf.DisableDefaultPrometheus {
-		metricsHandler := func(res http.ResponseWriter, req *http.Request) {
+	if !telConf.DisableMonitoring {
+		logsHandler := func(res http.ResponseWriter, req *http.Request) {
 			logger := zerolog.Ctx(ctx)
 			f, err := os.Open(logFile)
 			if err != nil {
@@ -160,17 +146,48 @@ func NewServer(ctx context.Context) *http.Server {
 
 		if telConf.RequirePrometheusAuthentication {
 			mux.Handle(
-				"/metrics/logs",
-				AllowAllMethods(
-					stoke.AuthFunc(
-						metricsHandler,
+				"/metrics",
+				ConfigureCORS(
+					"GET,OPTIONS",
+					allowedHosts,
+					stoke.Auth(
+						promhttp.Handler(),
 						issuer,
 						stoke.WithToken().Requires("srol", "spr").ForAccess(),
 					),
 				),
 			)
+			mux.Handle(
+				"/metrics/logs",
+				ConfigureCORS(
+					"GET,OPTIONS",
+					allowedHosts,
+					stoke.AuthFunc(
+						logsHandler,
+						issuer,
+						stoke.WithToken().Requires("srol", "spr").ForAccess(),
+					),
+				),
+			)
+
 		} else {
-			mux.Handle("/metrics/logs", AllowAllMethodsFunc(metricsHandler))
+			mux.Handle(
+				"/metrics",
+				ConfigureCORS(
+					"GET,OPTIONS",
+					allowedHosts,
+					promhttp.Handler(),
+				),
+			)
+			mux.Handle(
+				"/metrics/logs",
+				ConfigureCORSFunc(
+					"GET,OPTIONS",
+					allowedHosts,
+					logsHandler,
+				),
+			)
+
 		}
 
 	}

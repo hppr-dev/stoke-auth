@@ -40,6 +40,15 @@ func (UnimplementedHandler) CreateGroupLink(ctx context.Context, req *CreateGrou
 	return r, ht.ErrNotImplemented
 }
 
+// CreateLocalUser implements createLocalUser operation.
+//
+// Create a new local user.
+//
+// POST /localuser
+func (UnimplementedHandler) CreateLocalUser(ctx context.Context, req OptCreateLocalUserReq) (r CreateLocalUserRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
 // DeleteClaim implements deleteClaim operation.
 //
 // Deletes the Claim with the requested ID.
@@ -220,6 +229,15 @@ func (UnimplementedHandler) ReadUser(ctx context.Context, params ReadUserParams)
 	return r, ht.ErrNotImplemented
 }
 
+// Totals implements totals operation.
+//
+// Get entity count totals.
+//
+// GET /totals
+func (UnimplementedHandler) Totals(ctx context.Context) (r *TotalsOK, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
 // UpdateClaim implements updateClaim operation.
 //
 // Updates a Claim and persists changes to storage.
@@ -244,6 +262,15 @@ func (UnimplementedHandler) UpdateClaimGroup(ctx context.Context, req *UpdateCla
 //
 // PATCH /group-links/{id}
 func (UnimplementedHandler) UpdateGroupLink(ctx context.Context, req *UpdateGroupLinkReq, params UpdateGroupLinkParams) (r UpdateGroupLinkRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
+// UpdateLocalUserPassword implements updateLocalUserPassword operation.
+//
+// Update local user's password.
+//
+// PATCH /localuser
+func (UnimplementedHandler) UpdateLocalUserPassword(ctx context.Context, req OptUpdateLocalUserPasswordReq) (r UpdateLocalUserPasswordRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 

@@ -770,6 +770,103 @@ func (s *CreateGroupLinkReq) SetClaimGroup(val OptInt) {
 	s.ClaimGroup = val
 }
 
+type CreateLocalUserBadRequest struct {
+	// Error Message.
+	Message string `json:"message"`
+}
+
+// GetMessage returns the value of Message.
+func (s *CreateLocalUserBadRequest) GetMessage() string {
+	return s.Message
+}
+
+// SetMessage sets the value of Message.
+func (s *CreateLocalUserBadRequest) SetMessage(val string) {
+	s.Message = val
+}
+
+func (*CreateLocalUserBadRequest) createLocalUserRes() {}
+
+type CreateLocalUserOK struct {
+	Message OptString `json:"message"`
+}
+
+// GetMessage returns the value of Message.
+func (s *CreateLocalUserOK) GetMessage() OptString {
+	return s.Message
+}
+
+// SetMessage sets the value of Message.
+func (s *CreateLocalUserOK) SetMessage(val OptString) {
+	s.Message = val
+}
+
+func (*CreateLocalUserOK) createLocalUserRes() {}
+
+// User to create.
+type CreateLocalUserReq struct {
+	// New user's first name.
+	Fname string `json:"fname"`
+	// New user's last name.
+	Lname string `json:"lname"`
+	// New user's username.
+	Username string `json:"username"`
+	// New user's email.
+	Email string `json:"email"`
+	// New user's password.
+	Password string `json:"password"`
+}
+
+// GetFname returns the value of Fname.
+func (s *CreateLocalUserReq) GetFname() string {
+	return s.Fname
+}
+
+// GetLname returns the value of Lname.
+func (s *CreateLocalUserReq) GetLname() string {
+	return s.Lname
+}
+
+// GetUsername returns the value of Username.
+func (s *CreateLocalUserReq) GetUsername() string {
+	return s.Username
+}
+
+// GetEmail returns the value of Email.
+func (s *CreateLocalUserReq) GetEmail() string {
+	return s.Email
+}
+
+// GetPassword returns the value of Password.
+func (s *CreateLocalUserReq) GetPassword() string {
+	return s.Password
+}
+
+// SetFname sets the value of Fname.
+func (s *CreateLocalUserReq) SetFname(val string) {
+	s.Fname = val
+}
+
+// SetLname sets the value of Lname.
+func (s *CreateLocalUserReq) SetLname(val string) {
+	s.Lname = val
+}
+
+// SetUsername sets the value of Username.
+func (s *CreateLocalUserReq) SetUsername(val string) {
+	s.Username = val
+}
+
+// SetEmail sets the value of Email.
+func (s *CreateLocalUserReq) SetEmail(val string) {
+	s.Email = val
+}
+
+// SetPassword sets the value of Password.
+func (s *CreateLocalUserReq) SetPassword(val string) {
+	s.Password = val
+}
+
 // DeleteClaimGroupNoContent is response for DeleteClaimGroup operation.
 type DeleteClaimGroupNoContent struct{}
 
@@ -1023,6 +1120,98 @@ type ListUserOKApplicationJSON []UserList
 
 func (*ListUserOKApplicationJSON) listUserRes() {}
 
+// NewOptBool returns new OptBool with value set to v.
+func NewOptBool(v bool) OptBool {
+	return OptBool{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptBool is optional bool.
+type OptBool struct {
+	Value bool
+	Set   bool
+}
+
+// IsSet returns true if OptBool was set.
+func (o OptBool) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptBool) Reset() {
+	var v bool
+	o.Value = v
+	o.Set = false
+}
+
+// SetTo sets value to v.
+func (o *OptBool) SetTo(v bool) {
+	o.Set = true
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptBool) Get() (v bool, ok bool) {
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptBool) Or(d bool) bool {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
+// NewOptCreateLocalUserReq returns new OptCreateLocalUserReq with value set to v.
+func NewOptCreateLocalUserReq(v CreateLocalUserReq) OptCreateLocalUserReq {
+	return OptCreateLocalUserReq{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptCreateLocalUserReq is optional CreateLocalUserReq.
+type OptCreateLocalUserReq struct {
+	Value CreateLocalUserReq
+	Set   bool
+}
+
+// IsSet returns true if OptCreateLocalUserReq was set.
+func (o OptCreateLocalUserReq) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptCreateLocalUserReq) Reset() {
+	var v CreateLocalUserReq
+	o.Value = v
+	o.Set = false
+}
+
+// SetTo sets value to v.
+func (o *OptCreateLocalUserReq) SetTo(v CreateLocalUserReq) {
+	o.Set = true
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptCreateLocalUserReq) Get() (v CreateLocalUserReq, ok bool) {
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptCreateLocalUserReq) Or(d CreateLocalUserReq) CreateLocalUserReq {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
 // NewOptInt returns new OptInt with value set to v.
 func NewOptInt(v int) OptInt {
 	return OptInt{
@@ -1109,6 +1298,52 @@ func (o OptString) Get() (v string, ok bool) {
 
 // Or returns value if set, or given parameter if does not.
 func (o OptString) Or(d string) string {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
+// NewOptUpdateLocalUserPasswordReq returns new OptUpdateLocalUserPasswordReq with value set to v.
+func NewOptUpdateLocalUserPasswordReq(v UpdateLocalUserPasswordReq) OptUpdateLocalUserPasswordReq {
+	return OptUpdateLocalUserPasswordReq{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptUpdateLocalUserPasswordReq is optional UpdateLocalUserPasswordReq.
+type OptUpdateLocalUserPasswordReq struct {
+	Value UpdateLocalUserPasswordReq
+	Set   bool
+}
+
+// IsSet returns true if OptUpdateLocalUserPasswordReq was set.
+func (o OptUpdateLocalUserPasswordReq) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptUpdateLocalUserPasswordReq) Reset() {
+	var v UpdateLocalUserPasswordReq
+	o.Value = v
+	o.Set = false
+}
+
+// SetTo sets value to v.
+func (o *OptUpdateLocalUserPasswordReq) SetTo(v UpdateLocalUserPasswordReq) {
+	o.Set = true
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptUpdateLocalUserPasswordReq) Get() (v UpdateLocalUserPasswordReq, ok bool) {
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptUpdateLocalUserPasswordReq) Or(d UpdateLocalUserPasswordReq) UpdateLocalUserPasswordReq {
 	if v, ok := o.Get(); ok {
 		return v
 	}
@@ -1444,6 +1679,45 @@ func (*R500) updateClaimRes()              {}
 func (*R500) updateGroupLinkRes()          {}
 func (*R500) updateUserRes()               {}
 
+type TotalsOK struct {
+	// Count of users.
+	Users int `json:"users"`
+	// Count of claims.
+	Claims int `json:"claims"`
+	// Count of claim groups.
+	ClaimGroups int `json:"claim_groups"`
+}
+
+// GetUsers returns the value of Users.
+func (s *TotalsOK) GetUsers() int {
+	return s.Users
+}
+
+// GetClaims returns the value of Claims.
+func (s *TotalsOK) GetClaims() int {
+	return s.Claims
+}
+
+// GetClaimGroups returns the value of ClaimGroups.
+func (s *TotalsOK) GetClaimGroups() int {
+	return s.ClaimGroups
+}
+
+// SetUsers sets the value of Users.
+func (s *TotalsOK) SetUsers(val int) {
+	s.Users = val
+}
+
+// SetClaims sets the value of Claims.
+func (s *TotalsOK) SetClaims(val int) {
+	s.Claims = val
+}
+
+// SetClaimGroups sets the value of ClaimGroups.
+func (s *TotalsOK) SetClaimGroups(val int) {
+	s.ClaimGroups = val
+}
+
 type UpdateClaimGroupReq struct {
 	Name        OptString `json:"name"`
 	Description OptString `json:"description"`
@@ -1594,6 +1868,91 @@ func (s *UpdateGroupLinkReq) SetResourceSpec(val OptString) {
 // SetClaimGroup sets the value of ClaimGroup.
 func (s *UpdateGroupLinkReq) SetClaimGroup(val OptInt) {
 	s.ClaimGroup = val
+}
+
+type UpdateLocalUserPasswordBadRequest struct {
+	// Error Message.
+	Message string `json:"message"`
+}
+
+// GetMessage returns the value of Message.
+func (s *UpdateLocalUserPasswordBadRequest) GetMessage() string {
+	return s.Message
+}
+
+// SetMessage sets the value of Message.
+func (s *UpdateLocalUserPasswordBadRequest) SetMessage(val string) {
+	s.Message = val
+}
+
+func (*UpdateLocalUserPasswordBadRequest) updateLocalUserPasswordRes() {}
+
+type UpdateLocalUserPasswordOK struct {
+	Message OptString `json:"message"`
+}
+
+// GetMessage returns the value of Message.
+func (s *UpdateLocalUserPasswordOK) GetMessage() OptString {
+	return s.Message
+}
+
+// SetMessage sets the value of Message.
+func (s *UpdateLocalUserPasswordOK) SetMessage(val OptString) {
+	s.Message = val
+}
+
+func (*UpdateLocalUserPasswordOK) updateLocalUserPasswordRes() {}
+
+// Password update data.
+type UpdateLocalUserPasswordReq struct {
+	// User's username.
+	Username string `json:"username"`
+	// Old user password.
+	OldPassword OptString `json:"oldPassword"`
+	// New user password.
+	NewPassword string `json:"newPassword"`
+	// Set to change user's password without checking the old password.
+	Force OptBool `json:"force"`
+}
+
+// GetUsername returns the value of Username.
+func (s *UpdateLocalUserPasswordReq) GetUsername() string {
+	return s.Username
+}
+
+// GetOldPassword returns the value of OldPassword.
+func (s *UpdateLocalUserPasswordReq) GetOldPassword() OptString {
+	return s.OldPassword
+}
+
+// GetNewPassword returns the value of NewPassword.
+func (s *UpdateLocalUserPasswordReq) GetNewPassword() string {
+	return s.NewPassword
+}
+
+// GetForce returns the value of Force.
+func (s *UpdateLocalUserPasswordReq) GetForce() OptBool {
+	return s.Force
+}
+
+// SetUsername sets the value of Username.
+func (s *UpdateLocalUserPasswordReq) SetUsername(val string) {
+	s.Username = val
+}
+
+// SetOldPassword sets the value of OldPassword.
+func (s *UpdateLocalUserPasswordReq) SetOldPassword(val OptString) {
+	s.OldPassword = val
+}
+
+// SetNewPassword sets the value of NewPassword.
+func (s *UpdateLocalUserPasswordReq) SetNewPassword(val string) {
+	s.NewPassword = val
+}
+
+// SetForce sets the value of Force.
+func (s *UpdateLocalUserPasswordReq) SetForce(val OptBool) {
+	s.Force = val
 }
 
 type UpdateUserReq struct {
