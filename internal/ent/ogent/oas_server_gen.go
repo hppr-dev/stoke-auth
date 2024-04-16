@@ -12,199 +12,219 @@ type Handler interface {
 	//
 	// Creates a new Claim and persists it to storage.
 	//
-	// POST /claims
+	// POST /admin/claims
 	CreateClaim(ctx context.Context, req *CreateClaimReq) (CreateClaimRes, error)
 	// CreateClaimGroup implements createClaimGroup operation.
 	//
 	// Creates a new ClaimGroup and persists it to storage.
 	//
-	// POST /claim-groups
+	// POST /admin/claim-groups
 	CreateClaimGroup(ctx context.Context, req *CreateClaimGroupReq) (CreateClaimGroupRes, error)
 	// CreateGroupLink implements createGroupLink operation.
 	//
 	// Creates a new GroupLink and persists it to storage.
 	//
-	// POST /group-links
+	// POST /admin/group-links
 	CreateGroupLink(ctx context.Context, req *CreateGroupLinkReq) (CreateGroupLinkRes, error)
 	// CreateLocalUser implements createLocalUser operation.
 	//
 	// Create a new local user.
 	//
-	// POST /localuser
-	CreateLocalUser(ctx context.Context, req OptCreateLocalUserReq) (CreateLocalUserRes, error)
+	// POST /admin/localuser
+	CreateLocalUser(ctx context.Context, req *CreateLocalUserReq) (CreateLocalUserRes, error)
 	// DeleteClaim implements deleteClaim operation.
 	//
 	// Deletes the Claim with the requested ID.
 	//
-	// DELETE /claims/{id}
+	// DELETE /admin/claims/{id}
 	DeleteClaim(ctx context.Context, params DeleteClaimParams) (DeleteClaimRes, error)
 	// DeleteClaimGroup implements deleteClaimGroup operation.
 	//
 	// Deletes the ClaimGroup with the requested ID.
 	//
-	// DELETE /claim-groups/{id}
+	// DELETE /admin/claim-groups/{id}
 	DeleteClaimGroup(ctx context.Context, params DeleteClaimGroupParams) (DeleteClaimGroupRes, error)
 	// DeleteGroupLink implements deleteGroupLink operation.
 	//
 	// Deletes the GroupLink with the requested ID.
 	//
-	// DELETE /group-links/{id}
+	// DELETE /admin/group-links/{id}
 	DeleteGroupLink(ctx context.Context, params DeleteGroupLinkParams) (DeleteGroupLinkRes, error)
 	// DeleteUser implements deleteUser operation.
 	//
 	// Deletes the User with the requested ID.
 	//
-	// DELETE /users/{id}
+	// DELETE /admin/users/{id}
 	DeleteUser(ctx context.Context, params DeleteUserParams) (DeleteUserRes, error)
 	// ListClaim implements listClaim operation.
 	//
 	// List Claims.
 	//
-	// GET /claims
+	// GET /admin/claims
 	ListClaim(ctx context.Context, params ListClaimParams) (ListClaimRes, error)
 	// ListClaimClaimGroups implements listClaimClaimGroups operation.
 	//
 	// List attached ClaimGroups.
 	//
-	// GET /claims/{id}/claim-groups
+	// GET /admin/claims/{id}/claim-groups
 	ListClaimClaimGroups(ctx context.Context, params ListClaimClaimGroupsParams) (ListClaimClaimGroupsRes, error)
 	// ListClaimGroup implements listClaimGroup operation.
 	//
 	// List ClaimGroups.
 	//
-	// GET /claim-groups
+	// GET /admin/claim-groups
 	ListClaimGroup(ctx context.Context, params ListClaimGroupParams) (ListClaimGroupRes, error)
 	// ListClaimGroupClaims implements listClaimGroupClaims operation.
 	//
 	// List attached Claims.
 	//
-	// GET /claim-groups/{id}/claims
+	// GET /admin/claim-groups/{id}/claims
 	ListClaimGroupClaims(ctx context.Context, params ListClaimGroupClaimsParams) (ListClaimGroupClaimsRes, error)
 	// ListClaimGroupGroupLinks implements listClaimGroupGroupLinks operation.
 	//
 	// List attached GroupLinks.
 	//
-	// GET /claim-groups/{id}/group-links
+	// GET /admin/claim-groups/{id}/group-links
 	ListClaimGroupGroupLinks(ctx context.Context, params ListClaimGroupGroupLinksParams) (ListClaimGroupGroupLinksRes, error)
 	// ListClaimGroupUsers implements listClaimGroupUsers operation.
 	//
 	// List attached Users.
 	//
-	// GET /claim-groups/{id}/users
+	// GET /admin/claim-groups/{id}/users
 	ListClaimGroupUsers(ctx context.Context, params ListClaimGroupUsersParams) (ListClaimGroupUsersRes, error)
 	// ListGroupLink implements listGroupLink operation.
 	//
 	// List GroupLinks.
 	//
-	// GET /group-links
+	// GET /admin/group-links
 	ListGroupLink(ctx context.Context, params ListGroupLinkParams) (ListGroupLinkRes, error)
 	// ListPrivateKey implements listPrivateKey operation.
 	//
 	// List PrivateKeys.
 	//
-	// GET /private-keys
+	// GET /admin/private-keys
 	ListPrivateKey(ctx context.Context, params ListPrivateKeyParams) (ListPrivateKeyRes, error)
 	// ListUser implements listUser operation.
 	//
 	// List Users.
 	//
-	// GET /users
+	// GET /admin/users
 	ListUser(ctx context.Context, params ListUserParams) (ListUserRes, error)
 	// ListUserClaimGroups implements listUserClaimGroups operation.
 	//
 	// List attached ClaimGroups.
 	//
-	// GET /users/{id}/claim-groups
+	// GET /admin/users/{id}/claim-groups
 	ListUserClaimGroups(ctx context.Context, params ListUserClaimGroupsParams) (ListUserClaimGroupsRes, error)
+	// Login implements login operation.
+	//
+	// Request a token.
+	//
+	// POST /login
+	Login(ctx context.Context, req *LoginReq) (LoginRes, error)
+	// Pkeys implements pkeys operation.
+	//
+	// Get current valid public keys.
+	//
+	// GET /pkeys
+	Pkeys(ctx context.Context) (*PkeysOK, error)
 	// ReadClaim implements readClaim operation.
 	//
 	// Finds the Claim with the requested ID and returns it.
 	//
-	// GET /claims/{id}
+	// GET /admin/claims/{id}
 	ReadClaim(ctx context.Context, params ReadClaimParams) (ReadClaimRes, error)
 	// ReadClaimGroup implements readClaimGroup operation.
 	//
 	// Finds the ClaimGroup with the requested ID and returns it.
 	//
-	// GET /claim-groups/{id}
+	// GET /admin/claim-groups/{id}
 	ReadClaimGroup(ctx context.Context, params ReadClaimGroupParams) (ReadClaimGroupRes, error)
 	// ReadGroupLink implements readGroupLink operation.
 	//
 	// Finds the GroupLink with the requested ID and returns it.
 	//
-	// GET /group-links/{id}
+	// GET /admin/group-links/{id}
 	ReadGroupLink(ctx context.Context, params ReadGroupLinkParams) (ReadGroupLinkRes, error)
 	// ReadGroupLinkClaimGroup implements readGroupLinkClaimGroup operation.
 	//
 	// Find the attached ClaimGroup of the GroupLink with the given ID.
 	//
-	// GET /group-links/{id}/claim-group
+	// GET /admin/group-links/{id}/claim-group
 	ReadGroupLinkClaimGroup(ctx context.Context, params ReadGroupLinkClaimGroupParams) (ReadGroupLinkClaimGroupRes, error)
 	// ReadPrivateKey implements readPrivateKey operation.
 	//
 	// Finds the PrivateKey with the requested ID and returns it.
 	//
-	// GET /private-keys/{id}
+	// GET /admin/private-keys/{id}
 	ReadPrivateKey(ctx context.Context, params ReadPrivateKeyParams) (ReadPrivateKeyRes, error)
 	// ReadUser implements readUser operation.
 	//
 	// Finds the User with the requested ID and returns it.
 	//
-	// GET /users/{id}
+	// GET /admin/users/{id}
 	ReadUser(ctx context.Context, params ReadUserParams) (ReadUserRes, error)
+	// Refresh implements refresh operation.
+	//
+	// Request a refreshed token.
+	//
+	// POST /refresh
+	Refresh(ctx context.Context, req *RefreshReq) (RefreshRes, error)
 	// Totals implements totals operation.
 	//
 	// Get entity count totals.
 	//
-	// GET /totals
+	// GET /admin/totals
 	Totals(ctx context.Context) (*TotalsOK, error)
 	// UpdateClaim implements updateClaim operation.
 	//
 	// Updates a Claim and persists changes to storage.
 	//
-	// PATCH /claims/{id}
+	// PATCH /admin/claims/{id}
 	UpdateClaim(ctx context.Context, req *UpdateClaimReq, params UpdateClaimParams) (UpdateClaimRes, error)
 	// UpdateClaimGroup implements updateClaimGroup operation.
 	//
 	// Updates a ClaimGroup and persists changes to storage.
 	//
-	// PATCH /claim-groups/{id}
+	// PATCH /admin/claim-groups/{id}
 	UpdateClaimGroup(ctx context.Context, req *UpdateClaimGroupReq, params UpdateClaimGroupParams) (UpdateClaimGroupRes, error)
 	// UpdateGroupLink implements updateGroupLink operation.
 	//
 	// Updates a GroupLink and persists changes to storage.
 	//
-	// PATCH /group-links/{id}
+	// PATCH /admin/group-links/{id}
 	UpdateGroupLink(ctx context.Context, req *UpdateGroupLinkReq, params UpdateGroupLinkParams) (UpdateGroupLinkRes, error)
 	// UpdateLocalUserPassword implements updateLocalUserPassword operation.
 	//
 	// Update local user's password.
 	//
-	// PATCH /localuser
-	UpdateLocalUserPassword(ctx context.Context, req OptUpdateLocalUserPasswordReq) (UpdateLocalUserPasswordRes, error)
+	// PATCH /admin/localuser
+	UpdateLocalUserPassword(ctx context.Context, req *UpdateLocalUserPasswordReq) (UpdateLocalUserPasswordRes, error)
 	// UpdateUser implements updateUser operation.
 	//
 	// Updates a User and persists changes to storage.
 	//
-	// PATCH /users/{id}
+	// PATCH /admin/users/{id}
 	UpdateUser(ctx context.Context, req *UpdateUserReq, params UpdateUserParams) (UpdateUserRes, error)
 }
 
 // Server implements http server based on OpenAPI v3 specification and
 // calls Handler to handle requests.
 type Server struct {
-	h Handler
+	h   Handler
+	sec SecurityHandler
 	baseServer
 }
 
 // NewServer creates new Server.
-func NewServer(h Handler, opts ...ServerOption) (*Server, error) {
+func NewServer(h Handler, sec SecurityHandler, opts ...ServerOption) (*Server, error) {
 	s, err := newServerConfig(opts...).baseServer()
 	if err != nil {
 		return nil, err
 	}
 	return &Server{
 		h:          h,
+		sec:        sec,
 		baseServer: s,
 	}, nil
 }

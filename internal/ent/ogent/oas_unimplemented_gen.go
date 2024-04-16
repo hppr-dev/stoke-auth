@@ -17,7 +17,7 @@ var _ Handler = UnimplementedHandler{}
 //
 // Creates a new Claim and persists it to storage.
 //
-// POST /claims
+// POST /admin/claims
 func (UnimplementedHandler) CreateClaim(ctx context.Context, req *CreateClaimReq) (r CreateClaimRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
@@ -26,7 +26,7 @@ func (UnimplementedHandler) CreateClaim(ctx context.Context, req *CreateClaimReq
 //
 // Creates a new ClaimGroup and persists it to storage.
 //
-// POST /claim-groups
+// POST /admin/claim-groups
 func (UnimplementedHandler) CreateClaimGroup(ctx context.Context, req *CreateClaimGroupReq) (r CreateClaimGroupRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
@@ -35,7 +35,7 @@ func (UnimplementedHandler) CreateClaimGroup(ctx context.Context, req *CreateCla
 //
 // Creates a new GroupLink and persists it to storage.
 //
-// POST /group-links
+// POST /admin/group-links
 func (UnimplementedHandler) CreateGroupLink(ctx context.Context, req *CreateGroupLinkReq) (r CreateGroupLinkRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
@@ -44,8 +44,8 @@ func (UnimplementedHandler) CreateGroupLink(ctx context.Context, req *CreateGrou
 //
 // Create a new local user.
 //
-// POST /localuser
-func (UnimplementedHandler) CreateLocalUser(ctx context.Context, req OptCreateLocalUserReq) (r CreateLocalUserRes, _ error) {
+// POST /admin/localuser
+func (UnimplementedHandler) CreateLocalUser(ctx context.Context, req *CreateLocalUserReq) (r CreateLocalUserRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
@@ -53,7 +53,7 @@ func (UnimplementedHandler) CreateLocalUser(ctx context.Context, req OptCreateLo
 //
 // Deletes the Claim with the requested ID.
 //
-// DELETE /claims/{id}
+// DELETE /admin/claims/{id}
 func (UnimplementedHandler) DeleteClaim(ctx context.Context, params DeleteClaimParams) (r DeleteClaimRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
@@ -62,7 +62,7 @@ func (UnimplementedHandler) DeleteClaim(ctx context.Context, params DeleteClaimP
 //
 // Deletes the ClaimGroup with the requested ID.
 //
-// DELETE /claim-groups/{id}
+// DELETE /admin/claim-groups/{id}
 func (UnimplementedHandler) DeleteClaimGroup(ctx context.Context, params DeleteClaimGroupParams) (r DeleteClaimGroupRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
@@ -71,7 +71,7 @@ func (UnimplementedHandler) DeleteClaimGroup(ctx context.Context, params DeleteC
 //
 // Deletes the GroupLink with the requested ID.
 //
-// DELETE /group-links/{id}
+// DELETE /admin/group-links/{id}
 func (UnimplementedHandler) DeleteGroupLink(ctx context.Context, params DeleteGroupLinkParams) (r DeleteGroupLinkRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
@@ -80,7 +80,7 @@ func (UnimplementedHandler) DeleteGroupLink(ctx context.Context, params DeleteGr
 //
 // Deletes the User with the requested ID.
 //
-// DELETE /users/{id}
+// DELETE /admin/users/{id}
 func (UnimplementedHandler) DeleteUser(ctx context.Context, params DeleteUserParams) (r DeleteUserRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
@@ -89,7 +89,7 @@ func (UnimplementedHandler) DeleteUser(ctx context.Context, params DeleteUserPar
 //
 // List Claims.
 //
-// GET /claims
+// GET /admin/claims
 func (UnimplementedHandler) ListClaim(ctx context.Context, params ListClaimParams) (r ListClaimRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
@@ -98,7 +98,7 @@ func (UnimplementedHandler) ListClaim(ctx context.Context, params ListClaimParam
 //
 // List attached ClaimGroups.
 //
-// GET /claims/{id}/claim-groups
+// GET /admin/claims/{id}/claim-groups
 func (UnimplementedHandler) ListClaimClaimGroups(ctx context.Context, params ListClaimClaimGroupsParams) (r ListClaimClaimGroupsRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
@@ -107,7 +107,7 @@ func (UnimplementedHandler) ListClaimClaimGroups(ctx context.Context, params Lis
 //
 // List ClaimGroups.
 //
-// GET /claim-groups
+// GET /admin/claim-groups
 func (UnimplementedHandler) ListClaimGroup(ctx context.Context, params ListClaimGroupParams) (r ListClaimGroupRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
@@ -116,7 +116,7 @@ func (UnimplementedHandler) ListClaimGroup(ctx context.Context, params ListClaim
 //
 // List attached Claims.
 //
-// GET /claim-groups/{id}/claims
+// GET /admin/claim-groups/{id}/claims
 func (UnimplementedHandler) ListClaimGroupClaims(ctx context.Context, params ListClaimGroupClaimsParams) (r ListClaimGroupClaimsRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
@@ -125,7 +125,7 @@ func (UnimplementedHandler) ListClaimGroupClaims(ctx context.Context, params Lis
 //
 // List attached GroupLinks.
 //
-// GET /claim-groups/{id}/group-links
+// GET /admin/claim-groups/{id}/group-links
 func (UnimplementedHandler) ListClaimGroupGroupLinks(ctx context.Context, params ListClaimGroupGroupLinksParams) (r ListClaimGroupGroupLinksRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
@@ -134,7 +134,7 @@ func (UnimplementedHandler) ListClaimGroupGroupLinks(ctx context.Context, params
 //
 // List attached Users.
 //
-// GET /claim-groups/{id}/users
+// GET /admin/claim-groups/{id}/users
 func (UnimplementedHandler) ListClaimGroupUsers(ctx context.Context, params ListClaimGroupUsersParams) (r ListClaimGroupUsersRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
@@ -143,7 +143,7 @@ func (UnimplementedHandler) ListClaimGroupUsers(ctx context.Context, params List
 //
 // List GroupLinks.
 //
-// GET /group-links
+// GET /admin/group-links
 func (UnimplementedHandler) ListGroupLink(ctx context.Context, params ListGroupLinkParams) (r ListGroupLinkRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
@@ -152,7 +152,7 @@ func (UnimplementedHandler) ListGroupLink(ctx context.Context, params ListGroupL
 //
 // List PrivateKeys.
 //
-// GET /private-keys
+// GET /admin/private-keys
 func (UnimplementedHandler) ListPrivateKey(ctx context.Context, params ListPrivateKeyParams) (r ListPrivateKeyRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
@@ -161,7 +161,7 @@ func (UnimplementedHandler) ListPrivateKey(ctx context.Context, params ListPriva
 //
 // List Users.
 //
-// GET /users
+// GET /admin/users
 func (UnimplementedHandler) ListUser(ctx context.Context, params ListUserParams) (r ListUserRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
@@ -170,8 +170,26 @@ func (UnimplementedHandler) ListUser(ctx context.Context, params ListUserParams)
 //
 // List attached ClaimGroups.
 //
-// GET /users/{id}/claim-groups
+// GET /admin/users/{id}/claim-groups
 func (UnimplementedHandler) ListUserClaimGroups(ctx context.Context, params ListUserClaimGroupsParams) (r ListUserClaimGroupsRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
+// Login implements login operation.
+//
+// Request a token.
+//
+// POST /login
+func (UnimplementedHandler) Login(ctx context.Context, req *LoginReq) (r LoginRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
+// Pkeys implements pkeys operation.
+//
+// Get current valid public keys.
+//
+// GET /pkeys
+func (UnimplementedHandler) Pkeys(ctx context.Context) (r *PkeysOK, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
@@ -179,7 +197,7 @@ func (UnimplementedHandler) ListUserClaimGroups(ctx context.Context, params List
 //
 // Finds the Claim with the requested ID and returns it.
 //
-// GET /claims/{id}
+// GET /admin/claims/{id}
 func (UnimplementedHandler) ReadClaim(ctx context.Context, params ReadClaimParams) (r ReadClaimRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
@@ -188,7 +206,7 @@ func (UnimplementedHandler) ReadClaim(ctx context.Context, params ReadClaimParam
 //
 // Finds the ClaimGroup with the requested ID and returns it.
 //
-// GET /claim-groups/{id}
+// GET /admin/claim-groups/{id}
 func (UnimplementedHandler) ReadClaimGroup(ctx context.Context, params ReadClaimGroupParams) (r ReadClaimGroupRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
@@ -197,7 +215,7 @@ func (UnimplementedHandler) ReadClaimGroup(ctx context.Context, params ReadClaim
 //
 // Finds the GroupLink with the requested ID and returns it.
 //
-// GET /group-links/{id}
+// GET /admin/group-links/{id}
 func (UnimplementedHandler) ReadGroupLink(ctx context.Context, params ReadGroupLinkParams) (r ReadGroupLinkRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
@@ -206,7 +224,7 @@ func (UnimplementedHandler) ReadGroupLink(ctx context.Context, params ReadGroupL
 //
 // Find the attached ClaimGroup of the GroupLink with the given ID.
 //
-// GET /group-links/{id}/claim-group
+// GET /admin/group-links/{id}/claim-group
 func (UnimplementedHandler) ReadGroupLinkClaimGroup(ctx context.Context, params ReadGroupLinkClaimGroupParams) (r ReadGroupLinkClaimGroupRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
@@ -215,7 +233,7 @@ func (UnimplementedHandler) ReadGroupLinkClaimGroup(ctx context.Context, params 
 //
 // Finds the PrivateKey with the requested ID and returns it.
 //
-// GET /private-keys/{id}
+// GET /admin/private-keys/{id}
 func (UnimplementedHandler) ReadPrivateKey(ctx context.Context, params ReadPrivateKeyParams) (r ReadPrivateKeyRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
@@ -224,8 +242,17 @@ func (UnimplementedHandler) ReadPrivateKey(ctx context.Context, params ReadPriva
 //
 // Finds the User with the requested ID and returns it.
 //
-// GET /users/{id}
+// GET /admin/users/{id}
 func (UnimplementedHandler) ReadUser(ctx context.Context, params ReadUserParams) (r ReadUserRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
+// Refresh implements refresh operation.
+//
+// Request a refreshed token.
+//
+// POST /refresh
+func (UnimplementedHandler) Refresh(ctx context.Context, req *RefreshReq) (r RefreshRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
@@ -233,7 +260,7 @@ func (UnimplementedHandler) ReadUser(ctx context.Context, params ReadUserParams)
 //
 // Get entity count totals.
 //
-// GET /totals
+// GET /admin/totals
 func (UnimplementedHandler) Totals(ctx context.Context) (r *TotalsOK, _ error) {
 	return r, ht.ErrNotImplemented
 }
@@ -242,7 +269,7 @@ func (UnimplementedHandler) Totals(ctx context.Context) (r *TotalsOK, _ error) {
 //
 // Updates a Claim and persists changes to storage.
 //
-// PATCH /claims/{id}
+// PATCH /admin/claims/{id}
 func (UnimplementedHandler) UpdateClaim(ctx context.Context, req *UpdateClaimReq, params UpdateClaimParams) (r UpdateClaimRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
@@ -251,7 +278,7 @@ func (UnimplementedHandler) UpdateClaim(ctx context.Context, req *UpdateClaimReq
 //
 // Updates a ClaimGroup and persists changes to storage.
 //
-// PATCH /claim-groups/{id}
+// PATCH /admin/claim-groups/{id}
 func (UnimplementedHandler) UpdateClaimGroup(ctx context.Context, req *UpdateClaimGroupReq, params UpdateClaimGroupParams) (r UpdateClaimGroupRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
@@ -260,7 +287,7 @@ func (UnimplementedHandler) UpdateClaimGroup(ctx context.Context, req *UpdateCla
 //
 // Updates a GroupLink and persists changes to storage.
 //
-// PATCH /group-links/{id}
+// PATCH /admin/group-links/{id}
 func (UnimplementedHandler) UpdateGroupLink(ctx context.Context, req *UpdateGroupLinkReq, params UpdateGroupLinkParams) (r UpdateGroupLinkRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
@@ -269,8 +296,8 @@ func (UnimplementedHandler) UpdateGroupLink(ctx context.Context, req *UpdateGrou
 //
 // Update local user's password.
 //
-// PATCH /localuser
-func (UnimplementedHandler) UpdateLocalUserPassword(ctx context.Context, req OptUpdateLocalUserPasswordReq) (r UpdateLocalUserPasswordRes, _ error) {
+// PATCH /admin/localuser
+func (UnimplementedHandler) UpdateLocalUserPassword(ctx context.Context, req *UpdateLocalUserPasswordReq) (r UpdateLocalUserPasswordRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
@@ -278,7 +305,7 @@ func (UnimplementedHandler) UpdateLocalUserPassword(ctx context.Context, req Opt
 //
 // Updates a User and persists changes to storage.
 //
-// PATCH /users/{id}
+// PATCH /admin/users/{id}
 func (UnimplementedHandler) UpdateUser(ctx context.Context, req *UpdateUserReq, params UpdateUserParams) (r UpdateUserRes, _ error) {
 	return r, ht.ErrNotImplemented
 }

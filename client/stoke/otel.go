@@ -16,7 +16,7 @@ func getTracer() trace.Tracer {
 		)
 }
 
-func addTokenToSpan(jwtToken *jwt.Token, span trace.Span) bool {
+func AddTokenToSpan(jwtToken *jwt.Token, span trace.Span) bool {
 	var traceAttrs []attribute.KeyValue
 	issuer, err := jwtToken.Claims.GetIssuer()
 	if err == nil && issuer != "" {

@@ -25,7 +25,7 @@ import (
 // See also: https://www.iana.org/assignments/jose/jose.xhtml#web-key-types
 type JWKSet struct {
 	Expires time.Time `json:"exp"`
-	Keys    []*JWK     `json:"keys"`
+	Keys    []*JWK    `json:"keys"`
 }
 
 type JWK struct {

@@ -6,7 +6,7 @@
     "version": "0.1.0"
   },
   "paths": {
-    "/claim-groups": {
+    "/admin/claim-groups": {
       "get": {
         "tags": [
           "ClaimGroup"
@@ -61,7 +61,12 @@
           "500": {
             "$ref": "#/components/responses/500"
           }
-        }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
       },
       "post": {
         "tags": [
@@ -131,10 +136,15 @@
           "500": {
             "$ref": "#/components/responses/500"
           }
-        }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
       }
     },
-    "/claim-groups/{id}": {
+    "/admin/claim-groups/{id}": {
       "get": {
         "tags": [
           "ClaimGroup"
@@ -176,7 +186,12 @@
           "500": {
             "$ref": "#/components/responses/500"
           }
-        }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
       },
       "delete": {
         "tags": [
@@ -212,7 +227,12 @@
           "500": {
             "$ref": "#/components/responses/500"
           }
-        }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
       },
       "patch": {
         "tags": [
@@ -292,10 +312,15 @@
           "500": {
             "$ref": "#/components/responses/500"
           }
-        }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
       }
     },
-    "/claim-groups/{id}/claims": {
+    "/admin/claim-groups/{id}/claims": {
       "get": {
         "tags": [
           "ClaimGroup"
@@ -356,10 +381,15 @@
           "500": {
             "$ref": "#/components/responses/500"
           }
-        }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
       }
     },
-    "/claim-groups/{id}/group-links": {
+    "/admin/claim-groups/{id}/group-links": {
       "get": {
         "tags": [
           "ClaimGroup"
@@ -420,10 +450,15 @@
           "500": {
             "$ref": "#/components/responses/500"
           }
-        }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
       }
     },
-    "/claim-groups/{id}/users": {
+    "/admin/claim-groups/{id}/users": {
       "get": {
         "tags": [
           "ClaimGroup"
@@ -484,10 +519,15 @@
           "500": {
             "$ref": "#/components/responses/500"
           }
-        }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
       }
     },
-    "/claims": {
+    "/admin/claims": {
       "get": {
         "tags": [
           "Claim"
@@ -542,7 +582,12 @@
           "500": {
             "$ref": "#/components/responses/500"
           }
-        }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
       },
       "post": {
         "tags": [
@@ -608,10 +653,15 @@
           "500": {
             "$ref": "#/components/responses/500"
           }
-        }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
       }
     },
-    "/claims/{id}": {
+    "/admin/claims/{id}": {
       "get": {
         "tags": [
           "Claim"
@@ -653,7 +703,12 @@
           "500": {
             "$ref": "#/components/responses/500"
           }
-        }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
       },
       "delete": {
         "tags": [
@@ -689,7 +744,12 @@
           "500": {
             "$ref": "#/components/responses/500"
           }
-        }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
       },
       "patch": {
         "tags": [
@@ -763,10 +823,15 @@
           "500": {
             "$ref": "#/components/responses/500"
           }
-        }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
       }
     },
-    "/claims/{id}/claim-groups": {
+    "/admin/claims/{id}/claim-groups": {
       "get": {
         "tags": [
           "Claim"
@@ -827,10 +892,15 @@
           "500": {
             "$ref": "#/components/responses/500"
           }
-        }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
       }
     },
-    "/group-links": {
+    "/admin/group-links": {
       "get": {
         "tags": [
           "GroupLink"
@@ -885,7 +955,12 @@
           "500": {
             "$ref": "#/components/responses/500"
           }
-        }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
       },
       "post": {
         "tags": [
@@ -940,10 +1015,15 @@
           "500": {
             "$ref": "#/components/responses/500"
           }
-        }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
       }
     },
-    "/group-links/{id}": {
+    "/admin/group-links/{id}": {
       "get": {
         "tags": [
           "GroupLink"
@@ -985,7 +1065,12 @@
           "500": {
             "$ref": "#/components/responses/500"
           }
-        }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
       },
       "delete": {
         "tags": [
@@ -1021,7 +1106,12 @@
           "500": {
             "$ref": "#/components/responses/500"
           }
-        }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
       },
       "patch": {
         "tags": [
@@ -1086,10 +1176,15 @@
           "500": {
             "$ref": "#/components/responses/500"
           }
-        }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
       }
     },
-    "/group-links/{id}/claim-group": {
+    "/admin/group-links/{id}/claim-group": {
       "get": {
         "tags": [
           "GroupLink"
@@ -1131,10 +1226,15 @@
           "500": {
             "$ref": "#/components/responses/500"
           }
-        }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
       }
     },
-    "/localuser": {
+    "/admin/localuser": {
       "description": "Local user modification functions",
       "post": {
         "summary": "Create a new local user",
@@ -1176,7 +1276,8 @@
                 ]
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -1212,7 +1313,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
       },
       "patch": {
         "summary": "Update local user's password",
@@ -1247,7 +1353,8 @@
                 ]
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -1283,10 +1390,15 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
       }
     },
-    "/private-keys": {
+    "/admin/private-keys": {
       "get": {
         "tags": [
           "PrivateKey"
@@ -1341,10 +1453,15 @@
           "500": {
             "$ref": "#/components/responses/500"
           }
-        }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
       }
     },
-    "/private-keys/{id}": {
+    "/admin/private-keys/{id}": {
       "get": {
         "tags": [
           "PrivateKey"
@@ -1386,10 +1503,15 @@
           "500": {
             "$ref": "#/components/responses/500"
           }
-        }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
       }
     },
-    "/totals": {
+    "/admin/totals": {
       "description": "Entity count totals",
       "get": {
         "summary": "Get entity count totals",
@@ -1423,10 +1545,15 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
       }
     },
-    "/users": {
+    "/admin/users": {
       "get": {
         "tags": [
           "User"
@@ -1481,10 +1608,15 @@
           "500": {
             "$ref": "#/components/responses/500"
           }
-        }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
       }
     },
-    "/users/{id}": {
+    "/admin/users/{id}": {
       "get": {
         "tags": [
           "User"
@@ -1526,7 +1658,12 @@
           "500": {
             "$ref": "#/components/responses/500"
           }
-        }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
       },
       "delete": {
         "tags": [
@@ -1562,7 +1699,12 @@
           "500": {
             "$ref": "#/components/responses/500"
           }
-        }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
       },
       "patch": {
         "tags": [
@@ -1639,10 +1781,15 @@
           "500": {
             "$ref": "#/components/responses/500"
           }
-        }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
       }
     },
-    "/users/{id}/claim-groups": {
+    "/admin/users/{id}/claim-groups": {
       "get": {
         "tags": [
           "User"
@@ -1703,7 +1850,275 @@
           "500": {
             "$ref": "#/components/responses/500"
           }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
+      }
+    },
+    "/login": {
+      "description": "User login and token generation endpoint",
+      "post": {
+        "summary": "Request a token",
+        "operationId": "login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "description": "User credentials",
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "description": "User's username",
+                    "type": "string"
+                  },
+                  "password": {
+                    "description": "User's password",
+                    "type": "string"
+                  },
+                  "required_claims": {
+                    "description": "Claims required to receive a token",
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "description": "Required claim name",
+                          "type": "string"
+                        },
+                        "value": {
+                          "description": "Required claim value",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "name",
+                        "value"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "username",
+                  "password"
+                ]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "description": "JWT Token",
+                      "type": "string"
+                    },
+                    "refresh": {
+                      "description": "Token to get a new token with the same claims. Must be used before token expires",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "token",
+                    "refresh"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "description": "Error Message",
+                      "type": "string",
+                      "default": "Unprocessable Entry"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "description": "Error Message",
+                      "type": "string",
+                      "default": "Not Authorized"
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
+      }
+    },
+    "/pkeys": {
+      "description": "Current Public keys",
+      "get": {
+        "summary": "Get current valid public keys",
+        "operationId": "pkeys",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "expires": {
+                      "description": "Next key expiring time, next time to pull public keys",
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "keys": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "kty": {
+                            "description": "Key Type",
+                            "type": "string",
+                            "enum": [
+                              "EC",
+                              "RSA",
+                              "OKP"
+                            ]
+                          },
+                          "use": {
+                            "description": "Key usage",
+                            "type": "string",
+                            "default": "sig"
+                          },
+                          "kid": {
+                            "description": "Key identifier",
+                            "type": "string"
+                          },
+                          "crv": {
+                            "description": "ECDSA/EdDSA Curve",
+                            "type": "string",
+                            "enum": [
+                              "P-256",
+                              "P-384",
+                              "P-521"
+                            ]
+                          },
+                          "x": {
+                            "description": "URL encoded base64 ECDSA/EdDSA X",
+                            "type": "string"
+                          },
+                          "y": {
+                            "description": "URL encoded base64 ECDSA Y",
+                            "type": "string"
+                          },
+                          "n": {
+                            "description": "URL encoded base64 RSA N",
+                            "type": "string"
+                          },
+                          "e": {
+                            "description": "URL encoded base64 RSA E",
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/refresh": {
+      "description": "Token refresh endpoint",
+      "post": {
+        "summary": "Request a refreshed token",
+        "operationId": "refresh",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "description": "User credentials",
+                "type": "object",
+                "properties": {
+                  "refresh": {
+                    "description": "Refresh token. Must match the token used in authentication",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "refresh"
+                ]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "description": "JWT Token",
+                      "type": "string"
+                    },
+                    "refresh": {
+                      "description": "Token to get a new token with the same claims. Must be used before token expires",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "token",
+                    "refresh"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "description": "Error Message",
+                      "type": "string",
+                      "default": "Not Authorized"
+                    }
+                  },
+                  "required": [
+                    "token",
+                    "refresh"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
       }
     }
   },
@@ -2526,6 +2941,13 @@
             }
           }
         }
+      }
+    },
+    "securitySchemes": {
+      "token": {
+        "type": "http",
+        "description": "Requires Stoke Token Authentication",
+        "scheme": "bearer"
       }
     }
   }

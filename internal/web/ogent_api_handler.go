@@ -3,23 +3,35 @@ package web
 import (
 	"context"
 	"net/http"
+	"stoke/client/stoke"
 	"stoke/internal/ent"
 	"stoke/internal/ent/ogent"
+	"stoke/internal/key"
 	"stoke/internal/usr"
 
+	"github.com/ogen-go/ogen/ogenerrors"
 	"github.com/rs/zerolog"
 )
 
 func NewEntityAPIHandler(prefix string, ctx context.Context) http.Handler {
-	if len(prefix) > 0 && prefix[len(prefix) - 1] == '/' {
-		prefix = prefix[0:len(prefix) - 1]
+	if len(prefix) > 0 && prefix[len(prefix)-1] == '/' {
+		prefix = prefix[0 : len(prefix)-1]
 	}
 
 	eHandler := &entityHandler{}
 	eHandler.Init(ctx)
 
+	sHandler := &secHandler{
+		InsecureOperations: []string{"login", "pkeys"},
+		TokenHandler: stoke.NewTokenHandler(
+			key.IssuerFromCtx(ctx),
+			stoke.WithToken().Requires("srol", "spr").ForAccess(),
+		),
+	}
+
 	hdlr, err := ogent.NewServer(
 		eHandler,
+		sHandler,
 		ogent.WithPathPrefix(prefix),
 	)
 	if err != nil {
@@ -29,6 +41,24 @@ func NewEntityAPIHandler(prefix string, ctx context.Context) http.Handler {
 
 	// Unwrap ServeHTTP to be have tracing spans use context from our custom middleware
 	return http.HandlerFunc(hdlr.ServeHTTP)
+}
+
+type secHandler struct {
+	InsecureOperations []string
+	*stoke.TokenHandler
+}
+
+// HandleToken implements ogent.SecurityHandler.
+func (s *secHandler) HandleToken(ctx context.Context, operationName string, t ogent.Token) (context.Context, error) {
+	zerolog.Ctx(ctx).Debug().
+		Str("operationName", operationName).
+		Msg("Authenticating operation")
+	for _, op := range s.InsecureOperations {
+		if op == operationName {
+			return ctx, ogenerrors.ErrSkipServerSecurity
+		}
+	}
+	return s.TokenHandler.InjectToken(t.GetToken(), ctx)
 }
 
 type entityHandler struct {
@@ -60,10 +90,8 @@ func (h *entityHandler) Totals(ctx context.Context) (*ogent.TotalsOK, error) {
 	}, nil
 }
 
-func (h *entityHandler) CreateLocalUser(ctx context.Context, req ogent.OptCreateLocalUserReq) (ogent.CreateLocalUserRes, error) {
-	v := req.Value
-
-	if err := usr.ProviderFromCtx(ctx).AddUser(v.Fname, v.Lname, v.Email, v.Username, v.Password, false, ctx) ; err != nil {
+func (h *entityHandler) CreateLocalUser(ctx context.Context, req *ogent.CreateLocalUserReq) (ogent.CreateLocalUserRes, error) {
+	if err := usr.ProviderFromCtx(ctx).AddUser(req.Fname, req.Lname, req.Email, req.Username, req.Password, false, ctx); err != nil {
 		return &ogent.CreateLocalUserBadRequest{
 			Message: err.Error(),
 		}, nil
@@ -72,10 +100,8 @@ func (h *entityHandler) CreateLocalUser(ctx context.Context, req ogent.OptCreate
 	return &ogent.CreateLocalUserOK{}, nil
 }
 
-func (h *entityHandler) UpdateLocalUserPassword(ctx context.Context, req ogent.OptUpdateLocalUserPasswordReq) (ogent.UpdateLocalUserPasswordRes, error) {
-	v := req.Value
-
-	if err := usr.ProviderFromCtx(ctx).UpdateUserPassword(v.Username, v.OldPassword.Value, v.NewPassword, v.Force.Or(false), ctx); err != nil {
+func (h *entityHandler) UpdateLocalUserPassword(ctx context.Context, req *ogent.UpdateLocalUserPasswordReq) (ogent.UpdateLocalUserPasswordRes, error) {
+	if err := usr.ProviderFromCtx(ctx).UpdateUserPassword(req.Username, req.OldPassword.Value, req.NewPassword, req.Force.Or(false), ctx); err != nil {
 		return &ogent.UpdateLocalUserPasswordBadRequest{
 			Message: err.Error(),
 		}, nil

@@ -35,7 +35,7 @@ export const metricActions = {
         method: "GET",
         headers: {
           "Content-Type" : "text/plain; version=0.0.4",
-          "Authorization" : `Token ${this.token}`,
+          "Authorization" : `Bearer ${this.token}`,
         },
       }
     )
@@ -84,7 +84,7 @@ export const metricActions = {
         method: "GET",
         headers: {
           "Content-Type" : "text/plain; version=0.0.4",
-          "Authorization" : `Token ${this.token}`,
+          "Authorization" : `Bearer ${this.token}`,
         },
       }
     )

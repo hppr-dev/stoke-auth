@@ -11,6 +11,38 @@ func (s *CreateLocalUserOK) setDefaults() {
 }
 
 // setDefaults set default value of fields.
+func (s *LoginBadRequest) setDefaults() {
+	{
+		val := string("Unprocessable Entry")
+		s.Message.SetTo(val)
+	}
+}
+
+// setDefaults set default value of fields.
+func (s *LoginUnauthorized) setDefaults() {
+	{
+		val := string("Not Authorized")
+		s.Message.SetTo(val)
+	}
+}
+
+// setDefaults set default value of fields.
+func (s *PkeysOKKeysItem) setDefaults() {
+	{
+		val := string("sig")
+		s.Use.SetTo(val)
+	}
+}
+
+// setDefaults set default value of fields.
+func (s *RefreshUnauthorized) setDefaults() {
+	{
+		val := string("Not Authorized")
+		s.Message.SetTo(val)
+	}
+}
+
+// setDefaults set default value of fields.
 func (s *UpdateLocalUserPasswordOK) setDefaults() {
 	{
 		val := string("Password Updated")

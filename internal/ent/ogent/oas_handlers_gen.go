@@ -24,12 +24,12 @@ import (
 //
 // Creates a new Claim and persists it to storage.
 //
-// POST /claims
+// POST /admin/claims
 func (s *Server) handleCreateClaimRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("createClaim"),
 		semconv.HTTPMethodKey.String("POST"),
-		semconv.HTTPRouteKey.String("/claims"),
+		semconv.HTTPRouteKey.String("/admin/claims"),
 	}
 
 	// Start a span for this request.
@@ -62,6 +62,50 @@ func (s *Server) handleCreateClaimRequest(args [0]string, argsEscaped bool, w ht
 			ID:   "createClaim",
 		}
 	)
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+			sctx, ok, err := s.securityToken(ctx, "CreateClaim", r)
+			if err != nil {
+				err = &ogenerrors.SecurityError{
+					OperationContext: opErrContext,
+					Security:         "Token",
+					Err:              err,
+				}
+				recordError("Security:Token", err)
+				s.cfg.ErrorHandler(ctx, w, r, err)
+				return
+			}
+			if ok {
+				satisfied[0] |= 1 << 0
+				ctx = sctx
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			err = &ogenerrors.SecurityError{
+				OperationContext: opErrContext,
+				Err:              ogenerrors.ErrSecurityRequirementIsNotSatisfied,
+			}
+			recordError("Security", err)
+			s.cfg.ErrorHandler(ctx, w, r, err)
+			return
+		}
+	}
 	request, close, err := s.decodeCreateClaimRequest(r)
 	if err != nil {
 		err = &ogenerrors.DecodeRequestError{
@@ -130,12 +174,12 @@ func (s *Server) handleCreateClaimRequest(args [0]string, argsEscaped bool, w ht
 //
 // Creates a new ClaimGroup and persists it to storage.
 //
-// POST /claim-groups
+// POST /admin/claim-groups
 func (s *Server) handleCreateClaimGroupRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("createClaimGroup"),
 		semconv.HTTPMethodKey.String("POST"),
-		semconv.HTTPRouteKey.String("/claim-groups"),
+		semconv.HTTPRouteKey.String("/admin/claim-groups"),
 	}
 
 	// Start a span for this request.
@@ -168,6 +212,50 @@ func (s *Server) handleCreateClaimGroupRequest(args [0]string, argsEscaped bool,
 			ID:   "createClaimGroup",
 		}
 	)
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+			sctx, ok, err := s.securityToken(ctx, "CreateClaimGroup", r)
+			if err != nil {
+				err = &ogenerrors.SecurityError{
+					OperationContext: opErrContext,
+					Security:         "Token",
+					Err:              err,
+				}
+				recordError("Security:Token", err)
+				s.cfg.ErrorHandler(ctx, w, r, err)
+				return
+			}
+			if ok {
+				satisfied[0] |= 1 << 0
+				ctx = sctx
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			err = &ogenerrors.SecurityError{
+				OperationContext: opErrContext,
+				Err:              ogenerrors.ErrSecurityRequirementIsNotSatisfied,
+			}
+			recordError("Security", err)
+			s.cfg.ErrorHandler(ctx, w, r, err)
+			return
+		}
+	}
 	request, close, err := s.decodeCreateClaimGroupRequest(r)
 	if err != nil {
 		err = &ogenerrors.DecodeRequestError{
@@ -236,12 +324,12 @@ func (s *Server) handleCreateClaimGroupRequest(args [0]string, argsEscaped bool,
 //
 // Creates a new GroupLink and persists it to storage.
 //
-// POST /group-links
+// POST /admin/group-links
 func (s *Server) handleCreateGroupLinkRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("createGroupLink"),
 		semconv.HTTPMethodKey.String("POST"),
-		semconv.HTTPRouteKey.String("/group-links"),
+		semconv.HTTPRouteKey.String("/admin/group-links"),
 	}
 
 	// Start a span for this request.
@@ -274,6 +362,50 @@ func (s *Server) handleCreateGroupLinkRequest(args [0]string, argsEscaped bool, 
 			ID:   "createGroupLink",
 		}
 	)
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+			sctx, ok, err := s.securityToken(ctx, "CreateGroupLink", r)
+			if err != nil {
+				err = &ogenerrors.SecurityError{
+					OperationContext: opErrContext,
+					Security:         "Token",
+					Err:              err,
+				}
+				recordError("Security:Token", err)
+				s.cfg.ErrorHandler(ctx, w, r, err)
+				return
+			}
+			if ok {
+				satisfied[0] |= 1 << 0
+				ctx = sctx
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			err = &ogenerrors.SecurityError{
+				OperationContext: opErrContext,
+				Err:              ogenerrors.ErrSecurityRequirementIsNotSatisfied,
+			}
+			recordError("Security", err)
+			s.cfg.ErrorHandler(ctx, w, r, err)
+			return
+		}
+	}
 	request, close, err := s.decodeCreateGroupLinkRequest(r)
 	if err != nil {
 		err = &ogenerrors.DecodeRequestError{
@@ -342,12 +474,12 @@ func (s *Server) handleCreateGroupLinkRequest(args [0]string, argsEscaped bool, 
 //
 // Create a new local user.
 //
-// POST /localuser
+// POST /admin/localuser
 func (s *Server) handleCreateLocalUserRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("createLocalUser"),
 		semconv.HTTPMethodKey.String("POST"),
-		semconv.HTTPRouteKey.String("/localuser"),
+		semconv.HTTPRouteKey.String("/admin/localuser"),
 	}
 
 	// Start a span for this request.
@@ -380,6 +512,50 @@ func (s *Server) handleCreateLocalUserRequest(args [0]string, argsEscaped bool, 
 			ID:   "createLocalUser",
 		}
 	)
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+			sctx, ok, err := s.securityToken(ctx, "CreateLocalUser", r)
+			if err != nil {
+				err = &ogenerrors.SecurityError{
+					OperationContext: opErrContext,
+					Security:         "Token",
+					Err:              err,
+				}
+				recordError("Security:Token", err)
+				s.cfg.ErrorHandler(ctx, w, r, err)
+				return
+			}
+			if ok {
+				satisfied[0] |= 1 << 0
+				ctx = sctx
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			err = &ogenerrors.SecurityError{
+				OperationContext: opErrContext,
+				Err:              ogenerrors.ErrSecurityRequirementIsNotSatisfied,
+			}
+			recordError("Security", err)
+			s.cfg.ErrorHandler(ctx, w, r, err)
+			return
+		}
+	}
 	request, close, err := s.decodeCreateLocalUserRequest(r)
 	if err != nil {
 		err = &ogenerrors.DecodeRequestError{
@@ -409,7 +585,7 @@ func (s *Server) handleCreateLocalUserRequest(args [0]string, argsEscaped bool, 
 		}
 
 		type (
-			Request  = OptCreateLocalUserReq
+			Request  = *CreateLocalUserReq
 			Params   = struct{}
 			Response = CreateLocalUserRes
 		)
@@ -448,12 +624,12 @@ func (s *Server) handleCreateLocalUserRequest(args [0]string, argsEscaped bool, 
 //
 // Deletes the Claim with the requested ID.
 //
-// DELETE /claims/{id}
+// DELETE /admin/claims/{id}
 func (s *Server) handleDeleteClaimRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("deleteClaim"),
 		semconv.HTTPMethodKey.String("DELETE"),
-		semconv.HTTPRouteKey.String("/claims/{id}"),
+		semconv.HTTPRouteKey.String("/admin/claims/{id}"),
 	}
 
 	// Start a span for this request.
@@ -486,6 +662,50 @@ func (s *Server) handleDeleteClaimRequest(args [1]string, argsEscaped bool, w ht
 			ID:   "deleteClaim",
 		}
 	)
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+			sctx, ok, err := s.securityToken(ctx, "DeleteClaim", r)
+			if err != nil {
+				err = &ogenerrors.SecurityError{
+					OperationContext: opErrContext,
+					Security:         "Token",
+					Err:              err,
+				}
+				recordError("Security:Token", err)
+				s.cfg.ErrorHandler(ctx, w, r, err)
+				return
+			}
+			if ok {
+				satisfied[0] |= 1 << 0
+				ctx = sctx
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			err = &ogenerrors.SecurityError{
+				OperationContext: opErrContext,
+				Err:              ogenerrors.ErrSecurityRequirementIsNotSatisfied,
+			}
+			recordError("Security", err)
+			s.cfg.ErrorHandler(ctx, w, r, err)
+			return
+		}
+	}
 	params, err := decodeDeleteClaimParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
@@ -554,12 +774,12 @@ func (s *Server) handleDeleteClaimRequest(args [1]string, argsEscaped bool, w ht
 //
 // Deletes the ClaimGroup with the requested ID.
 //
-// DELETE /claim-groups/{id}
+// DELETE /admin/claim-groups/{id}
 func (s *Server) handleDeleteClaimGroupRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("deleteClaimGroup"),
 		semconv.HTTPMethodKey.String("DELETE"),
-		semconv.HTTPRouteKey.String("/claim-groups/{id}"),
+		semconv.HTTPRouteKey.String("/admin/claim-groups/{id}"),
 	}
 
 	// Start a span for this request.
@@ -592,6 +812,50 @@ func (s *Server) handleDeleteClaimGroupRequest(args [1]string, argsEscaped bool,
 			ID:   "deleteClaimGroup",
 		}
 	)
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+			sctx, ok, err := s.securityToken(ctx, "DeleteClaimGroup", r)
+			if err != nil {
+				err = &ogenerrors.SecurityError{
+					OperationContext: opErrContext,
+					Security:         "Token",
+					Err:              err,
+				}
+				recordError("Security:Token", err)
+				s.cfg.ErrorHandler(ctx, w, r, err)
+				return
+			}
+			if ok {
+				satisfied[0] |= 1 << 0
+				ctx = sctx
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			err = &ogenerrors.SecurityError{
+				OperationContext: opErrContext,
+				Err:              ogenerrors.ErrSecurityRequirementIsNotSatisfied,
+			}
+			recordError("Security", err)
+			s.cfg.ErrorHandler(ctx, w, r, err)
+			return
+		}
+	}
 	params, err := decodeDeleteClaimGroupParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
@@ -660,12 +924,12 @@ func (s *Server) handleDeleteClaimGroupRequest(args [1]string, argsEscaped bool,
 //
 // Deletes the GroupLink with the requested ID.
 //
-// DELETE /group-links/{id}
+// DELETE /admin/group-links/{id}
 func (s *Server) handleDeleteGroupLinkRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("deleteGroupLink"),
 		semconv.HTTPMethodKey.String("DELETE"),
-		semconv.HTTPRouteKey.String("/group-links/{id}"),
+		semconv.HTTPRouteKey.String("/admin/group-links/{id}"),
 	}
 
 	// Start a span for this request.
@@ -698,6 +962,50 @@ func (s *Server) handleDeleteGroupLinkRequest(args [1]string, argsEscaped bool, 
 			ID:   "deleteGroupLink",
 		}
 	)
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+			sctx, ok, err := s.securityToken(ctx, "DeleteGroupLink", r)
+			if err != nil {
+				err = &ogenerrors.SecurityError{
+					OperationContext: opErrContext,
+					Security:         "Token",
+					Err:              err,
+				}
+				recordError("Security:Token", err)
+				s.cfg.ErrorHandler(ctx, w, r, err)
+				return
+			}
+			if ok {
+				satisfied[0] |= 1 << 0
+				ctx = sctx
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			err = &ogenerrors.SecurityError{
+				OperationContext: opErrContext,
+				Err:              ogenerrors.ErrSecurityRequirementIsNotSatisfied,
+			}
+			recordError("Security", err)
+			s.cfg.ErrorHandler(ctx, w, r, err)
+			return
+		}
+	}
 	params, err := decodeDeleteGroupLinkParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
@@ -766,12 +1074,12 @@ func (s *Server) handleDeleteGroupLinkRequest(args [1]string, argsEscaped bool, 
 //
 // Deletes the User with the requested ID.
 //
-// DELETE /users/{id}
+// DELETE /admin/users/{id}
 func (s *Server) handleDeleteUserRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("deleteUser"),
 		semconv.HTTPMethodKey.String("DELETE"),
-		semconv.HTTPRouteKey.String("/users/{id}"),
+		semconv.HTTPRouteKey.String("/admin/users/{id}"),
 	}
 
 	// Start a span for this request.
@@ -804,6 +1112,50 @@ func (s *Server) handleDeleteUserRequest(args [1]string, argsEscaped bool, w htt
 			ID:   "deleteUser",
 		}
 	)
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+			sctx, ok, err := s.securityToken(ctx, "DeleteUser", r)
+			if err != nil {
+				err = &ogenerrors.SecurityError{
+					OperationContext: opErrContext,
+					Security:         "Token",
+					Err:              err,
+				}
+				recordError("Security:Token", err)
+				s.cfg.ErrorHandler(ctx, w, r, err)
+				return
+			}
+			if ok {
+				satisfied[0] |= 1 << 0
+				ctx = sctx
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			err = &ogenerrors.SecurityError{
+				OperationContext: opErrContext,
+				Err:              ogenerrors.ErrSecurityRequirementIsNotSatisfied,
+			}
+			recordError("Security", err)
+			s.cfg.ErrorHandler(ctx, w, r, err)
+			return
+		}
+	}
 	params, err := decodeDeleteUserParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
@@ -872,12 +1224,12 @@ func (s *Server) handleDeleteUserRequest(args [1]string, argsEscaped bool, w htt
 //
 // List Claims.
 //
-// GET /claims
+// GET /admin/claims
 func (s *Server) handleListClaimRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("listClaim"),
 		semconv.HTTPMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/claims"),
+		semconv.HTTPRouteKey.String("/admin/claims"),
 	}
 
 	// Start a span for this request.
@@ -910,6 +1262,50 @@ func (s *Server) handleListClaimRequest(args [0]string, argsEscaped bool, w http
 			ID:   "listClaim",
 		}
 	)
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+			sctx, ok, err := s.securityToken(ctx, "ListClaim", r)
+			if err != nil {
+				err = &ogenerrors.SecurityError{
+					OperationContext: opErrContext,
+					Security:         "Token",
+					Err:              err,
+				}
+				recordError("Security:Token", err)
+				s.cfg.ErrorHandler(ctx, w, r, err)
+				return
+			}
+			if ok {
+				satisfied[0] |= 1 << 0
+				ctx = sctx
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			err = &ogenerrors.SecurityError{
+				OperationContext: opErrContext,
+				Err:              ogenerrors.ErrSecurityRequirementIsNotSatisfied,
+			}
+			recordError("Security", err)
+			s.cfg.ErrorHandler(ctx, w, r, err)
+			return
+		}
+	}
 	params, err := decodeListClaimParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
@@ -982,12 +1378,12 @@ func (s *Server) handleListClaimRequest(args [0]string, argsEscaped bool, w http
 //
 // List attached ClaimGroups.
 //
-// GET /claims/{id}/claim-groups
+// GET /admin/claims/{id}/claim-groups
 func (s *Server) handleListClaimClaimGroupsRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("listClaimClaimGroups"),
 		semconv.HTTPMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/claims/{id}/claim-groups"),
+		semconv.HTTPRouteKey.String("/admin/claims/{id}/claim-groups"),
 	}
 
 	// Start a span for this request.
@@ -1020,6 +1416,50 @@ func (s *Server) handleListClaimClaimGroupsRequest(args [1]string, argsEscaped b
 			ID:   "listClaimClaimGroups",
 		}
 	)
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+			sctx, ok, err := s.securityToken(ctx, "ListClaimClaimGroups", r)
+			if err != nil {
+				err = &ogenerrors.SecurityError{
+					OperationContext: opErrContext,
+					Security:         "Token",
+					Err:              err,
+				}
+				recordError("Security:Token", err)
+				s.cfg.ErrorHandler(ctx, w, r, err)
+				return
+			}
+			if ok {
+				satisfied[0] |= 1 << 0
+				ctx = sctx
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			err = &ogenerrors.SecurityError{
+				OperationContext: opErrContext,
+				Err:              ogenerrors.ErrSecurityRequirementIsNotSatisfied,
+			}
+			recordError("Security", err)
+			s.cfg.ErrorHandler(ctx, w, r, err)
+			return
+		}
+	}
 	params, err := decodeListClaimClaimGroupsParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
@@ -1096,12 +1536,12 @@ func (s *Server) handleListClaimClaimGroupsRequest(args [1]string, argsEscaped b
 //
 // List ClaimGroups.
 //
-// GET /claim-groups
+// GET /admin/claim-groups
 func (s *Server) handleListClaimGroupRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("listClaimGroup"),
 		semconv.HTTPMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/claim-groups"),
+		semconv.HTTPRouteKey.String("/admin/claim-groups"),
 	}
 
 	// Start a span for this request.
@@ -1134,6 +1574,50 @@ func (s *Server) handleListClaimGroupRequest(args [0]string, argsEscaped bool, w
 			ID:   "listClaimGroup",
 		}
 	)
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+			sctx, ok, err := s.securityToken(ctx, "ListClaimGroup", r)
+			if err != nil {
+				err = &ogenerrors.SecurityError{
+					OperationContext: opErrContext,
+					Security:         "Token",
+					Err:              err,
+				}
+				recordError("Security:Token", err)
+				s.cfg.ErrorHandler(ctx, w, r, err)
+				return
+			}
+			if ok {
+				satisfied[0] |= 1 << 0
+				ctx = sctx
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			err = &ogenerrors.SecurityError{
+				OperationContext: opErrContext,
+				Err:              ogenerrors.ErrSecurityRequirementIsNotSatisfied,
+			}
+			recordError("Security", err)
+			s.cfg.ErrorHandler(ctx, w, r, err)
+			return
+		}
+	}
 	params, err := decodeListClaimGroupParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
@@ -1206,12 +1690,12 @@ func (s *Server) handleListClaimGroupRequest(args [0]string, argsEscaped bool, w
 //
 // List attached Claims.
 //
-// GET /claim-groups/{id}/claims
+// GET /admin/claim-groups/{id}/claims
 func (s *Server) handleListClaimGroupClaimsRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("listClaimGroupClaims"),
 		semconv.HTTPMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/claim-groups/{id}/claims"),
+		semconv.HTTPRouteKey.String("/admin/claim-groups/{id}/claims"),
 	}
 
 	// Start a span for this request.
@@ -1244,6 +1728,50 @@ func (s *Server) handleListClaimGroupClaimsRequest(args [1]string, argsEscaped b
 			ID:   "listClaimGroupClaims",
 		}
 	)
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+			sctx, ok, err := s.securityToken(ctx, "ListClaimGroupClaims", r)
+			if err != nil {
+				err = &ogenerrors.SecurityError{
+					OperationContext: opErrContext,
+					Security:         "Token",
+					Err:              err,
+				}
+				recordError("Security:Token", err)
+				s.cfg.ErrorHandler(ctx, w, r, err)
+				return
+			}
+			if ok {
+				satisfied[0] |= 1 << 0
+				ctx = sctx
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			err = &ogenerrors.SecurityError{
+				OperationContext: opErrContext,
+				Err:              ogenerrors.ErrSecurityRequirementIsNotSatisfied,
+			}
+			recordError("Security", err)
+			s.cfg.ErrorHandler(ctx, w, r, err)
+			return
+		}
+	}
 	params, err := decodeListClaimGroupClaimsParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
@@ -1320,12 +1848,12 @@ func (s *Server) handleListClaimGroupClaimsRequest(args [1]string, argsEscaped b
 //
 // List attached GroupLinks.
 //
-// GET /claim-groups/{id}/group-links
+// GET /admin/claim-groups/{id}/group-links
 func (s *Server) handleListClaimGroupGroupLinksRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("listClaimGroupGroupLinks"),
 		semconv.HTTPMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/claim-groups/{id}/group-links"),
+		semconv.HTTPRouteKey.String("/admin/claim-groups/{id}/group-links"),
 	}
 
 	// Start a span for this request.
@@ -1358,6 +1886,50 @@ func (s *Server) handleListClaimGroupGroupLinksRequest(args [1]string, argsEscap
 			ID:   "listClaimGroupGroupLinks",
 		}
 	)
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+			sctx, ok, err := s.securityToken(ctx, "ListClaimGroupGroupLinks", r)
+			if err != nil {
+				err = &ogenerrors.SecurityError{
+					OperationContext: opErrContext,
+					Security:         "Token",
+					Err:              err,
+				}
+				recordError("Security:Token", err)
+				s.cfg.ErrorHandler(ctx, w, r, err)
+				return
+			}
+			if ok {
+				satisfied[0] |= 1 << 0
+				ctx = sctx
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			err = &ogenerrors.SecurityError{
+				OperationContext: opErrContext,
+				Err:              ogenerrors.ErrSecurityRequirementIsNotSatisfied,
+			}
+			recordError("Security", err)
+			s.cfg.ErrorHandler(ctx, w, r, err)
+			return
+		}
+	}
 	params, err := decodeListClaimGroupGroupLinksParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
@@ -1434,12 +2006,12 @@ func (s *Server) handleListClaimGroupGroupLinksRequest(args [1]string, argsEscap
 //
 // List attached Users.
 //
-// GET /claim-groups/{id}/users
+// GET /admin/claim-groups/{id}/users
 func (s *Server) handleListClaimGroupUsersRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("listClaimGroupUsers"),
 		semconv.HTTPMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/claim-groups/{id}/users"),
+		semconv.HTTPRouteKey.String("/admin/claim-groups/{id}/users"),
 	}
 
 	// Start a span for this request.
@@ -1472,6 +2044,50 @@ func (s *Server) handleListClaimGroupUsersRequest(args [1]string, argsEscaped bo
 			ID:   "listClaimGroupUsers",
 		}
 	)
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+			sctx, ok, err := s.securityToken(ctx, "ListClaimGroupUsers", r)
+			if err != nil {
+				err = &ogenerrors.SecurityError{
+					OperationContext: opErrContext,
+					Security:         "Token",
+					Err:              err,
+				}
+				recordError("Security:Token", err)
+				s.cfg.ErrorHandler(ctx, w, r, err)
+				return
+			}
+			if ok {
+				satisfied[0] |= 1 << 0
+				ctx = sctx
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			err = &ogenerrors.SecurityError{
+				OperationContext: opErrContext,
+				Err:              ogenerrors.ErrSecurityRequirementIsNotSatisfied,
+			}
+			recordError("Security", err)
+			s.cfg.ErrorHandler(ctx, w, r, err)
+			return
+		}
+	}
 	params, err := decodeListClaimGroupUsersParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
@@ -1548,12 +2164,12 @@ func (s *Server) handleListClaimGroupUsersRequest(args [1]string, argsEscaped bo
 //
 // List GroupLinks.
 //
-// GET /group-links
+// GET /admin/group-links
 func (s *Server) handleListGroupLinkRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("listGroupLink"),
 		semconv.HTTPMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/group-links"),
+		semconv.HTTPRouteKey.String("/admin/group-links"),
 	}
 
 	// Start a span for this request.
@@ -1586,6 +2202,50 @@ func (s *Server) handleListGroupLinkRequest(args [0]string, argsEscaped bool, w 
 			ID:   "listGroupLink",
 		}
 	)
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+			sctx, ok, err := s.securityToken(ctx, "ListGroupLink", r)
+			if err != nil {
+				err = &ogenerrors.SecurityError{
+					OperationContext: opErrContext,
+					Security:         "Token",
+					Err:              err,
+				}
+				recordError("Security:Token", err)
+				s.cfg.ErrorHandler(ctx, w, r, err)
+				return
+			}
+			if ok {
+				satisfied[0] |= 1 << 0
+				ctx = sctx
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			err = &ogenerrors.SecurityError{
+				OperationContext: opErrContext,
+				Err:              ogenerrors.ErrSecurityRequirementIsNotSatisfied,
+			}
+			recordError("Security", err)
+			s.cfg.ErrorHandler(ctx, w, r, err)
+			return
+		}
+	}
 	params, err := decodeListGroupLinkParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
@@ -1658,12 +2318,12 @@ func (s *Server) handleListGroupLinkRequest(args [0]string, argsEscaped bool, w 
 //
 // List PrivateKeys.
 //
-// GET /private-keys
+// GET /admin/private-keys
 func (s *Server) handleListPrivateKeyRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("listPrivateKey"),
 		semconv.HTTPMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/private-keys"),
+		semconv.HTTPRouteKey.String("/admin/private-keys"),
 	}
 
 	// Start a span for this request.
@@ -1696,6 +2356,50 @@ func (s *Server) handleListPrivateKeyRequest(args [0]string, argsEscaped bool, w
 			ID:   "listPrivateKey",
 		}
 	)
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+			sctx, ok, err := s.securityToken(ctx, "ListPrivateKey", r)
+			if err != nil {
+				err = &ogenerrors.SecurityError{
+					OperationContext: opErrContext,
+					Security:         "Token",
+					Err:              err,
+				}
+				recordError("Security:Token", err)
+				s.cfg.ErrorHandler(ctx, w, r, err)
+				return
+			}
+			if ok {
+				satisfied[0] |= 1 << 0
+				ctx = sctx
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			err = &ogenerrors.SecurityError{
+				OperationContext: opErrContext,
+				Err:              ogenerrors.ErrSecurityRequirementIsNotSatisfied,
+			}
+			recordError("Security", err)
+			s.cfg.ErrorHandler(ctx, w, r, err)
+			return
+		}
+	}
 	params, err := decodeListPrivateKeyParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
@@ -1768,12 +2472,12 @@ func (s *Server) handleListPrivateKeyRequest(args [0]string, argsEscaped bool, w
 //
 // List Users.
 //
-// GET /users
+// GET /admin/users
 func (s *Server) handleListUserRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("listUser"),
 		semconv.HTTPMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/users"),
+		semconv.HTTPRouteKey.String("/admin/users"),
 	}
 
 	// Start a span for this request.
@@ -1806,6 +2510,50 @@ func (s *Server) handleListUserRequest(args [0]string, argsEscaped bool, w http.
 			ID:   "listUser",
 		}
 	)
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+			sctx, ok, err := s.securityToken(ctx, "ListUser", r)
+			if err != nil {
+				err = &ogenerrors.SecurityError{
+					OperationContext: opErrContext,
+					Security:         "Token",
+					Err:              err,
+				}
+				recordError("Security:Token", err)
+				s.cfg.ErrorHandler(ctx, w, r, err)
+				return
+			}
+			if ok {
+				satisfied[0] |= 1 << 0
+				ctx = sctx
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			err = &ogenerrors.SecurityError{
+				OperationContext: opErrContext,
+				Err:              ogenerrors.ErrSecurityRequirementIsNotSatisfied,
+			}
+			recordError("Security", err)
+			s.cfg.ErrorHandler(ctx, w, r, err)
+			return
+		}
+	}
 	params, err := decodeListUserParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
@@ -1878,12 +2626,12 @@ func (s *Server) handleListUserRequest(args [0]string, argsEscaped bool, w http.
 //
 // List attached ClaimGroups.
 //
-// GET /users/{id}/claim-groups
+// GET /admin/users/{id}/claim-groups
 func (s *Server) handleListUserClaimGroupsRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("listUserClaimGroups"),
 		semconv.HTTPMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/users/{id}/claim-groups"),
+		semconv.HTTPRouteKey.String("/admin/users/{id}/claim-groups"),
 	}
 
 	// Start a span for this request.
@@ -1916,6 +2664,50 @@ func (s *Server) handleListUserClaimGroupsRequest(args [1]string, argsEscaped bo
 			ID:   "listUserClaimGroups",
 		}
 	)
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+			sctx, ok, err := s.securityToken(ctx, "ListUserClaimGroups", r)
+			if err != nil {
+				err = &ogenerrors.SecurityError{
+					OperationContext: opErrContext,
+					Security:         "Token",
+					Err:              err,
+				}
+				recordError("Security:Token", err)
+				s.cfg.ErrorHandler(ctx, w, r, err)
+				return
+			}
+			if ok {
+				satisfied[0] |= 1 << 0
+				ctx = sctx
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			err = &ogenerrors.SecurityError{
+				OperationContext: opErrContext,
+				Err:              ogenerrors.ErrSecurityRequirementIsNotSatisfied,
+			}
+			recordError("Security", err)
+			s.cfg.ErrorHandler(ctx, w, r, err)
+			return
+		}
+	}
 	params, err := decodeListUserClaimGroupsParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
@@ -1988,16 +2780,209 @@ func (s *Server) handleListUserClaimGroupsRequest(args [1]string, argsEscaped bo
 	}
 }
 
+// handleLoginRequest handles login operation.
+//
+// Request a token.
+//
+// POST /login
+func (s *Server) handleLoginRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
+	otelAttrs := []attribute.KeyValue{
+		otelogen.OperationID("login"),
+		semconv.HTTPMethodKey.String("POST"),
+		semconv.HTTPRouteKey.String("/login"),
+	}
+
+	// Start a span for this request.
+	ctx, span := s.cfg.Tracer.Start(r.Context(), "Login",
+		trace.WithAttributes(otelAttrs...),
+		serverSpanKind,
+	)
+	defer span.End()
+
+	// Run stopwatch.
+	startTime := time.Now()
+	defer func() {
+		elapsedDuration := time.Since(startTime)
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		s.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
+	}()
+
+	// Increment request counter.
+	s.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+
+	var (
+		recordError = func(stage string, err error) {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, stage)
+			s.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+		}
+		err          error
+		opErrContext = ogenerrors.OperationContext{
+			Name: "Login",
+			ID:   "login",
+		}
+	)
+	request, close, err := s.decodeLoginRequest(r)
+	if err != nil {
+		err = &ogenerrors.DecodeRequestError{
+			OperationContext: opErrContext,
+			Err:              err,
+		}
+		recordError("DecodeRequest", err)
+		s.cfg.ErrorHandler(ctx, w, r, err)
+		return
+	}
+	defer func() {
+		if err := close(); err != nil {
+			recordError("CloseRequest", err)
+		}
+	}()
+
+	var response LoginRes
+	if m := s.cfg.Middleware; m != nil {
+		mreq := middleware.Request{
+			Context:          ctx,
+			OperationName:    "Login",
+			OperationSummary: "Request a token",
+			OperationID:      "login",
+			Body:             request,
+			Params:           middleware.Parameters{},
+			Raw:              r,
+		}
+
+		type (
+			Request  = *LoginReq
+			Params   = struct{}
+			Response = LoginRes
+		)
+		response, err = middleware.HookMiddleware[
+			Request,
+			Params,
+			Response,
+		](
+			m,
+			mreq,
+			nil,
+			func(ctx context.Context, request Request, params Params) (response Response, err error) {
+				response, err = s.h.Login(ctx, request)
+				return response, err
+			},
+		)
+	} else {
+		response, err = s.h.Login(ctx, request)
+	}
+	if err != nil {
+		recordError("Internal", err)
+		s.cfg.ErrorHandler(ctx, w, r, err)
+		return
+	}
+
+	if err := encodeLoginResponse(response, w, span); err != nil {
+		recordError("EncodeResponse", err)
+		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
+			s.cfg.ErrorHandler(ctx, w, r, err)
+		}
+		return
+	}
+}
+
+// handlePkeysRequest handles pkeys operation.
+//
+// Get current valid public keys.
+//
+// GET /pkeys
+func (s *Server) handlePkeysRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
+	otelAttrs := []attribute.KeyValue{
+		otelogen.OperationID("pkeys"),
+		semconv.HTTPMethodKey.String("GET"),
+		semconv.HTTPRouteKey.String("/pkeys"),
+	}
+
+	// Start a span for this request.
+	ctx, span := s.cfg.Tracer.Start(r.Context(), "Pkeys",
+		trace.WithAttributes(otelAttrs...),
+		serverSpanKind,
+	)
+	defer span.End()
+
+	// Run stopwatch.
+	startTime := time.Now()
+	defer func() {
+		elapsedDuration := time.Since(startTime)
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		s.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
+	}()
+
+	// Increment request counter.
+	s.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+
+	var (
+		recordError = func(stage string, err error) {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, stage)
+			s.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+		}
+		err error
+	)
+
+	var response *PkeysOK
+	if m := s.cfg.Middleware; m != nil {
+		mreq := middleware.Request{
+			Context:          ctx,
+			OperationName:    "Pkeys",
+			OperationSummary: "Get current valid public keys",
+			OperationID:      "pkeys",
+			Body:             nil,
+			Params:           middleware.Parameters{},
+			Raw:              r,
+		}
+
+		type (
+			Request  = struct{}
+			Params   = struct{}
+			Response = *PkeysOK
+		)
+		response, err = middleware.HookMiddleware[
+			Request,
+			Params,
+			Response,
+		](
+			m,
+			mreq,
+			nil,
+			func(ctx context.Context, request Request, params Params) (response Response, err error) {
+				response, err = s.h.Pkeys(ctx)
+				return response, err
+			},
+		)
+	} else {
+		response, err = s.h.Pkeys(ctx)
+	}
+	if err != nil {
+		recordError("Internal", err)
+		s.cfg.ErrorHandler(ctx, w, r, err)
+		return
+	}
+
+	if err := encodePkeysResponse(response, w, span); err != nil {
+		recordError("EncodeResponse", err)
+		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
+			s.cfg.ErrorHandler(ctx, w, r, err)
+		}
+		return
+	}
+}
+
 // handleReadClaimRequest handles readClaim operation.
 //
 // Finds the Claim with the requested ID and returns it.
 //
-// GET /claims/{id}
+// GET /admin/claims/{id}
 func (s *Server) handleReadClaimRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("readClaim"),
 		semconv.HTTPMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/claims/{id}"),
+		semconv.HTTPRouteKey.String("/admin/claims/{id}"),
 	}
 
 	// Start a span for this request.
@@ -2030,6 +3015,50 @@ func (s *Server) handleReadClaimRequest(args [1]string, argsEscaped bool, w http
 			ID:   "readClaim",
 		}
 	)
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+			sctx, ok, err := s.securityToken(ctx, "ReadClaim", r)
+			if err != nil {
+				err = &ogenerrors.SecurityError{
+					OperationContext: opErrContext,
+					Security:         "Token",
+					Err:              err,
+				}
+				recordError("Security:Token", err)
+				s.cfg.ErrorHandler(ctx, w, r, err)
+				return
+			}
+			if ok {
+				satisfied[0] |= 1 << 0
+				ctx = sctx
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			err = &ogenerrors.SecurityError{
+				OperationContext: opErrContext,
+				Err:              ogenerrors.ErrSecurityRequirementIsNotSatisfied,
+			}
+			recordError("Security", err)
+			s.cfg.ErrorHandler(ctx, w, r, err)
+			return
+		}
+	}
 	params, err := decodeReadClaimParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
@@ -2098,12 +3127,12 @@ func (s *Server) handleReadClaimRequest(args [1]string, argsEscaped bool, w http
 //
 // Finds the ClaimGroup with the requested ID and returns it.
 //
-// GET /claim-groups/{id}
+// GET /admin/claim-groups/{id}
 func (s *Server) handleReadClaimGroupRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("readClaimGroup"),
 		semconv.HTTPMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/claim-groups/{id}"),
+		semconv.HTTPRouteKey.String("/admin/claim-groups/{id}"),
 	}
 
 	// Start a span for this request.
@@ -2136,6 +3165,50 @@ func (s *Server) handleReadClaimGroupRequest(args [1]string, argsEscaped bool, w
 			ID:   "readClaimGroup",
 		}
 	)
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+			sctx, ok, err := s.securityToken(ctx, "ReadClaimGroup", r)
+			if err != nil {
+				err = &ogenerrors.SecurityError{
+					OperationContext: opErrContext,
+					Security:         "Token",
+					Err:              err,
+				}
+				recordError("Security:Token", err)
+				s.cfg.ErrorHandler(ctx, w, r, err)
+				return
+			}
+			if ok {
+				satisfied[0] |= 1 << 0
+				ctx = sctx
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			err = &ogenerrors.SecurityError{
+				OperationContext: opErrContext,
+				Err:              ogenerrors.ErrSecurityRequirementIsNotSatisfied,
+			}
+			recordError("Security", err)
+			s.cfg.ErrorHandler(ctx, w, r, err)
+			return
+		}
+	}
 	params, err := decodeReadClaimGroupParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
@@ -2204,12 +3277,12 @@ func (s *Server) handleReadClaimGroupRequest(args [1]string, argsEscaped bool, w
 //
 // Finds the GroupLink with the requested ID and returns it.
 //
-// GET /group-links/{id}
+// GET /admin/group-links/{id}
 func (s *Server) handleReadGroupLinkRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("readGroupLink"),
 		semconv.HTTPMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/group-links/{id}"),
+		semconv.HTTPRouteKey.String("/admin/group-links/{id}"),
 	}
 
 	// Start a span for this request.
@@ -2242,6 +3315,50 @@ func (s *Server) handleReadGroupLinkRequest(args [1]string, argsEscaped bool, w 
 			ID:   "readGroupLink",
 		}
 	)
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+			sctx, ok, err := s.securityToken(ctx, "ReadGroupLink", r)
+			if err != nil {
+				err = &ogenerrors.SecurityError{
+					OperationContext: opErrContext,
+					Security:         "Token",
+					Err:              err,
+				}
+				recordError("Security:Token", err)
+				s.cfg.ErrorHandler(ctx, w, r, err)
+				return
+			}
+			if ok {
+				satisfied[0] |= 1 << 0
+				ctx = sctx
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			err = &ogenerrors.SecurityError{
+				OperationContext: opErrContext,
+				Err:              ogenerrors.ErrSecurityRequirementIsNotSatisfied,
+			}
+			recordError("Security", err)
+			s.cfg.ErrorHandler(ctx, w, r, err)
+			return
+		}
+	}
 	params, err := decodeReadGroupLinkParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
@@ -2310,12 +3427,12 @@ func (s *Server) handleReadGroupLinkRequest(args [1]string, argsEscaped bool, w 
 //
 // Find the attached ClaimGroup of the GroupLink with the given ID.
 //
-// GET /group-links/{id}/claim-group
+// GET /admin/group-links/{id}/claim-group
 func (s *Server) handleReadGroupLinkClaimGroupRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("readGroupLinkClaimGroup"),
 		semconv.HTTPMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/group-links/{id}/claim-group"),
+		semconv.HTTPRouteKey.String("/admin/group-links/{id}/claim-group"),
 	}
 
 	// Start a span for this request.
@@ -2348,6 +3465,50 @@ func (s *Server) handleReadGroupLinkClaimGroupRequest(args [1]string, argsEscape
 			ID:   "readGroupLinkClaimGroup",
 		}
 	)
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+			sctx, ok, err := s.securityToken(ctx, "ReadGroupLinkClaimGroup", r)
+			if err != nil {
+				err = &ogenerrors.SecurityError{
+					OperationContext: opErrContext,
+					Security:         "Token",
+					Err:              err,
+				}
+				recordError("Security:Token", err)
+				s.cfg.ErrorHandler(ctx, w, r, err)
+				return
+			}
+			if ok {
+				satisfied[0] |= 1 << 0
+				ctx = sctx
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			err = &ogenerrors.SecurityError{
+				OperationContext: opErrContext,
+				Err:              ogenerrors.ErrSecurityRequirementIsNotSatisfied,
+			}
+			recordError("Security", err)
+			s.cfg.ErrorHandler(ctx, w, r, err)
+			return
+		}
+	}
 	params, err := decodeReadGroupLinkClaimGroupParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
@@ -2416,12 +3577,12 @@ func (s *Server) handleReadGroupLinkClaimGroupRequest(args [1]string, argsEscape
 //
 // Finds the PrivateKey with the requested ID and returns it.
 //
-// GET /private-keys/{id}
+// GET /admin/private-keys/{id}
 func (s *Server) handleReadPrivateKeyRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("readPrivateKey"),
 		semconv.HTTPMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/private-keys/{id}"),
+		semconv.HTTPRouteKey.String("/admin/private-keys/{id}"),
 	}
 
 	// Start a span for this request.
@@ -2454,6 +3615,50 @@ func (s *Server) handleReadPrivateKeyRequest(args [1]string, argsEscaped bool, w
 			ID:   "readPrivateKey",
 		}
 	)
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+			sctx, ok, err := s.securityToken(ctx, "ReadPrivateKey", r)
+			if err != nil {
+				err = &ogenerrors.SecurityError{
+					OperationContext: opErrContext,
+					Security:         "Token",
+					Err:              err,
+				}
+				recordError("Security:Token", err)
+				s.cfg.ErrorHandler(ctx, w, r, err)
+				return
+			}
+			if ok {
+				satisfied[0] |= 1 << 0
+				ctx = sctx
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			err = &ogenerrors.SecurityError{
+				OperationContext: opErrContext,
+				Err:              ogenerrors.ErrSecurityRequirementIsNotSatisfied,
+			}
+			recordError("Security", err)
+			s.cfg.ErrorHandler(ctx, w, r, err)
+			return
+		}
+	}
 	params, err := decodeReadPrivateKeyParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
@@ -2522,12 +3727,12 @@ func (s *Server) handleReadPrivateKeyRequest(args [1]string, argsEscaped bool, w
 //
 // Finds the User with the requested ID and returns it.
 //
-// GET /users/{id}
+// GET /admin/users/{id}
 func (s *Server) handleReadUserRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("readUser"),
 		semconv.HTTPMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/users/{id}"),
+		semconv.HTTPRouteKey.String("/admin/users/{id}"),
 	}
 
 	// Start a span for this request.
@@ -2560,6 +3765,50 @@ func (s *Server) handleReadUserRequest(args [1]string, argsEscaped bool, w http.
 			ID:   "readUser",
 		}
 	)
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+			sctx, ok, err := s.securityToken(ctx, "ReadUser", r)
+			if err != nil {
+				err = &ogenerrors.SecurityError{
+					OperationContext: opErrContext,
+					Security:         "Token",
+					Err:              err,
+				}
+				recordError("Security:Token", err)
+				s.cfg.ErrorHandler(ctx, w, r, err)
+				return
+			}
+			if ok {
+				satisfied[0] |= 1 << 0
+				ctx = sctx
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			err = &ogenerrors.SecurityError{
+				OperationContext: opErrContext,
+				Err:              ogenerrors.ErrSecurityRequirementIsNotSatisfied,
+			}
+			recordError("Security", err)
+			s.cfg.ErrorHandler(ctx, w, r, err)
+			return
+		}
+	}
 	params, err := decodeReadUserParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
@@ -2624,16 +3873,166 @@ func (s *Server) handleReadUserRequest(args [1]string, argsEscaped bool, w http.
 	}
 }
 
+// handleRefreshRequest handles refresh operation.
+//
+// Request a refreshed token.
+//
+// POST /refresh
+func (s *Server) handleRefreshRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
+	otelAttrs := []attribute.KeyValue{
+		otelogen.OperationID("refresh"),
+		semconv.HTTPMethodKey.String("POST"),
+		semconv.HTTPRouteKey.String("/refresh"),
+	}
+
+	// Start a span for this request.
+	ctx, span := s.cfg.Tracer.Start(r.Context(), "Refresh",
+		trace.WithAttributes(otelAttrs...),
+		serverSpanKind,
+	)
+	defer span.End()
+
+	// Run stopwatch.
+	startTime := time.Now()
+	defer func() {
+		elapsedDuration := time.Since(startTime)
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		s.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
+	}()
+
+	// Increment request counter.
+	s.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+
+	var (
+		recordError = func(stage string, err error) {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, stage)
+			s.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+		}
+		err          error
+		opErrContext = ogenerrors.OperationContext{
+			Name: "Refresh",
+			ID:   "refresh",
+		}
+	)
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+			sctx, ok, err := s.securityToken(ctx, "Refresh", r)
+			if err != nil {
+				err = &ogenerrors.SecurityError{
+					OperationContext: opErrContext,
+					Security:         "Token",
+					Err:              err,
+				}
+				recordError("Security:Token", err)
+				s.cfg.ErrorHandler(ctx, w, r, err)
+				return
+			}
+			if ok {
+				satisfied[0] |= 1 << 0
+				ctx = sctx
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			err = &ogenerrors.SecurityError{
+				OperationContext: opErrContext,
+				Err:              ogenerrors.ErrSecurityRequirementIsNotSatisfied,
+			}
+			recordError("Security", err)
+			s.cfg.ErrorHandler(ctx, w, r, err)
+			return
+		}
+	}
+	request, close, err := s.decodeRefreshRequest(r)
+	if err != nil {
+		err = &ogenerrors.DecodeRequestError{
+			OperationContext: opErrContext,
+			Err:              err,
+		}
+		recordError("DecodeRequest", err)
+		s.cfg.ErrorHandler(ctx, w, r, err)
+		return
+	}
+	defer func() {
+		if err := close(); err != nil {
+			recordError("CloseRequest", err)
+		}
+	}()
+
+	var response RefreshRes
+	if m := s.cfg.Middleware; m != nil {
+		mreq := middleware.Request{
+			Context:          ctx,
+			OperationName:    "Refresh",
+			OperationSummary: "Request a refreshed token",
+			OperationID:      "refresh",
+			Body:             request,
+			Params:           middleware.Parameters{},
+			Raw:              r,
+		}
+
+		type (
+			Request  = *RefreshReq
+			Params   = struct{}
+			Response = RefreshRes
+		)
+		response, err = middleware.HookMiddleware[
+			Request,
+			Params,
+			Response,
+		](
+			m,
+			mreq,
+			nil,
+			func(ctx context.Context, request Request, params Params) (response Response, err error) {
+				response, err = s.h.Refresh(ctx, request)
+				return response, err
+			},
+		)
+	} else {
+		response, err = s.h.Refresh(ctx, request)
+	}
+	if err != nil {
+		recordError("Internal", err)
+		s.cfg.ErrorHandler(ctx, w, r, err)
+		return
+	}
+
+	if err := encodeRefreshResponse(response, w, span); err != nil {
+		recordError("EncodeResponse", err)
+		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
+			s.cfg.ErrorHandler(ctx, w, r, err)
+		}
+		return
+	}
+}
+
 // handleTotalsRequest handles totals operation.
 //
 // Get entity count totals.
 //
-// GET /totals
+// GET /admin/totals
 func (s *Server) handleTotalsRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("totals"),
 		semconv.HTTPMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/totals"),
+		semconv.HTTPRouteKey.String("/admin/totals"),
 	}
 
 	// Start a span for this request.
@@ -2660,8 +4059,56 @@ func (s *Server) handleTotalsRequest(args [0]string, argsEscaped bool, w http.Re
 			span.SetStatus(codes.Error, stage)
 			s.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 		}
-		err error
+		err          error
+		opErrContext = ogenerrors.OperationContext{
+			Name: "Totals",
+			ID:   "totals",
+		}
 	)
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+			sctx, ok, err := s.securityToken(ctx, "Totals", r)
+			if err != nil {
+				err = &ogenerrors.SecurityError{
+					OperationContext: opErrContext,
+					Security:         "Token",
+					Err:              err,
+				}
+				recordError("Security:Token", err)
+				s.cfg.ErrorHandler(ctx, w, r, err)
+				return
+			}
+			if ok {
+				satisfied[0] |= 1 << 0
+				ctx = sctx
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			err = &ogenerrors.SecurityError{
+				OperationContext: opErrContext,
+				Err:              ogenerrors.ErrSecurityRequirementIsNotSatisfied,
+			}
+			recordError("Security", err)
+			s.cfg.ErrorHandler(ctx, w, r, err)
+			return
+		}
+	}
 
 	var response *TotalsOK
 	if m := s.cfg.Middleware; m != nil {
@@ -2715,12 +4162,12 @@ func (s *Server) handleTotalsRequest(args [0]string, argsEscaped bool, w http.Re
 //
 // Updates a Claim and persists changes to storage.
 //
-// PATCH /claims/{id}
+// PATCH /admin/claims/{id}
 func (s *Server) handleUpdateClaimRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("updateClaim"),
 		semconv.HTTPMethodKey.String("PATCH"),
-		semconv.HTTPRouteKey.String("/claims/{id}"),
+		semconv.HTTPRouteKey.String("/admin/claims/{id}"),
 	}
 
 	// Start a span for this request.
@@ -2753,6 +4200,50 @@ func (s *Server) handleUpdateClaimRequest(args [1]string, argsEscaped bool, w ht
 			ID:   "updateClaim",
 		}
 	)
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+			sctx, ok, err := s.securityToken(ctx, "UpdateClaim", r)
+			if err != nil {
+				err = &ogenerrors.SecurityError{
+					OperationContext: opErrContext,
+					Security:         "Token",
+					Err:              err,
+				}
+				recordError("Security:Token", err)
+				s.cfg.ErrorHandler(ctx, w, r, err)
+				return
+			}
+			if ok {
+				satisfied[0] |= 1 << 0
+				ctx = sctx
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			err = &ogenerrors.SecurityError{
+				OperationContext: opErrContext,
+				Err:              ogenerrors.ErrSecurityRequirementIsNotSatisfied,
+			}
+			recordError("Security", err)
+			s.cfg.ErrorHandler(ctx, w, r, err)
+			return
+		}
+	}
 	params, err := decodeUpdateClaimParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
@@ -2836,12 +4327,12 @@ func (s *Server) handleUpdateClaimRequest(args [1]string, argsEscaped bool, w ht
 //
 // Updates a ClaimGroup and persists changes to storage.
 //
-// PATCH /claim-groups/{id}
+// PATCH /admin/claim-groups/{id}
 func (s *Server) handleUpdateClaimGroupRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("updateClaimGroup"),
 		semconv.HTTPMethodKey.String("PATCH"),
-		semconv.HTTPRouteKey.String("/claim-groups/{id}"),
+		semconv.HTTPRouteKey.String("/admin/claim-groups/{id}"),
 	}
 
 	// Start a span for this request.
@@ -2874,6 +4365,50 @@ func (s *Server) handleUpdateClaimGroupRequest(args [1]string, argsEscaped bool,
 			ID:   "updateClaimGroup",
 		}
 	)
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+			sctx, ok, err := s.securityToken(ctx, "UpdateClaimGroup", r)
+			if err != nil {
+				err = &ogenerrors.SecurityError{
+					OperationContext: opErrContext,
+					Security:         "Token",
+					Err:              err,
+				}
+				recordError("Security:Token", err)
+				s.cfg.ErrorHandler(ctx, w, r, err)
+				return
+			}
+			if ok {
+				satisfied[0] |= 1 << 0
+				ctx = sctx
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			err = &ogenerrors.SecurityError{
+				OperationContext: opErrContext,
+				Err:              ogenerrors.ErrSecurityRequirementIsNotSatisfied,
+			}
+			recordError("Security", err)
+			s.cfg.ErrorHandler(ctx, w, r, err)
+			return
+		}
+	}
 	params, err := decodeUpdateClaimGroupParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
@@ -2957,12 +4492,12 @@ func (s *Server) handleUpdateClaimGroupRequest(args [1]string, argsEscaped bool,
 //
 // Updates a GroupLink and persists changes to storage.
 //
-// PATCH /group-links/{id}
+// PATCH /admin/group-links/{id}
 func (s *Server) handleUpdateGroupLinkRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("updateGroupLink"),
 		semconv.HTTPMethodKey.String("PATCH"),
-		semconv.HTTPRouteKey.String("/group-links/{id}"),
+		semconv.HTTPRouteKey.String("/admin/group-links/{id}"),
 	}
 
 	// Start a span for this request.
@@ -2995,6 +4530,50 @@ func (s *Server) handleUpdateGroupLinkRequest(args [1]string, argsEscaped bool, 
 			ID:   "updateGroupLink",
 		}
 	)
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+			sctx, ok, err := s.securityToken(ctx, "UpdateGroupLink", r)
+			if err != nil {
+				err = &ogenerrors.SecurityError{
+					OperationContext: opErrContext,
+					Security:         "Token",
+					Err:              err,
+				}
+				recordError("Security:Token", err)
+				s.cfg.ErrorHandler(ctx, w, r, err)
+				return
+			}
+			if ok {
+				satisfied[0] |= 1 << 0
+				ctx = sctx
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			err = &ogenerrors.SecurityError{
+				OperationContext: opErrContext,
+				Err:              ogenerrors.ErrSecurityRequirementIsNotSatisfied,
+			}
+			recordError("Security", err)
+			s.cfg.ErrorHandler(ctx, w, r, err)
+			return
+		}
+	}
 	params, err := decodeUpdateGroupLinkParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
@@ -3078,12 +4657,12 @@ func (s *Server) handleUpdateGroupLinkRequest(args [1]string, argsEscaped bool, 
 //
 // Update local user's password.
 //
-// PATCH /localuser
+// PATCH /admin/localuser
 func (s *Server) handleUpdateLocalUserPasswordRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("updateLocalUserPassword"),
 		semconv.HTTPMethodKey.String("PATCH"),
-		semconv.HTTPRouteKey.String("/localuser"),
+		semconv.HTTPRouteKey.String("/admin/localuser"),
 	}
 
 	// Start a span for this request.
@@ -3116,6 +4695,50 @@ func (s *Server) handleUpdateLocalUserPasswordRequest(args [0]string, argsEscape
 			ID:   "updateLocalUserPassword",
 		}
 	)
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+			sctx, ok, err := s.securityToken(ctx, "UpdateLocalUserPassword", r)
+			if err != nil {
+				err = &ogenerrors.SecurityError{
+					OperationContext: opErrContext,
+					Security:         "Token",
+					Err:              err,
+				}
+				recordError("Security:Token", err)
+				s.cfg.ErrorHandler(ctx, w, r, err)
+				return
+			}
+			if ok {
+				satisfied[0] |= 1 << 0
+				ctx = sctx
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			err = &ogenerrors.SecurityError{
+				OperationContext: opErrContext,
+				Err:              ogenerrors.ErrSecurityRequirementIsNotSatisfied,
+			}
+			recordError("Security", err)
+			s.cfg.ErrorHandler(ctx, w, r, err)
+			return
+		}
+	}
 	request, close, err := s.decodeUpdateLocalUserPasswordRequest(r)
 	if err != nil {
 		err = &ogenerrors.DecodeRequestError{
@@ -3145,7 +4768,7 @@ func (s *Server) handleUpdateLocalUserPasswordRequest(args [0]string, argsEscape
 		}
 
 		type (
-			Request  = OptUpdateLocalUserPasswordReq
+			Request  = *UpdateLocalUserPasswordReq
 			Params   = struct{}
 			Response = UpdateLocalUserPasswordRes
 		)
@@ -3184,12 +4807,12 @@ func (s *Server) handleUpdateLocalUserPasswordRequest(args [0]string, argsEscape
 //
 // Updates a User and persists changes to storage.
 //
-// PATCH /users/{id}
+// PATCH /admin/users/{id}
 func (s *Server) handleUpdateUserRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("updateUser"),
 		semconv.HTTPMethodKey.String("PATCH"),
-		semconv.HTTPRouteKey.String("/users/{id}"),
+		semconv.HTTPRouteKey.String("/admin/users/{id}"),
 	}
 
 	// Start a span for this request.
@@ -3222,6 +4845,50 @@ func (s *Server) handleUpdateUserRequest(args [1]string, argsEscaped bool, w htt
 			ID:   "updateUser",
 		}
 	)
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+			sctx, ok, err := s.securityToken(ctx, "UpdateUser", r)
+			if err != nil {
+				err = &ogenerrors.SecurityError{
+					OperationContext: opErrContext,
+					Security:         "Token",
+					Err:              err,
+				}
+				recordError("Security:Token", err)
+				s.cfg.ErrorHandler(ctx, w, r, err)
+				return
+			}
+			if ok {
+				satisfied[0] |= 1 << 0
+				ctx = sctx
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			err = &ogenerrors.SecurityError{
+				OperationContext: opErrContext,
+				Err:              ogenerrors.ErrSecurityRequirementIsNotSatisfied,
+			}
+			recordError("Security", err)
+			s.cfg.ErrorHandler(ctx, w, r, err)
+			return
+		}
+	}
 	params, err := decodeUpdateUserParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{

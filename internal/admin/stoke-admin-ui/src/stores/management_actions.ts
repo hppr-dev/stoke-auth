@@ -9,7 +9,7 @@ export const managementActions = {
     const response = await fetch(`${this.api_url}${endpoint}?itemsPerPage=${this.pageLoadSize}&page=${page}`, {
       method: "GET",
       headers: {
-        "Authorization" : `Token ${this.token}`,
+        "Authorization" : `Bearer ${this.token}`,
       }
     })
 
@@ -55,7 +55,7 @@ export const managementActions = {
       method: "PATCH",
       headers: {
         "Content-Type"  : "application/json",
-        "Authorization" : `Token ${this.token}`,
+        "Authorization" : `Bearer ${this.token}`,
       },
       body : JSON.stringify(value),
     })
@@ -88,7 +88,7 @@ export const managementActions = {
       method: "PATCH",
       headers: {
         "Content-Type"  : "application/json",
-        "Authorization" : `Token ${this.token}`,
+        "Authorization" : `Bearer ${this.token}`,
       },
       body : JSON.stringify(this.passwordForm),
     })
@@ -101,7 +101,7 @@ export const managementActions = {
       method: "POST",
       headers: {
         "Content-Type"  : "application/json",
-        "Authorization" : `Token ${this.token}`,
+        "Authorization" : `Bearer ${this.token}`,
       },
       body : JSON.stringify(this[stateToSend]),
     })
@@ -137,7 +137,7 @@ export const managementActions = {
       method: "DELETE",
       headers: {
         "Content-Type"  : "application/json",
-        "Authorization" : `Token ${this.token}`,
+        "Authorization" : `Bearer ${this.token}`,
       },
       body : JSON.stringify(value),
     })

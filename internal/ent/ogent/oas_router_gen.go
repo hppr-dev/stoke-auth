@@ -61,9 +61,9 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				break
 			}
 			switch elem[0] {
-			case 'c': // Prefix: "claim"
+			case 'a': // Prefix: "admin/"
 				origElem := elem
-				if l := len("claim"); len(elem) >= l && elem[0:l] == "claim" {
+				if l := len("admin/"); len(elem) >= l && elem[0:l] == "admin/" {
 					elem = elem[l:]
 				} else {
 					break
@@ -73,60 +73,34 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 					break
 				}
 				switch elem[0] {
-				case '-': // Prefix: "-groups"
+				case 'c': // Prefix: "claim"
 					origElem := elem
-					if l := len("-groups"); len(elem) >= l && elem[0:l] == "-groups" {
+					if l := len("claim"); len(elem) >= l && elem[0:l] == "claim" {
 						elem = elem[l:]
 					} else {
 						break
 					}
 
 					if len(elem) == 0 {
-						switch r.Method {
-						case "GET":
-							s.handleListClaimGroupRequest([0]string{}, elemIsEscaped, w, r)
-						case "POST":
-							s.handleCreateClaimGroupRequest([0]string{}, elemIsEscaped, w, r)
-						default:
-							s.notAllowed(w, r, "GET,POST")
-						}
-
-						return
+						break
 					}
 					switch elem[0] {
-					case '/': // Prefix: "/"
+					case '-': // Prefix: "-groups"
 						origElem := elem
-						if l := len("/"); len(elem) >= l && elem[0:l] == "/" {
+						if l := len("-groups"); len(elem) >= l && elem[0:l] == "-groups" {
 							elem = elem[l:]
 						} else {
 							break
 						}
 
-						// Param: "id"
-						// Match until "/"
-						idx := strings.IndexByte(elem, '/')
-						if idx < 0 {
-							idx = len(elem)
-						}
-						args[0] = elem[:idx]
-						elem = elem[idx:]
-
 						if len(elem) == 0 {
 							switch r.Method {
-							case "DELETE":
-								s.handleDeleteClaimGroupRequest([1]string{
-									args[0],
-								}, elemIsEscaped, w, r)
 							case "GET":
-								s.handleReadClaimGroupRequest([1]string{
-									args[0],
-								}, elemIsEscaped, w, r)
-							case "PATCH":
-								s.handleUpdateClaimGroupRequest([1]string{
-									args[0],
-								}, elemIsEscaped, w, r)
+								s.handleListClaimGroupRequest([0]string{}, elemIsEscaped, w, r)
+							case "POST":
+								s.handleCreateClaimGroupRequest([0]string{}, elemIsEscaped, w, r)
 							default:
-								s.notAllowed(w, r, "DELETE,GET,PATCH")
+								s.notAllowed(w, r, "GET,POST")
 							}
 
 							return
@@ -140,36 +114,188 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 								break
 							}
 
+							// Param: "id"
+							// Match until "/"
+							idx := strings.IndexByte(elem, '/')
+							if idx < 0 {
+								idx = len(elem)
+							}
+							args[0] = elem[:idx]
+							elem = elem[idx:]
+
 							if len(elem) == 0 {
-								break
+								switch r.Method {
+								case "DELETE":
+									s.handleDeleteClaimGroupRequest([1]string{
+										args[0],
+									}, elemIsEscaped, w, r)
+								case "GET":
+									s.handleReadClaimGroupRequest([1]string{
+										args[0],
+									}, elemIsEscaped, w, r)
+								case "PATCH":
+									s.handleUpdateClaimGroupRequest([1]string{
+										args[0],
+									}, elemIsEscaped, w, r)
+								default:
+									s.notAllowed(w, r, "DELETE,GET,PATCH")
+								}
+
+								return
 							}
 							switch elem[0] {
-							case 'c': // Prefix: "claims"
+							case '/': // Prefix: "/"
 								origElem := elem
-								if l := len("claims"); len(elem) >= l && elem[0:l] == "claims" {
+								if l := len("/"); len(elem) >= l && elem[0:l] == "/" {
 									elem = elem[l:]
 								} else {
 									break
 								}
 
 								if len(elem) == 0 {
-									// Leaf node.
-									switch r.Method {
-									case "GET":
-										s.handleListClaimGroupClaimsRequest([1]string{
-											args[0],
-										}, elemIsEscaped, w, r)
-									default:
-										s.notAllowed(w, r, "GET")
+									break
+								}
+								switch elem[0] {
+								case 'c': // Prefix: "claims"
+									origElem := elem
+									if l := len("claims"); len(elem) >= l && elem[0:l] == "claims" {
+										elem = elem[l:]
+									} else {
+										break
 									}
 
-									return
+									if len(elem) == 0 {
+										// Leaf node.
+										switch r.Method {
+										case "GET":
+											s.handleListClaimGroupClaimsRequest([1]string{
+												args[0],
+											}, elemIsEscaped, w, r)
+										default:
+											s.notAllowed(w, r, "GET")
+										}
+
+										return
+									}
+
+									elem = origElem
+								case 'g': // Prefix: "group-links"
+									origElem := elem
+									if l := len("group-links"); len(elem) >= l && elem[0:l] == "group-links" {
+										elem = elem[l:]
+									} else {
+										break
+									}
+
+									if len(elem) == 0 {
+										// Leaf node.
+										switch r.Method {
+										case "GET":
+											s.handleListClaimGroupGroupLinksRequest([1]string{
+												args[0],
+											}, elemIsEscaped, w, r)
+										default:
+											s.notAllowed(w, r, "GET")
+										}
+
+										return
+									}
+
+									elem = origElem
+								case 'u': // Prefix: "users"
+									origElem := elem
+									if l := len("users"); len(elem) >= l && elem[0:l] == "users" {
+										elem = elem[l:]
+									} else {
+										break
+									}
+
+									if len(elem) == 0 {
+										// Leaf node.
+										switch r.Method {
+										case "GET":
+											s.handleListClaimGroupUsersRequest([1]string{
+												args[0],
+											}, elemIsEscaped, w, r)
+										default:
+											s.notAllowed(w, r, "GET")
+										}
+
+										return
+									}
+
+									elem = origElem
 								}
 
 								elem = origElem
-							case 'g': // Prefix: "group-links"
+							}
+
+							elem = origElem
+						}
+
+						elem = origElem
+					case 's': // Prefix: "s"
+						origElem := elem
+						if l := len("s"); len(elem) >= l && elem[0:l] == "s" {
+							elem = elem[l:]
+						} else {
+							break
+						}
+
+						if len(elem) == 0 {
+							switch r.Method {
+							case "GET":
+								s.handleListClaimRequest([0]string{}, elemIsEscaped, w, r)
+							case "POST":
+								s.handleCreateClaimRequest([0]string{}, elemIsEscaped, w, r)
+							default:
+								s.notAllowed(w, r, "GET,POST")
+							}
+
+							return
+						}
+						switch elem[0] {
+						case '/': // Prefix: "/"
+							origElem := elem
+							if l := len("/"); len(elem) >= l && elem[0:l] == "/" {
+								elem = elem[l:]
+							} else {
+								break
+							}
+
+							// Param: "id"
+							// Match until "/"
+							idx := strings.IndexByte(elem, '/')
+							if idx < 0 {
+								idx = len(elem)
+							}
+							args[0] = elem[:idx]
+							elem = elem[idx:]
+
+							if len(elem) == 0 {
+								switch r.Method {
+								case "DELETE":
+									s.handleDeleteClaimRequest([1]string{
+										args[0],
+									}, elemIsEscaped, w, r)
+								case "GET":
+									s.handleReadClaimRequest([1]string{
+										args[0],
+									}, elemIsEscaped, w, r)
+								case "PATCH":
+									s.handleUpdateClaimRequest([1]string{
+										args[0],
+									}, elemIsEscaped, w, r)
+								default:
+									s.notAllowed(w, r, "DELETE,GET,PATCH")
+								}
+
+								return
+							}
+							switch elem[0] {
+							case '/': // Prefix: "/claim-groups"
 								origElem := elem
-								if l := len("group-links"); len(elem) >= l && elem[0:l] == "group-links" {
+								if l := len("/claim-groups"); len(elem) >= l && elem[0:l] == "/claim-groups" {
 									elem = elem[l:]
 								} else {
 									break
@@ -179,30 +305,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 									// Leaf node.
 									switch r.Method {
 									case "GET":
-										s.handleListClaimGroupGroupLinksRequest([1]string{
-											args[0],
-										}, elemIsEscaped, w, r)
-									default:
-										s.notAllowed(w, r, "GET")
-									}
-
-									return
-								}
-
-								elem = origElem
-							case 'u': // Prefix: "users"
-								origElem := elem
-								if l := len("users"); len(elem) >= l && elem[0:l] == "users" {
-									elem = elem[l:]
-								} else {
-									break
-								}
-
-								if len(elem) == 0 {
-									// Leaf node.
-									switch r.Method {
-									case "GET":
-										s.handleListClaimGroupUsersRequest([1]string{
+										s.handleListClaimClaimGroupsRequest([1]string{
 											args[0],
 										}, elemIsEscaped, w, r)
 									default:
@@ -222,9 +325,9 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 					}
 
 					elem = origElem
-				case 's': // Prefix: "s"
+				case 'g': // Prefix: "group-links"
 					origElem := elem
-					if l := len("s"); len(elem) >= l && elem[0:l] == "s" {
+					if l := len("group-links"); len(elem) >= l && elem[0:l] == "group-links" {
 						elem = elem[l:]
 					} else {
 						break
@@ -233,9 +336,9 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 					if len(elem) == 0 {
 						switch r.Method {
 						case "GET":
-							s.handleListClaimRequest([0]string{}, elemIsEscaped, w, r)
+							s.handleListGroupLinkRequest([0]string{}, elemIsEscaped, w, r)
 						case "POST":
-							s.handleCreateClaimRequest([0]string{}, elemIsEscaped, w, r)
+							s.handleCreateGroupLinkRequest([0]string{}, elemIsEscaped, w, r)
 						default:
 							s.notAllowed(w, r, "GET,POST")
 						}
@@ -263,15 +366,195 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 						if len(elem) == 0 {
 							switch r.Method {
 							case "DELETE":
-								s.handleDeleteClaimRequest([1]string{
+								s.handleDeleteGroupLinkRequest([1]string{
 									args[0],
 								}, elemIsEscaped, w, r)
 							case "GET":
-								s.handleReadClaimRequest([1]string{
+								s.handleReadGroupLinkRequest([1]string{
 									args[0],
 								}, elemIsEscaped, w, r)
 							case "PATCH":
-								s.handleUpdateClaimRequest([1]string{
+								s.handleUpdateGroupLinkRequest([1]string{
+									args[0],
+								}, elemIsEscaped, w, r)
+							default:
+								s.notAllowed(w, r, "DELETE,GET,PATCH")
+							}
+
+							return
+						}
+						switch elem[0] {
+						case '/': // Prefix: "/claim-group"
+							origElem := elem
+							if l := len("/claim-group"); len(elem) >= l && elem[0:l] == "/claim-group" {
+								elem = elem[l:]
+							} else {
+								break
+							}
+
+							if len(elem) == 0 {
+								// Leaf node.
+								switch r.Method {
+								case "GET":
+									s.handleReadGroupLinkClaimGroupRequest([1]string{
+										args[0],
+									}, elemIsEscaped, w, r)
+								default:
+									s.notAllowed(w, r, "GET")
+								}
+
+								return
+							}
+
+							elem = origElem
+						}
+
+						elem = origElem
+					}
+
+					elem = origElem
+				case 'l': // Prefix: "localuser"
+					origElem := elem
+					if l := len("localuser"); len(elem) >= l && elem[0:l] == "localuser" {
+						elem = elem[l:]
+					} else {
+						break
+					}
+
+					if len(elem) == 0 {
+						// Leaf node.
+						switch r.Method {
+						case "PATCH":
+							s.handleUpdateLocalUserPasswordRequest([0]string{}, elemIsEscaped, w, r)
+						case "POST":
+							s.handleCreateLocalUserRequest([0]string{}, elemIsEscaped, w, r)
+						default:
+							s.notAllowed(w, r, "PATCH,POST")
+						}
+
+						return
+					}
+
+					elem = origElem
+				case 'p': // Prefix: "private-keys"
+					origElem := elem
+					if l := len("private-keys"); len(elem) >= l && elem[0:l] == "private-keys" {
+						elem = elem[l:]
+					} else {
+						break
+					}
+
+					if len(elem) == 0 {
+						switch r.Method {
+						case "GET":
+							s.handleListPrivateKeyRequest([0]string{}, elemIsEscaped, w, r)
+						default:
+							s.notAllowed(w, r, "GET")
+						}
+
+						return
+					}
+					switch elem[0] {
+					case '/': // Prefix: "/"
+						origElem := elem
+						if l := len("/"); len(elem) >= l && elem[0:l] == "/" {
+							elem = elem[l:]
+						} else {
+							break
+						}
+
+						// Param: "id"
+						// Leaf parameter
+						args[0] = elem
+						elem = ""
+
+						if len(elem) == 0 {
+							// Leaf node.
+							switch r.Method {
+							case "GET":
+								s.handleReadPrivateKeyRequest([1]string{
+									args[0],
+								}, elemIsEscaped, w, r)
+							default:
+								s.notAllowed(w, r, "GET")
+							}
+
+							return
+						}
+
+						elem = origElem
+					}
+
+					elem = origElem
+				case 't': // Prefix: "totals"
+					origElem := elem
+					if l := len("totals"); len(elem) >= l && elem[0:l] == "totals" {
+						elem = elem[l:]
+					} else {
+						break
+					}
+
+					if len(elem) == 0 {
+						// Leaf node.
+						switch r.Method {
+						case "GET":
+							s.handleTotalsRequest([0]string{}, elemIsEscaped, w, r)
+						default:
+							s.notAllowed(w, r, "GET")
+						}
+
+						return
+					}
+
+					elem = origElem
+				case 'u': // Prefix: "users"
+					origElem := elem
+					if l := len("users"); len(elem) >= l && elem[0:l] == "users" {
+						elem = elem[l:]
+					} else {
+						break
+					}
+
+					if len(elem) == 0 {
+						switch r.Method {
+						case "GET":
+							s.handleListUserRequest([0]string{}, elemIsEscaped, w, r)
+						default:
+							s.notAllowed(w, r, "GET")
+						}
+
+						return
+					}
+					switch elem[0] {
+					case '/': // Prefix: "/"
+						origElem := elem
+						if l := len("/"); len(elem) >= l && elem[0:l] == "/" {
+							elem = elem[l:]
+						} else {
+							break
+						}
+
+						// Param: "id"
+						// Match until "/"
+						idx := strings.IndexByte(elem, '/')
+						if idx < 0 {
+							idx = len(elem)
+						}
+						args[0] = elem[:idx]
+						elem = elem[idx:]
+
+						if len(elem) == 0 {
+							switch r.Method {
+							case "DELETE":
+								s.handleDeleteUserRequest([1]string{
+									args[0],
+								}, elemIsEscaped, w, r)
+							case "GET":
+								s.handleReadUserRequest([1]string{
+									args[0],
+								}, elemIsEscaped, w, r)
+							case "PATCH":
+								s.handleUpdateUserRequest([1]string{
 									args[0],
 								}, elemIsEscaped, w, r)
 							default:
@@ -293,7 +576,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 								// Leaf node.
 								switch r.Method {
 								case "GET":
-									s.handleListClaimClaimGroupsRequest([1]string{
+									s.handleListUserClaimGroupsRequest([1]string{
 										args[0],
 									}, elemIsEscaped, w, r)
 								default:
@@ -313,97 +596,9 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				}
 
 				elem = origElem
-			case 'g': // Prefix: "group-links"
+			case 'l': // Prefix: "login"
 				origElem := elem
-				if l := len("group-links"); len(elem) >= l && elem[0:l] == "group-links" {
-					elem = elem[l:]
-				} else {
-					break
-				}
-
-				if len(elem) == 0 {
-					switch r.Method {
-					case "GET":
-						s.handleListGroupLinkRequest([0]string{}, elemIsEscaped, w, r)
-					case "POST":
-						s.handleCreateGroupLinkRequest([0]string{}, elemIsEscaped, w, r)
-					default:
-						s.notAllowed(w, r, "GET,POST")
-					}
-
-					return
-				}
-				switch elem[0] {
-				case '/': // Prefix: "/"
-					origElem := elem
-					if l := len("/"); len(elem) >= l && elem[0:l] == "/" {
-						elem = elem[l:]
-					} else {
-						break
-					}
-
-					// Param: "id"
-					// Match until "/"
-					idx := strings.IndexByte(elem, '/')
-					if idx < 0 {
-						idx = len(elem)
-					}
-					args[0] = elem[:idx]
-					elem = elem[idx:]
-
-					if len(elem) == 0 {
-						switch r.Method {
-						case "DELETE":
-							s.handleDeleteGroupLinkRequest([1]string{
-								args[0],
-							}, elemIsEscaped, w, r)
-						case "GET":
-							s.handleReadGroupLinkRequest([1]string{
-								args[0],
-							}, elemIsEscaped, w, r)
-						case "PATCH":
-							s.handleUpdateGroupLinkRequest([1]string{
-								args[0],
-							}, elemIsEscaped, w, r)
-						default:
-							s.notAllowed(w, r, "DELETE,GET,PATCH")
-						}
-
-						return
-					}
-					switch elem[0] {
-					case '/': // Prefix: "/claim-group"
-						origElem := elem
-						if l := len("/claim-group"); len(elem) >= l && elem[0:l] == "/claim-group" {
-							elem = elem[l:]
-						} else {
-							break
-						}
-
-						if len(elem) == 0 {
-							// Leaf node.
-							switch r.Method {
-							case "GET":
-								s.handleReadGroupLinkClaimGroupRequest([1]string{
-									args[0],
-								}, elemIsEscaped, w, r)
-							default:
-								s.notAllowed(w, r, "GET")
-							}
-
-							return
-						}
-
-						elem = origElem
-					}
-
-					elem = origElem
-				}
-
-				elem = origElem
-			case 'l': // Prefix: "localuser"
-				origElem := elem
-				if l := len("localuser"); len(elem) >= l && elem[0:l] == "localuser" {
+				if l := len("login"); len(elem) >= l && elem[0:l] == "login" {
 					elem = elem[l:]
 				} else {
 					break
@@ -412,71 +607,19 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				if len(elem) == 0 {
 					// Leaf node.
 					switch r.Method {
-					case "PATCH":
-						s.handleUpdateLocalUserPasswordRequest([0]string{}, elemIsEscaped, w, r)
 					case "POST":
-						s.handleCreateLocalUserRequest([0]string{}, elemIsEscaped, w, r)
+						s.handleLoginRequest([0]string{}, elemIsEscaped, w, r)
 					default:
-						s.notAllowed(w, r, "PATCH,POST")
+						s.notAllowed(w, r, "POST")
 					}
 
 					return
 				}
 
 				elem = origElem
-			case 'p': // Prefix: "private-keys"
+			case 'p': // Prefix: "pkeys"
 				origElem := elem
-				if l := len("private-keys"); len(elem) >= l && elem[0:l] == "private-keys" {
-					elem = elem[l:]
-				} else {
-					break
-				}
-
-				if len(elem) == 0 {
-					switch r.Method {
-					case "GET":
-						s.handleListPrivateKeyRequest([0]string{}, elemIsEscaped, w, r)
-					default:
-						s.notAllowed(w, r, "GET")
-					}
-
-					return
-				}
-				switch elem[0] {
-				case '/': // Prefix: "/"
-					origElem := elem
-					if l := len("/"); len(elem) >= l && elem[0:l] == "/" {
-						elem = elem[l:]
-					} else {
-						break
-					}
-
-					// Param: "id"
-					// Leaf parameter
-					args[0] = elem
-					elem = ""
-
-					if len(elem) == 0 {
-						// Leaf node.
-						switch r.Method {
-						case "GET":
-							s.handleReadPrivateKeyRequest([1]string{
-								args[0],
-							}, elemIsEscaped, w, r)
-						default:
-							s.notAllowed(w, r, "GET")
-						}
-
-						return
-					}
-
-					elem = origElem
-				}
-
-				elem = origElem
-			case 't': // Prefix: "totals"
-				origElem := elem
-				if l := len("totals"); len(elem) >= l && elem[0:l] == "totals" {
+				if l := len("pkeys"); len(elem) >= l && elem[0:l] == "pkeys" {
 					elem = elem[l:]
 				} else {
 					break
@@ -486,7 +629,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 					// Leaf node.
 					switch r.Method {
 					case "GET":
-						s.handleTotalsRequest([0]string{}, elemIsEscaped, w, r)
+						s.handlePkeysRequest([0]string{}, elemIsEscaped, w, r)
 					default:
 						s.notAllowed(w, r, "GET")
 					}
@@ -495,89 +638,24 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				}
 
 				elem = origElem
-			case 'u': // Prefix: "users"
+			case 'r': // Prefix: "refresh"
 				origElem := elem
-				if l := len("users"); len(elem) >= l && elem[0:l] == "users" {
+				if l := len("refresh"); len(elem) >= l && elem[0:l] == "refresh" {
 					elem = elem[l:]
 				} else {
 					break
 				}
 
 				if len(elem) == 0 {
+					// Leaf node.
 					switch r.Method {
-					case "GET":
-						s.handleListUserRequest([0]string{}, elemIsEscaped, w, r)
+					case "POST":
+						s.handleRefreshRequest([0]string{}, elemIsEscaped, w, r)
 					default:
-						s.notAllowed(w, r, "GET")
+						s.notAllowed(w, r, "POST")
 					}
 
 					return
-				}
-				switch elem[0] {
-				case '/': // Prefix: "/"
-					origElem := elem
-					if l := len("/"); len(elem) >= l && elem[0:l] == "/" {
-						elem = elem[l:]
-					} else {
-						break
-					}
-
-					// Param: "id"
-					// Match until "/"
-					idx := strings.IndexByte(elem, '/')
-					if idx < 0 {
-						idx = len(elem)
-					}
-					args[0] = elem[:idx]
-					elem = elem[idx:]
-
-					if len(elem) == 0 {
-						switch r.Method {
-						case "DELETE":
-							s.handleDeleteUserRequest([1]string{
-								args[0],
-							}, elemIsEscaped, w, r)
-						case "GET":
-							s.handleReadUserRequest([1]string{
-								args[0],
-							}, elemIsEscaped, w, r)
-						case "PATCH":
-							s.handleUpdateUserRequest([1]string{
-								args[0],
-							}, elemIsEscaped, w, r)
-						default:
-							s.notAllowed(w, r, "DELETE,GET,PATCH")
-						}
-
-						return
-					}
-					switch elem[0] {
-					case '/': // Prefix: "/claim-groups"
-						origElem := elem
-						if l := len("/claim-groups"); len(elem) >= l && elem[0:l] == "/claim-groups" {
-							elem = elem[l:]
-						} else {
-							break
-						}
-
-						if len(elem) == 0 {
-							// Leaf node.
-							switch r.Method {
-							case "GET":
-								s.handleListUserClaimGroupsRequest([1]string{
-									args[0],
-								}, elemIsEscaped, w, r)
-							default:
-								s.notAllowed(w, r, "GET")
-							}
-
-							return
-						}
-
-						elem = origElem
-					}
-
-					elem = origElem
 				}
 
 				elem = origElem
@@ -676,9 +754,9 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 				break
 			}
 			switch elem[0] {
-			case 'c': // Prefix: "claim"
+			case 'a': // Prefix: "admin/"
 				origElem := elem
-				if l := len("claim"); len(elem) >= l && elem[0:l] == "claim" {
+				if l := len("admin/"); len(elem) >= l && elem[0:l] == "admin/" {
 					elem = elem[l:]
 				} else {
 					break
@@ -688,79 +766,43 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 					break
 				}
 				switch elem[0] {
-				case '-': // Prefix: "-groups"
+				case 'c': // Prefix: "claim"
 					origElem := elem
-					if l := len("-groups"); len(elem) >= l && elem[0:l] == "-groups" {
+					if l := len("claim"); len(elem) >= l && elem[0:l] == "claim" {
 						elem = elem[l:]
 					} else {
 						break
 					}
 
 					if len(elem) == 0 {
-						switch method {
-						case "GET":
-							r.name = "ListClaimGroup"
-							r.summary = "List ClaimGroups"
-							r.operationID = "listClaimGroup"
-							r.pathPattern = "/claim-groups"
-							r.args = args
-							r.count = 0
-							return r, true
-						case "POST":
-							r.name = "CreateClaimGroup"
-							r.summary = "Create a new ClaimGroup"
-							r.operationID = "createClaimGroup"
-							r.pathPattern = "/claim-groups"
-							r.args = args
-							r.count = 0
-							return r, true
-						default:
-							return
-						}
+						break
 					}
 					switch elem[0] {
-					case '/': // Prefix: "/"
+					case '-': // Prefix: "-groups"
 						origElem := elem
-						if l := len("/"); len(elem) >= l && elem[0:l] == "/" {
+						if l := len("-groups"); len(elem) >= l && elem[0:l] == "-groups" {
 							elem = elem[l:]
 						} else {
 							break
 						}
 
-						// Param: "id"
-						// Match until "/"
-						idx := strings.IndexByte(elem, '/')
-						if idx < 0 {
-							idx = len(elem)
-						}
-						args[0] = elem[:idx]
-						elem = elem[idx:]
-
 						if len(elem) == 0 {
 							switch method {
-							case "DELETE":
-								r.name = "DeleteClaimGroup"
-								r.summary = "Deletes a ClaimGroup by ID"
-								r.operationID = "deleteClaimGroup"
-								r.pathPattern = "/claim-groups/{id}"
-								r.args = args
-								r.count = 1
-								return r, true
 							case "GET":
-								r.name = "ReadClaimGroup"
-								r.summary = "Find a ClaimGroup by ID"
-								r.operationID = "readClaimGroup"
-								r.pathPattern = "/claim-groups/{id}"
+								r.name = "ListClaimGroup"
+								r.summary = "List ClaimGroups"
+								r.operationID = "listClaimGroup"
+								r.pathPattern = "/admin/claim-groups"
 								r.args = args
-								r.count = 1
+								r.count = 0
 								return r, true
-							case "PATCH":
-								r.name = "UpdateClaimGroup"
-								r.summary = "Updates a ClaimGroup"
-								r.operationID = "updateClaimGroup"
-								r.pathPattern = "/claim-groups/{id}"
+							case "POST":
+								r.name = "CreateClaimGroup"
+								r.summary = "Create a new ClaimGroup"
+								r.operationID = "createClaimGroup"
+								r.pathPattern = "/admin/claim-groups"
 								r.args = args
-								r.count = 1
+								r.count = 0
 								return r, true
 							default:
 								return
@@ -775,38 +817,224 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 								break
 							}
 
+							// Param: "id"
+							// Match until "/"
+							idx := strings.IndexByte(elem, '/')
+							if idx < 0 {
+								idx = len(elem)
+							}
+							args[0] = elem[:idx]
+							elem = elem[idx:]
+
 							if len(elem) == 0 {
-								break
+								switch method {
+								case "DELETE":
+									r.name = "DeleteClaimGroup"
+									r.summary = "Deletes a ClaimGroup by ID"
+									r.operationID = "deleteClaimGroup"
+									r.pathPattern = "/admin/claim-groups/{id}"
+									r.args = args
+									r.count = 1
+									return r, true
+								case "GET":
+									r.name = "ReadClaimGroup"
+									r.summary = "Find a ClaimGroup by ID"
+									r.operationID = "readClaimGroup"
+									r.pathPattern = "/admin/claim-groups/{id}"
+									r.args = args
+									r.count = 1
+									return r, true
+								case "PATCH":
+									r.name = "UpdateClaimGroup"
+									r.summary = "Updates a ClaimGroup"
+									r.operationID = "updateClaimGroup"
+									r.pathPattern = "/admin/claim-groups/{id}"
+									r.args = args
+									r.count = 1
+									return r, true
+								default:
+									return
+								}
 							}
 							switch elem[0] {
-							case 'c': // Prefix: "claims"
+							case '/': // Prefix: "/"
 								origElem := elem
-								if l := len("claims"); len(elem) >= l && elem[0:l] == "claims" {
+								if l := len("/"); len(elem) >= l && elem[0:l] == "/" {
 									elem = elem[l:]
 								} else {
 									break
 								}
 
 								if len(elem) == 0 {
-									switch method {
-									case "GET":
-										// Leaf: ListClaimGroupClaims
-										r.name = "ListClaimGroupClaims"
-										r.summary = "List attached Claims"
-										r.operationID = "listClaimGroupClaims"
-										r.pathPattern = "/claim-groups/{id}/claims"
-										r.args = args
-										r.count = 1
-										return r, true
-									default:
-										return
+									break
+								}
+								switch elem[0] {
+								case 'c': // Prefix: "claims"
+									origElem := elem
+									if l := len("claims"); len(elem) >= l && elem[0:l] == "claims" {
+										elem = elem[l:]
+									} else {
+										break
 									}
+
+									if len(elem) == 0 {
+										switch method {
+										case "GET":
+											// Leaf: ListClaimGroupClaims
+											r.name = "ListClaimGroupClaims"
+											r.summary = "List attached Claims"
+											r.operationID = "listClaimGroupClaims"
+											r.pathPattern = "/admin/claim-groups/{id}/claims"
+											r.args = args
+											r.count = 1
+											return r, true
+										default:
+											return
+										}
+									}
+
+									elem = origElem
+								case 'g': // Prefix: "group-links"
+									origElem := elem
+									if l := len("group-links"); len(elem) >= l && elem[0:l] == "group-links" {
+										elem = elem[l:]
+									} else {
+										break
+									}
+
+									if len(elem) == 0 {
+										switch method {
+										case "GET":
+											// Leaf: ListClaimGroupGroupLinks
+											r.name = "ListClaimGroupGroupLinks"
+											r.summary = "List attached GroupLinks"
+											r.operationID = "listClaimGroupGroupLinks"
+											r.pathPattern = "/admin/claim-groups/{id}/group-links"
+											r.args = args
+											r.count = 1
+											return r, true
+										default:
+											return
+										}
+									}
+
+									elem = origElem
+								case 'u': // Prefix: "users"
+									origElem := elem
+									if l := len("users"); len(elem) >= l && elem[0:l] == "users" {
+										elem = elem[l:]
+									} else {
+										break
+									}
+
+									if len(elem) == 0 {
+										switch method {
+										case "GET":
+											// Leaf: ListClaimGroupUsers
+											r.name = "ListClaimGroupUsers"
+											r.summary = "List attached Users"
+											r.operationID = "listClaimGroupUsers"
+											r.pathPattern = "/admin/claim-groups/{id}/users"
+											r.args = args
+											r.count = 1
+											return r, true
+										default:
+											return
+										}
+									}
+
+									elem = origElem
 								}
 
 								elem = origElem
-							case 'g': // Prefix: "group-links"
+							}
+
+							elem = origElem
+						}
+
+						elem = origElem
+					case 's': // Prefix: "s"
+						origElem := elem
+						if l := len("s"); len(elem) >= l && elem[0:l] == "s" {
+							elem = elem[l:]
+						} else {
+							break
+						}
+
+						if len(elem) == 0 {
+							switch method {
+							case "GET":
+								r.name = "ListClaim"
+								r.summary = "List Claims"
+								r.operationID = "listClaim"
+								r.pathPattern = "/admin/claims"
+								r.args = args
+								r.count = 0
+								return r, true
+							case "POST":
+								r.name = "CreateClaim"
+								r.summary = "Create a new Claim"
+								r.operationID = "createClaim"
+								r.pathPattern = "/admin/claims"
+								r.args = args
+								r.count = 0
+								return r, true
+							default:
+								return
+							}
+						}
+						switch elem[0] {
+						case '/': // Prefix: "/"
+							origElem := elem
+							if l := len("/"); len(elem) >= l && elem[0:l] == "/" {
+								elem = elem[l:]
+							} else {
+								break
+							}
+
+							// Param: "id"
+							// Match until "/"
+							idx := strings.IndexByte(elem, '/')
+							if idx < 0 {
+								idx = len(elem)
+							}
+							args[0] = elem[:idx]
+							elem = elem[idx:]
+
+							if len(elem) == 0 {
+								switch method {
+								case "DELETE":
+									r.name = "DeleteClaim"
+									r.summary = "Deletes a Claim by ID"
+									r.operationID = "deleteClaim"
+									r.pathPattern = "/admin/claims/{id}"
+									r.args = args
+									r.count = 1
+									return r, true
+								case "GET":
+									r.name = "ReadClaim"
+									r.summary = "Find a Claim by ID"
+									r.operationID = "readClaim"
+									r.pathPattern = "/admin/claims/{id}"
+									r.args = args
+									r.count = 1
+									return r, true
+								case "PATCH":
+									r.name = "UpdateClaim"
+									r.summary = "Updates a Claim"
+									r.operationID = "updateClaim"
+									r.pathPattern = "/admin/claims/{id}"
+									r.args = args
+									r.count = 1
+									return r, true
+								default:
+									return
+								}
+							}
+							switch elem[0] {
+							case '/': // Prefix: "/claim-groups"
 								origElem := elem
-								if l := len("group-links"); len(elem) >= l && elem[0:l] == "group-links" {
+								if l := len("/claim-groups"); len(elem) >= l && elem[0:l] == "/claim-groups" {
 									elem = elem[l:]
 								} else {
 									break
@@ -815,36 +1043,11 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 								if len(elem) == 0 {
 									switch method {
 									case "GET":
-										// Leaf: ListClaimGroupGroupLinks
-										r.name = "ListClaimGroupGroupLinks"
-										r.summary = "List attached GroupLinks"
-										r.operationID = "listClaimGroupGroupLinks"
-										r.pathPattern = "/claim-groups/{id}/group-links"
-										r.args = args
-										r.count = 1
-										return r, true
-									default:
-										return
-									}
-								}
-
-								elem = origElem
-							case 'u': // Prefix: "users"
-								origElem := elem
-								if l := len("users"); len(elem) >= l && elem[0:l] == "users" {
-									elem = elem[l:]
-								} else {
-									break
-								}
-
-								if len(elem) == 0 {
-									switch method {
-									case "GET":
-										// Leaf: ListClaimGroupUsers
-										r.name = "ListClaimGroupUsers"
-										r.summary = "List attached Users"
-										r.operationID = "listClaimGroupUsers"
-										r.pathPattern = "/claim-groups/{id}/users"
+										// Leaf: ListClaimClaimGroups
+										r.name = "ListClaimClaimGroups"
+										r.summary = "List attached ClaimGroups"
+										r.operationID = "listClaimClaimGroups"
+										r.pathPattern = "/admin/claims/{id}/claim-groups"
 										r.args = args
 										r.count = 1
 										return r, true
@@ -863,9 +1066,9 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 					}
 
 					elem = origElem
-				case 's': // Prefix: "s"
+				case 'g': // Prefix: "group-links"
 					origElem := elem
-					if l := len("s"); len(elem) >= l && elem[0:l] == "s" {
+					if l := len("group-links"); len(elem) >= l && elem[0:l] == "group-links" {
 						elem = elem[l:]
 					} else {
 						break
@@ -874,18 +1077,18 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 					if len(elem) == 0 {
 						switch method {
 						case "GET":
-							r.name = "ListClaim"
-							r.summary = "List Claims"
-							r.operationID = "listClaim"
-							r.pathPattern = "/claims"
+							r.name = "ListGroupLink"
+							r.summary = "List GroupLinks"
+							r.operationID = "listGroupLink"
+							r.pathPattern = "/admin/group-links"
 							r.args = args
 							r.count = 0
 							return r, true
 						case "POST":
-							r.name = "CreateClaim"
-							r.summary = "Create a new Claim"
-							r.operationID = "createClaim"
-							r.pathPattern = "/claims"
+							r.name = "CreateGroupLink"
+							r.summary = "Create a new GroupLink"
+							r.operationID = "createGroupLink"
+							r.pathPattern = "/admin/group-links"
 							r.args = args
 							r.count = 0
 							return r, true
@@ -914,26 +1117,243 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 						if len(elem) == 0 {
 							switch method {
 							case "DELETE":
-								r.name = "DeleteClaim"
-								r.summary = "Deletes a Claim by ID"
-								r.operationID = "deleteClaim"
-								r.pathPattern = "/claims/{id}"
+								r.name = "DeleteGroupLink"
+								r.summary = "Deletes a GroupLink by ID"
+								r.operationID = "deleteGroupLink"
+								r.pathPattern = "/admin/group-links/{id}"
 								r.args = args
 								r.count = 1
 								return r, true
 							case "GET":
-								r.name = "ReadClaim"
-								r.summary = "Find a Claim by ID"
-								r.operationID = "readClaim"
-								r.pathPattern = "/claims/{id}"
+								r.name = "ReadGroupLink"
+								r.summary = "Find a GroupLink by ID"
+								r.operationID = "readGroupLink"
+								r.pathPattern = "/admin/group-links/{id}"
 								r.args = args
 								r.count = 1
 								return r, true
 							case "PATCH":
-								r.name = "UpdateClaim"
-								r.summary = "Updates a Claim"
-								r.operationID = "updateClaim"
-								r.pathPattern = "/claims/{id}"
+								r.name = "UpdateGroupLink"
+								r.summary = "Updates a GroupLink"
+								r.operationID = "updateGroupLink"
+								r.pathPattern = "/admin/group-links/{id}"
+								r.args = args
+								r.count = 1
+								return r, true
+							default:
+								return
+							}
+						}
+						switch elem[0] {
+						case '/': // Prefix: "/claim-group"
+							origElem := elem
+							if l := len("/claim-group"); len(elem) >= l && elem[0:l] == "/claim-group" {
+								elem = elem[l:]
+							} else {
+								break
+							}
+
+							if len(elem) == 0 {
+								switch method {
+								case "GET":
+									// Leaf: ReadGroupLinkClaimGroup
+									r.name = "ReadGroupLinkClaimGroup"
+									r.summary = "Find the attached ClaimGroup"
+									r.operationID = "readGroupLinkClaimGroup"
+									r.pathPattern = "/admin/group-links/{id}/claim-group"
+									r.args = args
+									r.count = 1
+									return r, true
+								default:
+									return
+								}
+							}
+
+							elem = origElem
+						}
+
+						elem = origElem
+					}
+
+					elem = origElem
+				case 'l': // Prefix: "localuser"
+					origElem := elem
+					if l := len("localuser"); len(elem) >= l && elem[0:l] == "localuser" {
+						elem = elem[l:]
+					} else {
+						break
+					}
+
+					if len(elem) == 0 {
+						switch method {
+						case "PATCH":
+							// Leaf: UpdateLocalUserPassword
+							r.name = "UpdateLocalUserPassword"
+							r.summary = "Update local user's password"
+							r.operationID = "updateLocalUserPassword"
+							r.pathPattern = "/admin/localuser"
+							r.args = args
+							r.count = 0
+							return r, true
+						case "POST":
+							// Leaf: CreateLocalUser
+							r.name = "CreateLocalUser"
+							r.summary = "Create a new local user"
+							r.operationID = "createLocalUser"
+							r.pathPattern = "/admin/localuser"
+							r.args = args
+							r.count = 0
+							return r, true
+						default:
+							return
+						}
+					}
+
+					elem = origElem
+				case 'p': // Prefix: "private-keys"
+					origElem := elem
+					if l := len("private-keys"); len(elem) >= l && elem[0:l] == "private-keys" {
+						elem = elem[l:]
+					} else {
+						break
+					}
+
+					if len(elem) == 0 {
+						switch method {
+						case "GET":
+							r.name = "ListPrivateKey"
+							r.summary = "List PrivateKeys"
+							r.operationID = "listPrivateKey"
+							r.pathPattern = "/admin/private-keys"
+							r.args = args
+							r.count = 0
+							return r, true
+						default:
+							return
+						}
+					}
+					switch elem[0] {
+					case '/': // Prefix: "/"
+						origElem := elem
+						if l := len("/"); len(elem) >= l && elem[0:l] == "/" {
+							elem = elem[l:]
+						} else {
+							break
+						}
+
+						// Param: "id"
+						// Leaf parameter
+						args[0] = elem
+						elem = ""
+
+						if len(elem) == 0 {
+							switch method {
+							case "GET":
+								// Leaf: ReadPrivateKey
+								r.name = "ReadPrivateKey"
+								r.summary = "Find a PrivateKey by ID"
+								r.operationID = "readPrivateKey"
+								r.pathPattern = "/admin/private-keys/{id}"
+								r.args = args
+								r.count = 1
+								return r, true
+							default:
+								return
+							}
+						}
+
+						elem = origElem
+					}
+
+					elem = origElem
+				case 't': // Prefix: "totals"
+					origElem := elem
+					if l := len("totals"); len(elem) >= l && elem[0:l] == "totals" {
+						elem = elem[l:]
+					} else {
+						break
+					}
+
+					if len(elem) == 0 {
+						switch method {
+						case "GET":
+							// Leaf: Totals
+							r.name = "Totals"
+							r.summary = "Get entity count totals"
+							r.operationID = "totals"
+							r.pathPattern = "/admin/totals"
+							r.args = args
+							r.count = 0
+							return r, true
+						default:
+							return
+						}
+					}
+
+					elem = origElem
+				case 'u': // Prefix: "users"
+					origElem := elem
+					if l := len("users"); len(elem) >= l && elem[0:l] == "users" {
+						elem = elem[l:]
+					} else {
+						break
+					}
+
+					if len(elem) == 0 {
+						switch method {
+						case "GET":
+							r.name = "ListUser"
+							r.summary = "List Users"
+							r.operationID = "listUser"
+							r.pathPattern = "/admin/users"
+							r.args = args
+							r.count = 0
+							return r, true
+						default:
+							return
+						}
+					}
+					switch elem[0] {
+					case '/': // Prefix: "/"
+						origElem := elem
+						if l := len("/"); len(elem) >= l && elem[0:l] == "/" {
+							elem = elem[l:]
+						} else {
+							break
+						}
+
+						// Param: "id"
+						// Match until "/"
+						idx := strings.IndexByte(elem, '/')
+						if idx < 0 {
+							idx = len(elem)
+						}
+						args[0] = elem[:idx]
+						elem = elem[idx:]
+
+						if len(elem) == 0 {
+							switch method {
+							case "DELETE":
+								r.name = "DeleteUser"
+								r.summary = "Deletes a User by ID"
+								r.operationID = "deleteUser"
+								r.pathPattern = "/admin/users/{id}"
+								r.args = args
+								r.count = 1
+								return r, true
+							case "GET":
+								r.name = "ReadUser"
+								r.summary = "Find a User by ID"
+								r.operationID = "readUser"
+								r.pathPattern = "/admin/users/{id}"
+								r.args = args
+								r.count = 1
+								return r, true
+							case "PATCH":
+								r.name = "UpdateUser"
+								r.summary = "Updates a User"
+								r.operationID = "updateUser"
+								r.pathPattern = "/admin/users/{id}"
 								r.args = args
 								r.count = 1
 								return r, true
@@ -953,11 +1373,11 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 							if len(elem) == 0 {
 								switch method {
 								case "GET":
-									// Leaf: ListClaimClaimGroups
-									r.name = "ListClaimClaimGroups"
+									// Leaf: ListUserClaimGroups
+									r.name = "ListUserClaimGroups"
 									r.summary = "List attached ClaimGroups"
-									r.operationID = "listClaimClaimGroups"
-									r.pathPattern = "/claims/{id}/claim-groups"
+									r.operationID = "listUserClaimGroups"
+									r.pathPattern = "/admin/users/{id}/claim-groups"
 									r.args = args
 									r.count = 1
 									return r, true
@@ -976,9 +1396,9 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 				}
 
 				elem = origElem
-			case 'g': // Prefix: "group-links"
+			case 'l': // Prefix: "login"
 				origElem := elem
-				if l := len("group-links"); len(elem) >= l && elem[0:l] == "group-links" {
+				if l := len("login"); len(elem) >= l && elem[0:l] == "login" {
 					elem = elem[l:]
 				} else {
 					break
@@ -986,19 +1406,12 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 
 				if len(elem) == 0 {
 					switch method {
-					case "GET":
-						r.name = "ListGroupLink"
-						r.summary = "List GroupLinks"
-						r.operationID = "listGroupLink"
-						r.pathPattern = "/group-links"
-						r.args = args
-						r.count = 0
-						return r, true
 					case "POST":
-						r.name = "CreateGroupLink"
-						r.summary = "Create a new GroupLink"
-						r.operationID = "createGroupLink"
-						r.pathPattern = "/group-links"
+						// Leaf: Login
+						r.name = "Login"
+						r.summary = "Request a token"
+						r.operationID = "login"
+						r.pathPattern = "/login"
 						r.args = args
 						r.count = 0
 						return r, true
@@ -1006,89 +1419,11 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 						return
 					}
 				}
-				switch elem[0] {
-				case '/': // Prefix: "/"
-					origElem := elem
-					if l := len("/"); len(elem) >= l && elem[0:l] == "/" {
-						elem = elem[l:]
-					} else {
-						break
-					}
-
-					// Param: "id"
-					// Match until "/"
-					idx := strings.IndexByte(elem, '/')
-					if idx < 0 {
-						idx = len(elem)
-					}
-					args[0] = elem[:idx]
-					elem = elem[idx:]
-
-					if len(elem) == 0 {
-						switch method {
-						case "DELETE":
-							r.name = "DeleteGroupLink"
-							r.summary = "Deletes a GroupLink by ID"
-							r.operationID = "deleteGroupLink"
-							r.pathPattern = "/group-links/{id}"
-							r.args = args
-							r.count = 1
-							return r, true
-						case "GET":
-							r.name = "ReadGroupLink"
-							r.summary = "Find a GroupLink by ID"
-							r.operationID = "readGroupLink"
-							r.pathPattern = "/group-links/{id}"
-							r.args = args
-							r.count = 1
-							return r, true
-						case "PATCH":
-							r.name = "UpdateGroupLink"
-							r.summary = "Updates a GroupLink"
-							r.operationID = "updateGroupLink"
-							r.pathPattern = "/group-links/{id}"
-							r.args = args
-							r.count = 1
-							return r, true
-						default:
-							return
-						}
-					}
-					switch elem[0] {
-					case '/': // Prefix: "/claim-group"
-						origElem := elem
-						if l := len("/claim-group"); len(elem) >= l && elem[0:l] == "/claim-group" {
-							elem = elem[l:]
-						} else {
-							break
-						}
-
-						if len(elem) == 0 {
-							switch method {
-							case "GET":
-								// Leaf: ReadGroupLinkClaimGroup
-								r.name = "ReadGroupLinkClaimGroup"
-								r.summary = "Find the attached ClaimGroup"
-								r.operationID = "readGroupLinkClaimGroup"
-								r.pathPattern = "/group-links/{id}/claim-group"
-								r.args = args
-								r.count = 1
-								return r, true
-							default:
-								return
-							}
-						}
-
-						elem = origElem
-					}
-
-					elem = origElem
-				}
 
 				elem = origElem
-			case 'l': // Prefix: "localuser"
+			case 'p': // Prefix: "pkeys"
 				origElem := elem
-				if l := len("localuser"); len(elem) >= l && elem[0:l] == "localuser" {
+				if l := len("pkeys"); len(elem) >= l && elem[0:l] == "pkeys" {
 					elem = elem[l:]
 				} else {
 					break
@@ -1096,210 +1431,43 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 
 				if len(elem) == 0 {
 					switch method {
-					case "PATCH":
-						// Leaf: UpdateLocalUserPassword
-						r.name = "UpdateLocalUserPassword"
-						r.summary = "Update local user's password"
-						r.operationID = "updateLocalUserPassword"
-						r.pathPattern = "/localuser"
+					case "GET":
+						// Leaf: Pkeys
+						r.name = "Pkeys"
+						r.summary = "Get current valid public keys"
+						r.operationID = "pkeys"
+						r.pathPattern = "/pkeys"
 						r.args = args
 						r.count = 0
 						return r, true
+					default:
+						return
+					}
+				}
+
+				elem = origElem
+			case 'r': // Prefix: "refresh"
+				origElem := elem
+				if l := len("refresh"); len(elem) >= l && elem[0:l] == "refresh" {
+					elem = elem[l:]
+				} else {
+					break
+				}
+
+				if len(elem) == 0 {
+					switch method {
 					case "POST":
-						// Leaf: CreateLocalUser
-						r.name = "CreateLocalUser"
-						r.summary = "Create a new local user"
-						r.operationID = "createLocalUser"
-						r.pathPattern = "/localuser"
+						// Leaf: Refresh
+						r.name = "Refresh"
+						r.summary = "Request a refreshed token"
+						r.operationID = "refresh"
+						r.pathPattern = "/refresh"
 						r.args = args
 						r.count = 0
 						return r, true
 					default:
 						return
 					}
-				}
-
-				elem = origElem
-			case 'p': // Prefix: "private-keys"
-				origElem := elem
-				if l := len("private-keys"); len(elem) >= l && elem[0:l] == "private-keys" {
-					elem = elem[l:]
-				} else {
-					break
-				}
-
-				if len(elem) == 0 {
-					switch method {
-					case "GET":
-						r.name = "ListPrivateKey"
-						r.summary = "List PrivateKeys"
-						r.operationID = "listPrivateKey"
-						r.pathPattern = "/private-keys"
-						r.args = args
-						r.count = 0
-						return r, true
-					default:
-						return
-					}
-				}
-				switch elem[0] {
-				case '/': // Prefix: "/"
-					origElem := elem
-					if l := len("/"); len(elem) >= l && elem[0:l] == "/" {
-						elem = elem[l:]
-					} else {
-						break
-					}
-
-					// Param: "id"
-					// Leaf parameter
-					args[0] = elem
-					elem = ""
-
-					if len(elem) == 0 {
-						switch method {
-						case "GET":
-							// Leaf: ReadPrivateKey
-							r.name = "ReadPrivateKey"
-							r.summary = "Find a PrivateKey by ID"
-							r.operationID = "readPrivateKey"
-							r.pathPattern = "/private-keys/{id}"
-							r.args = args
-							r.count = 1
-							return r, true
-						default:
-							return
-						}
-					}
-
-					elem = origElem
-				}
-
-				elem = origElem
-			case 't': // Prefix: "totals"
-				origElem := elem
-				if l := len("totals"); len(elem) >= l && elem[0:l] == "totals" {
-					elem = elem[l:]
-				} else {
-					break
-				}
-
-				if len(elem) == 0 {
-					switch method {
-					case "GET":
-						// Leaf: Totals
-						r.name = "Totals"
-						r.summary = "Get entity count totals"
-						r.operationID = "totals"
-						r.pathPattern = "/totals"
-						r.args = args
-						r.count = 0
-						return r, true
-					default:
-						return
-					}
-				}
-
-				elem = origElem
-			case 'u': // Prefix: "users"
-				origElem := elem
-				if l := len("users"); len(elem) >= l && elem[0:l] == "users" {
-					elem = elem[l:]
-				} else {
-					break
-				}
-
-				if len(elem) == 0 {
-					switch method {
-					case "GET":
-						r.name = "ListUser"
-						r.summary = "List Users"
-						r.operationID = "listUser"
-						r.pathPattern = "/users"
-						r.args = args
-						r.count = 0
-						return r, true
-					default:
-						return
-					}
-				}
-				switch elem[0] {
-				case '/': // Prefix: "/"
-					origElem := elem
-					if l := len("/"); len(elem) >= l && elem[0:l] == "/" {
-						elem = elem[l:]
-					} else {
-						break
-					}
-
-					// Param: "id"
-					// Match until "/"
-					idx := strings.IndexByte(elem, '/')
-					if idx < 0 {
-						idx = len(elem)
-					}
-					args[0] = elem[:idx]
-					elem = elem[idx:]
-
-					if len(elem) == 0 {
-						switch method {
-						case "DELETE":
-							r.name = "DeleteUser"
-							r.summary = "Deletes a User by ID"
-							r.operationID = "deleteUser"
-							r.pathPattern = "/users/{id}"
-							r.args = args
-							r.count = 1
-							return r, true
-						case "GET":
-							r.name = "ReadUser"
-							r.summary = "Find a User by ID"
-							r.operationID = "readUser"
-							r.pathPattern = "/users/{id}"
-							r.args = args
-							r.count = 1
-							return r, true
-						case "PATCH":
-							r.name = "UpdateUser"
-							r.summary = "Updates a User"
-							r.operationID = "updateUser"
-							r.pathPattern = "/users/{id}"
-							r.args = args
-							r.count = 1
-							return r, true
-						default:
-							return
-						}
-					}
-					switch elem[0] {
-					case '/': // Prefix: "/claim-groups"
-						origElem := elem
-						if l := len("/claim-groups"); len(elem) >= l && elem[0:l] == "/claim-groups" {
-							elem = elem[l:]
-						} else {
-							break
-						}
-
-						if len(elem) == 0 {
-							switch method {
-							case "GET":
-								// Leaf: ListUserClaimGroups
-								r.name = "ListUserClaimGroups"
-								r.summary = "List attached ClaimGroups"
-								r.operationID = "listUserClaimGroups"
-								r.pathPattern = "/users/{id}/claim-groups"
-								r.args = args
-								r.count = 1
-								return r, true
-							default:
-								return
-							}
-						}
-
-						elem = origElem
-					}
-
-					elem = origElem
 				}
 
 				elem = origElem

@@ -77,46 +77,11 @@ func NewServer(ctx context.Context) *http.Server {
 	allowedHosts := strings.Join(config.AllowedHosts,",")
 
 	mux.Handle(
-		"/api/login",
-		ConfigureCORS(
-			"POST,OPTIONS",
-			allowedHosts,
-			LoginApiHandler{},
-		),
-	)
-
-	mux.Handle(
-		"/api/refresh",
-		ConfigureCORS(
-			"POST,OPTIONS",
-			allowedHosts,
-			stoke.Auth(
-				RefreshApiHandler{},
-				issuer,
-				stoke.WithToken().ForAccess(),
-			),
-		),
-	)
-	
-	mux.Handle(
-		"/api/pkeys",
-		ConfigureCORS(
-			"GET,OPTIONS",
-			allowedHosts,
-			PkeyApiHandler{},
-		),
-	)
-
-	mux.Handle(
-		"/api/admin/",
+		"/api/",
 		ConfigureCORS(
 			"GET,POST,PATCH,DELETE,OPTIONS",
 			allowedHosts,
-			stoke.Auth(
-				NewEntityAPIHandler("/api/admin/", ctx),
-				issuer,
-				stoke.WithToken().Requires("srol", "spr").ForAccess(),
-			),
+			NewEntityAPIHandler("/api/", ctx),
 		),
 	)
 

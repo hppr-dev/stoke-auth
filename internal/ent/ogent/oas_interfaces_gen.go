@@ -73,6 +73,10 @@ type ListUserRes interface {
 	listUserRes()
 }
 
+type LoginRes interface {
+	loginRes()
+}
+
 type ReadClaimGroupRes interface {
 	readClaimGroupRes()
 }
@@ -95,6 +99,10 @@ type ReadPrivateKeyRes interface {
 
 type ReadUserRes interface {
 	readUserRes()
+}
+
+type RefreshRes interface {
+	refreshRes()
 }
 
 type UpdateClaimGroupRes interface {

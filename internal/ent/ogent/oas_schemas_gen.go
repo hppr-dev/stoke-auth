@@ -5,6 +5,7 @@ package ogent
 import (
 	"time"
 
+	"github.com/go-faster/errors"
 	"github.com/go-faster/jx"
 )
 
@@ -1120,6 +1121,136 @@ type ListUserOKApplicationJSON []UserList
 
 func (*ListUserOKApplicationJSON) listUserRes() {}
 
+type LoginBadRequest struct {
+	// Error Message.
+	Message OptString `json:"message"`
+}
+
+// GetMessage returns the value of Message.
+func (s *LoginBadRequest) GetMessage() OptString {
+	return s.Message
+}
+
+// SetMessage sets the value of Message.
+func (s *LoginBadRequest) SetMessage(val OptString) {
+	s.Message = val
+}
+
+func (*LoginBadRequest) loginRes() {}
+
+type LoginOK struct {
+	// JWT Token.
+	Token string `json:"token"`
+	// Token to get a new token with the same claims. Must be used before token expires.
+	Refresh string `json:"refresh"`
+}
+
+// GetToken returns the value of Token.
+func (s *LoginOK) GetToken() string {
+	return s.Token
+}
+
+// GetRefresh returns the value of Refresh.
+func (s *LoginOK) GetRefresh() string {
+	return s.Refresh
+}
+
+// SetToken sets the value of Token.
+func (s *LoginOK) SetToken(val string) {
+	s.Token = val
+}
+
+// SetRefresh sets the value of Refresh.
+func (s *LoginOK) SetRefresh(val string) {
+	s.Refresh = val
+}
+
+func (*LoginOK) loginRes() {}
+
+// User credentials.
+type LoginReq struct {
+	// User's username.
+	Username string `json:"username"`
+	// User's password.
+	Password string `json:"password"`
+	// Claims required to receive a token.
+	RequiredClaims []LoginReqRequiredClaimsItem `json:"required_claims"`
+}
+
+// GetUsername returns the value of Username.
+func (s *LoginReq) GetUsername() string {
+	return s.Username
+}
+
+// GetPassword returns the value of Password.
+func (s *LoginReq) GetPassword() string {
+	return s.Password
+}
+
+// GetRequiredClaims returns the value of RequiredClaims.
+func (s *LoginReq) GetRequiredClaims() []LoginReqRequiredClaimsItem {
+	return s.RequiredClaims
+}
+
+// SetUsername sets the value of Username.
+func (s *LoginReq) SetUsername(val string) {
+	s.Username = val
+}
+
+// SetPassword sets the value of Password.
+func (s *LoginReq) SetPassword(val string) {
+	s.Password = val
+}
+
+// SetRequiredClaims sets the value of RequiredClaims.
+func (s *LoginReq) SetRequiredClaims(val []LoginReqRequiredClaimsItem) {
+	s.RequiredClaims = val
+}
+
+type LoginReqRequiredClaimsItem struct {
+	// Required claim name.
+	Name string `json:"name"`
+	// Required claim value.
+	Value string `json:"value"`
+}
+
+// GetName returns the value of Name.
+func (s *LoginReqRequiredClaimsItem) GetName() string {
+	return s.Name
+}
+
+// GetValue returns the value of Value.
+func (s *LoginReqRequiredClaimsItem) GetValue() string {
+	return s.Value
+}
+
+// SetName sets the value of Name.
+func (s *LoginReqRequiredClaimsItem) SetName(val string) {
+	s.Name = val
+}
+
+// SetValue sets the value of Value.
+func (s *LoginReqRequiredClaimsItem) SetValue(val string) {
+	s.Value = val
+}
+
+type LoginUnauthorized struct {
+	// Error Message.
+	Message OptString `json:"message"`
+}
+
+// GetMessage returns the value of Message.
+func (s *LoginUnauthorized) GetMessage() OptString {
+	return s.Message
+}
+
+// SetMessage sets the value of Message.
+func (s *LoginUnauthorized) SetMessage(val OptString) {
+	s.Message = val
+}
+
+func (*LoginUnauthorized) loginRes() {}
+
 // NewOptBool returns new OptBool with value set to v.
 func NewOptBool(v bool) OptBool {
 	return OptBool{
@@ -1166,38 +1297,38 @@ func (o OptBool) Or(d bool) bool {
 	return d
 }
 
-// NewOptCreateLocalUserReq returns new OptCreateLocalUserReq with value set to v.
-func NewOptCreateLocalUserReq(v CreateLocalUserReq) OptCreateLocalUserReq {
-	return OptCreateLocalUserReq{
+// NewOptDateTime returns new OptDateTime with value set to v.
+func NewOptDateTime(v time.Time) OptDateTime {
+	return OptDateTime{
 		Value: v,
 		Set:   true,
 	}
 }
 
-// OptCreateLocalUserReq is optional CreateLocalUserReq.
-type OptCreateLocalUserReq struct {
-	Value CreateLocalUserReq
+// OptDateTime is optional time.Time.
+type OptDateTime struct {
+	Value time.Time
 	Set   bool
 }
 
-// IsSet returns true if OptCreateLocalUserReq was set.
-func (o OptCreateLocalUserReq) IsSet() bool { return o.Set }
+// IsSet returns true if OptDateTime was set.
+func (o OptDateTime) IsSet() bool { return o.Set }
 
 // Reset unsets value.
-func (o *OptCreateLocalUserReq) Reset() {
-	var v CreateLocalUserReq
+func (o *OptDateTime) Reset() {
+	var v time.Time
 	o.Value = v
 	o.Set = false
 }
 
 // SetTo sets value to v.
-func (o *OptCreateLocalUserReq) SetTo(v CreateLocalUserReq) {
+func (o *OptDateTime) SetTo(v time.Time) {
 	o.Set = true
 	o.Value = v
 }
 
 // Get returns value and boolean that denotes whether value was set.
-func (o OptCreateLocalUserReq) Get() (v CreateLocalUserReq, ok bool) {
+func (o OptDateTime) Get() (v time.Time, ok bool) {
 	if !o.Set {
 		return v, false
 	}
@@ -1205,7 +1336,7 @@ func (o OptCreateLocalUserReq) Get() (v CreateLocalUserReq, ok bool) {
 }
 
 // Or returns value if set, or given parameter if does not.
-func (o OptCreateLocalUserReq) Or(d CreateLocalUserReq) CreateLocalUserReq {
+func (o OptDateTime) Or(d time.Time) time.Time {
 	if v, ok := o.Get(); ok {
 		return v
 	}
@@ -1258,6 +1389,98 @@ func (o OptInt) Or(d int) int {
 	return d
 }
 
+// NewOptPkeysOKKeysItemCrv returns new OptPkeysOKKeysItemCrv with value set to v.
+func NewOptPkeysOKKeysItemCrv(v PkeysOKKeysItemCrv) OptPkeysOKKeysItemCrv {
+	return OptPkeysOKKeysItemCrv{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptPkeysOKKeysItemCrv is optional PkeysOKKeysItemCrv.
+type OptPkeysOKKeysItemCrv struct {
+	Value PkeysOKKeysItemCrv
+	Set   bool
+}
+
+// IsSet returns true if OptPkeysOKKeysItemCrv was set.
+func (o OptPkeysOKKeysItemCrv) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptPkeysOKKeysItemCrv) Reset() {
+	var v PkeysOKKeysItemCrv
+	o.Value = v
+	o.Set = false
+}
+
+// SetTo sets value to v.
+func (o *OptPkeysOKKeysItemCrv) SetTo(v PkeysOKKeysItemCrv) {
+	o.Set = true
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptPkeysOKKeysItemCrv) Get() (v PkeysOKKeysItemCrv, ok bool) {
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptPkeysOKKeysItemCrv) Or(d PkeysOKKeysItemCrv) PkeysOKKeysItemCrv {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
+// NewOptPkeysOKKeysItemKty returns new OptPkeysOKKeysItemKty with value set to v.
+func NewOptPkeysOKKeysItemKty(v PkeysOKKeysItemKty) OptPkeysOKKeysItemKty {
+	return OptPkeysOKKeysItemKty{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptPkeysOKKeysItemKty is optional PkeysOKKeysItemKty.
+type OptPkeysOKKeysItemKty struct {
+	Value PkeysOKKeysItemKty
+	Set   bool
+}
+
+// IsSet returns true if OptPkeysOKKeysItemKty was set.
+func (o OptPkeysOKKeysItemKty) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptPkeysOKKeysItemKty) Reset() {
+	var v PkeysOKKeysItemKty
+	o.Value = v
+	o.Set = false
+}
+
+// SetTo sets value to v.
+func (o *OptPkeysOKKeysItemKty) SetTo(v PkeysOKKeysItemKty) {
+	o.Set = true
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptPkeysOKKeysItemKty) Get() (v PkeysOKKeysItemKty, ok bool) {
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptPkeysOKKeysItemKty) Or(d PkeysOKKeysItemKty) PkeysOKKeysItemKty {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
 // NewOptString returns new OptString with value set to v.
 func NewOptString(v string) OptString {
 	return OptString{
@@ -1304,50 +1527,227 @@ func (o OptString) Or(d string) string {
 	return d
 }
 
-// NewOptUpdateLocalUserPasswordReq returns new OptUpdateLocalUserPasswordReq with value set to v.
-func NewOptUpdateLocalUserPasswordReq(v UpdateLocalUserPasswordReq) OptUpdateLocalUserPasswordReq {
-	return OptUpdateLocalUserPasswordReq{
-		Value: v,
-		Set:   true,
+type PkeysOK struct {
+	// Next key expiring time, next time to pull public keys.
+	Expires OptDateTime       `json:"expires"`
+	Keys    []PkeysOKKeysItem `json:"keys"`
+}
+
+// GetExpires returns the value of Expires.
+func (s *PkeysOK) GetExpires() OptDateTime {
+	return s.Expires
+}
+
+// GetKeys returns the value of Keys.
+func (s *PkeysOK) GetKeys() []PkeysOKKeysItem {
+	return s.Keys
+}
+
+// SetExpires sets the value of Expires.
+func (s *PkeysOK) SetExpires(val OptDateTime) {
+	s.Expires = val
+}
+
+// SetKeys sets the value of Keys.
+func (s *PkeysOK) SetKeys(val []PkeysOKKeysItem) {
+	s.Keys = val
+}
+
+type PkeysOKKeysItem struct {
+	// Key Type.
+	Kty OptPkeysOKKeysItemKty `json:"kty"`
+	// Key usage.
+	Use OptString `json:"use"`
+	// Key identifier.
+	Kid OptString `json:"kid"`
+	// ECDSA/EdDSA Curve.
+	Crv OptPkeysOKKeysItemCrv `json:"crv"`
+	// URL encoded base64 ECDSA/EdDSA X.
+	X OptString `json:"x"`
+	// URL encoded base64 ECDSA Y.
+	Y OptString `json:"y"`
+	// URL encoded base64 RSA N.
+	N OptString `json:"n"`
+	// URL encoded base64 RSA E.
+	E OptString `json:"e"`
+}
+
+// GetKty returns the value of Kty.
+func (s *PkeysOKKeysItem) GetKty() OptPkeysOKKeysItemKty {
+	return s.Kty
+}
+
+// GetUse returns the value of Use.
+func (s *PkeysOKKeysItem) GetUse() OptString {
+	return s.Use
+}
+
+// GetKid returns the value of Kid.
+func (s *PkeysOKKeysItem) GetKid() OptString {
+	return s.Kid
+}
+
+// GetCrv returns the value of Crv.
+func (s *PkeysOKKeysItem) GetCrv() OptPkeysOKKeysItemCrv {
+	return s.Crv
+}
+
+// GetX returns the value of X.
+func (s *PkeysOKKeysItem) GetX() OptString {
+	return s.X
+}
+
+// GetY returns the value of Y.
+func (s *PkeysOKKeysItem) GetY() OptString {
+	return s.Y
+}
+
+// GetN returns the value of N.
+func (s *PkeysOKKeysItem) GetN() OptString {
+	return s.N
+}
+
+// GetE returns the value of E.
+func (s *PkeysOKKeysItem) GetE() OptString {
+	return s.E
+}
+
+// SetKty sets the value of Kty.
+func (s *PkeysOKKeysItem) SetKty(val OptPkeysOKKeysItemKty) {
+	s.Kty = val
+}
+
+// SetUse sets the value of Use.
+func (s *PkeysOKKeysItem) SetUse(val OptString) {
+	s.Use = val
+}
+
+// SetKid sets the value of Kid.
+func (s *PkeysOKKeysItem) SetKid(val OptString) {
+	s.Kid = val
+}
+
+// SetCrv sets the value of Crv.
+func (s *PkeysOKKeysItem) SetCrv(val OptPkeysOKKeysItemCrv) {
+	s.Crv = val
+}
+
+// SetX sets the value of X.
+func (s *PkeysOKKeysItem) SetX(val OptString) {
+	s.X = val
+}
+
+// SetY sets the value of Y.
+func (s *PkeysOKKeysItem) SetY(val OptString) {
+	s.Y = val
+}
+
+// SetN sets the value of N.
+func (s *PkeysOKKeysItem) SetN(val OptString) {
+	s.N = val
+}
+
+// SetE sets the value of E.
+func (s *PkeysOKKeysItem) SetE(val OptString) {
+	s.E = val
+}
+
+// ECDSA/EdDSA Curve.
+type PkeysOKKeysItemCrv string
+
+const (
+	PkeysOKKeysItemCrvP256 PkeysOKKeysItemCrv = "P-256"
+	PkeysOKKeysItemCrvP384 PkeysOKKeysItemCrv = "P-384"
+	PkeysOKKeysItemCrvP521 PkeysOKKeysItemCrv = "P-521"
+)
+
+// AllValues returns all PkeysOKKeysItemCrv values.
+func (PkeysOKKeysItemCrv) AllValues() []PkeysOKKeysItemCrv {
+	return []PkeysOKKeysItemCrv{
+		PkeysOKKeysItemCrvP256,
+		PkeysOKKeysItemCrvP384,
+		PkeysOKKeysItemCrvP521,
 	}
 }
 
-// OptUpdateLocalUserPasswordReq is optional UpdateLocalUserPasswordReq.
-type OptUpdateLocalUserPasswordReq struct {
-	Value UpdateLocalUserPasswordReq
-	Set   bool
-}
-
-// IsSet returns true if OptUpdateLocalUserPasswordReq was set.
-func (o OptUpdateLocalUserPasswordReq) IsSet() bool { return o.Set }
-
-// Reset unsets value.
-func (o *OptUpdateLocalUserPasswordReq) Reset() {
-	var v UpdateLocalUserPasswordReq
-	o.Value = v
-	o.Set = false
-}
-
-// SetTo sets value to v.
-func (o *OptUpdateLocalUserPasswordReq) SetTo(v UpdateLocalUserPasswordReq) {
-	o.Set = true
-	o.Value = v
-}
-
-// Get returns value and boolean that denotes whether value was set.
-func (o OptUpdateLocalUserPasswordReq) Get() (v UpdateLocalUserPasswordReq, ok bool) {
-	if !o.Set {
-		return v, false
+// MarshalText implements encoding.TextMarshaler.
+func (s PkeysOKKeysItemCrv) MarshalText() ([]byte, error) {
+	switch s {
+	case PkeysOKKeysItemCrvP256:
+		return []byte(s), nil
+	case PkeysOKKeysItemCrvP384:
+		return []byte(s), nil
+	case PkeysOKKeysItemCrvP521:
+		return []byte(s), nil
+	default:
+		return nil, errors.Errorf("invalid value: %q", s)
 	}
-	return o.Value, true
 }
 
-// Or returns value if set, or given parameter if does not.
-func (o OptUpdateLocalUserPasswordReq) Or(d UpdateLocalUserPasswordReq) UpdateLocalUserPasswordReq {
-	if v, ok := o.Get(); ok {
-		return v
+// UnmarshalText implements encoding.TextUnmarshaler.
+func (s *PkeysOKKeysItemCrv) UnmarshalText(data []byte) error {
+	switch PkeysOKKeysItemCrv(data) {
+	case PkeysOKKeysItemCrvP256:
+		*s = PkeysOKKeysItemCrvP256
+		return nil
+	case PkeysOKKeysItemCrvP384:
+		*s = PkeysOKKeysItemCrvP384
+		return nil
+	case PkeysOKKeysItemCrvP521:
+		*s = PkeysOKKeysItemCrvP521
+		return nil
+	default:
+		return errors.Errorf("invalid value: %q", data)
 	}
-	return d
+}
+
+// Key Type.
+type PkeysOKKeysItemKty string
+
+const (
+	PkeysOKKeysItemKtyEC  PkeysOKKeysItemKty = "EC"
+	PkeysOKKeysItemKtyRSA PkeysOKKeysItemKty = "RSA"
+	PkeysOKKeysItemKtyOKP PkeysOKKeysItemKty = "OKP"
+)
+
+// AllValues returns all PkeysOKKeysItemKty values.
+func (PkeysOKKeysItemKty) AllValues() []PkeysOKKeysItemKty {
+	return []PkeysOKKeysItemKty{
+		PkeysOKKeysItemKtyEC,
+		PkeysOKKeysItemKtyRSA,
+		PkeysOKKeysItemKtyOKP,
+	}
+}
+
+// MarshalText implements encoding.TextMarshaler.
+func (s PkeysOKKeysItemKty) MarshalText() ([]byte, error) {
+	switch s {
+	case PkeysOKKeysItemKtyEC:
+		return []byte(s), nil
+	case PkeysOKKeysItemKtyRSA:
+		return []byte(s), nil
+	case PkeysOKKeysItemKtyOKP:
+		return []byte(s), nil
+	default:
+		return nil, errors.Errorf("invalid value: %q", s)
+	}
+}
+
+// UnmarshalText implements encoding.TextUnmarshaler.
+func (s *PkeysOKKeysItemKty) UnmarshalText(data []byte) error {
+	switch PkeysOKKeysItemKty(data) {
+	case PkeysOKKeysItemKtyEC:
+		*s = PkeysOKKeysItemKtyEC
+		return nil
+	case PkeysOKKeysItemKtyRSA:
+		*s = PkeysOKKeysItemKtyRSA
+		return nil
+	case PkeysOKKeysItemKtyOKP:
+		*s = PkeysOKKeysItemKtyOKP
+		return nil
+	default:
+		return errors.Errorf("invalid value: %q", data)
+	}
 }
 
 // Ref: #/components/schemas/PrivateKeyList
@@ -1678,6 +2078,82 @@ func (*R500) updateClaimGroupRes()         {}
 func (*R500) updateClaimRes()              {}
 func (*R500) updateGroupLinkRes()          {}
 func (*R500) updateUserRes()               {}
+
+type RefreshOK struct {
+	// JWT Token.
+	Token string `json:"token"`
+	// Token to get a new token with the same claims. Must be used before token expires.
+	Refresh string `json:"refresh"`
+}
+
+// GetToken returns the value of Token.
+func (s *RefreshOK) GetToken() string {
+	return s.Token
+}
+
+// GetRefresh returns the value of Refresh.
+func (s *RefreshOK) GetRefresh() string {
+	return s.Refresh
+}
+
+// SetToken sets the value of Token.
+func (s *RefreshOK) SetToken(val string) {
+	s.Token = val
+}
+
+// SetRefresh sets the value of Refresh.
+func (s *RefreshOK) SetRefresh(val string) {
+	s.Refresh = val
+}
+
+func (*RefreshOK) refreshRes() {}
+
+// User credentials.
+type RefreshReq struct {
+	// Refresh token. Must match the token used in authentication.
+	Refresh string `json:"refresh"`
+}
+
+// GetRefresh returns the value of Refresh.
+func (s *RefreshReq) GetRefresh() string {
+	return s.Refresh
+}
+
+// SetRefresh sets the value of Refresh.
+func (s *RefreshReq) SetRefresh(val string) {
+	s.Refresh = val
+}
+
+type RefreshUnauthorized struct {
+	// Error Message.
+	Message OptString `json:"message"`
+}
+
+// GetMessage returns the value of Message.
+func (s *RefreshUnauthorized) GetMessage() OptString {
+	return s.Message
+}
+
+// SetMessage sets the value of Message.
+func (s *RefreshUnauthorized) SetMessage(val OptString) {
+	s.Message = val
+}
+
+func (*RefreshUnauthorized) refreshRes() {}
+
+type Token struct {
+	Token string
+}
+
+// GetToken returns the value of Token.
+func (s *Token) GetToken() string {
+	return s.Token
+}
+
+// SetToken sets the value of Token.
+func (s *Token) SetToken(val string) {
+	s.Token = val
+}
 
 type TotalsOK struct {
 	// Count of users.

@@ -9,9 +9,9 @@ export const appActions = {
         body: JSON.stringify({
           username: username,
           password: password,
-          required_claims: {
-            srol: "spr",
-          },
+          required_claims: [
+            { name: "srol", value: "spr" },
+          ],
         }),
       })
 
@@ -58,7 +58,7 @@ export const appActions = {
         method: "POST",
         headers: {
           "Content-Type" : "application/json",
-          "Authorization" : `Token ${this.token}`,
+          "Authorization" : `Bearer ${this.token}`,
         },
         body: JSON.stringify({
           refresh: this.refreshToken,

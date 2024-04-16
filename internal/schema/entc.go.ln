@@ -3,7 +3,6 @@
 package main
 
 import (
-	"encoding/json"
 	"log"
 
 	"ariga.io/ogent"
@@ -11,14 +10,15 @@ import (
 	"entgo.io/ent/entc"
 	"entgo.io/ent/entc/gen"
 	"github.com/ogen-go/ogen"
+
+	"stoke/internal/schema/openapi"
 )
 
 func main() {
 	spec := &ogen.Spec{}
 	oas, err := entoas.NewExtension(
+		entoas.Mutations(openapi.CustomizeSpec),
 		entoas.Spec(spec),
-		entoas.Mutations(addTotalsEndpoint),
-		entoas.Mutations(addLocalUserEndpoint),
 	)
 	if err != nil {
 		log.Fatalf("creating entoas extension: %v", err)
@@ -31,102 +31,4 @@ func main() {
 	if err != nil {
 		log.Fatalf("running ent codegen: %v", err)
 	}
-}
-
-func addLocalUserEndpoint(_ *gen.Graph, spec *ogen.Spec) error {
-	spec.AddPathItem("/localuser", ogen.NewPathItem().
-		SetDescription("Local user modification functions").
-		SetPost(ogen.NewOperation().
-			SetOperationID("createLocalUser").
-			SetSummary("Create a new local user").
-			SetRequestBody(ogen.NewRequestBody().
-				AddContent("application/json", ogen.NewSchema().
-					SetType("object").
-					SetDescription("User to create").
-					SetRequired([]string{"fname", "lname", "username", "email", "password"}).
-					SetProperties(&ogen.Properties{
-						*ogen.NewProperty().SetName("fname").SetSchema(ogen.String().SetDescription("New user's first name")),
-						*ogen.NewProperty().SetName("lname").SetSchema(ogen.String().SetDescription("New user's last name")),
-						*ogen.NewProperty().SetName("username").SetSchema(ogen.String().SetDescription("New user's username")),
-						*ogen.NewProperty().SetName("email").SetSchema(ogen.String().SetDescription("New user's email")),
-						*ogen.NewProperty().SetName("password").SetSchema(ogen.String().SetDescription("New user's password")),
-					}),
-				),
-			).
-			AddResponse("400", ogen.NewResponse().
-				AddContent("application/json", ogen.NewSchema().
-					SetType("object").
-					SetProperties(&ogen.Properties{
-						*ogen.NewProperty().SetName("message").SetSchema(ogen.String().SetDescription("Error Message")),
-					}).
-					SetRequired([]string{"message"}),
-				),
-			).
-			AddResponse("200", ogen.NewResponse().
-				AddContent("application/json", ogen.NewSchema().
-					SetType("object").
-					SetProperties(&ogen.Properties{
-						*ogen.NewProperty().SetName("message").SetSchema(ogen.String().SetDefault(json.RawMessage(`"User Created"`))),
-					}),
-				),
-			),
-		).
-		SetPatch(ogen.NewOperation().
-			SetOperationID("updateLocalUserPassword").
-			SetSummary("Update local user's password").
-			SetRequestBody(ogen.NewRequestBody().
-				AddContent("application/json", ogen.NewSchema().
-					SetType("object").
-					SetDescription("Password update data").
-					SetRequired([]string{"username", "newPassword"}).
-					SetProperties(&ogen.Properties{
-						*ogen.NewProperty().SetName("username").SetSchema(ogen.String().SetDescription("User's username")),
-						*ogen.NewProperty().SetName("oldPassword").SetSchema(ogen.String().SetDescription("Old user password")),
-						*ogen.NewProperty().SetName("newPassword").SetSchema(ogen.String().SetDescription("New user password")),
-						*ogen.NewProperty().SetName("force").SetSchema(ogen.Bool().SetDescription("Set to change user's password without checking the old password")),
-					}),
-				),
-			).
-			AddResponse("400", ogen.NewResponse().
-				AddContent("application/json", ogen.NewSchema().
-					SetType("object").
-					SetProperties(&ogen.Properties{
-						*ogen.NewProperty().SetName("message").SetSchema(ogen.String().SetDescription("Error Message")),
-					}).
-					SetRequired([]string{"message"}),
-				),
-			).
-			AddResponse("200", ogen.NewResponse().
-				AddContent("application/json", ogen.NewSchema().
-					SetType("object").
-					SetProperties(&ogen.Properties{
-						*ogen.NewProperty().SetName("message").SetSchema(ogen.String().SetDefault(json.RawMessage(`"Password Updated"`))),
-					}),
-				),
-			),
-		),
-	)
-	return nil
-}
-
-func addTotalsEndpoint(_ *gen.Graph, spec *ogen.Spec) error {
-	spec.AddPathItem("/totals", ogen.NewPathItem().
-		SetDescription("Entity count totals").
-		SetGet(ogen.NewOperation().
-			SetOperationID("totals").
-			SetSummary("Get entity count totals").
-			AddResponse("200", ogen.NewResponse().
-				AddContent("application/json", ogen.NewSchema().
-					SetType("object").
-					SetProperties(&ogen.Properties{
-						*ogen.NewProperty().SetName("users").SetSchema(ogen.Int().SetDescription("Count of users")),
-						*ogen.NewProperty().SetName("claims").SetSchema(ogen.Int().SetDescription("Count of claims")),
-						*ogen.NewProperty().SetName("claim_groups").SetSchema(ogen.Int().SetDescription("Count of claim groups")),
-					}).
-					SetRequired([]string{"users", "claims", "claim_groups"}),
-				),
-			),
-		),
-	)
-	return nil
 }

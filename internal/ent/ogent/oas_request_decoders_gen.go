@@ -205,7 +205,7 @@ func (s *Server) decodeCreateGroupLinkRequest(r *http.Request) (
 }
 
 func (s *Server) decodeCreateLocalUserRequest(r *http.Request) (
-	req OptCreateLocalUserReq,
+	req *CreateLocalUserReq,
 	close func() error,
 	rerr error,
 ) {
@@ -224,9 +224,6 @@ func (s *Server) decodeCreateLocalUserRequest(r *http.Request) (
 			rerr = multierr.Append(rerr, close())
 		}
 	}()
-	if _, ok := r.Header["Content-Type"]; !ok && r.ContentLength == 0 {
-		return req, close, nil
-	}
 	ct, _, err := mime.ParseMediaType(r.Header.Get("Content-Type"))
 	if err != nil {
 		return req, close, errors.Wrap(err, "parse media type")
@@ -234,7 +231,7 @@ func (s *Server) decodeCreateLocalUserRequest(r *http.Request) (
 	switch {
 	case ct == "application/json":
 		if r.ContentLength == 0 {
-			return req, close, nil
+			return req, close, validate.ErrBodyRequired
 		}
 		buf, err := io.ReadAll(r.Body)
 		if err != nil {
@@ -242,14 +239,13 @@ func (s *Server) decodeCreateLocalUserRequest(r *http.Request) (
 		}
 
 		if len(buf) == 0 {
-			return req, close, nil
+			return req, close, validate.ErrBodyRequired
 		}
 
 		d := jx.DecodeBytes(buf)
 
-		var request OptCreateLocalUserReq
+		var request CreateLocalUserReq
 		if err := func() error {
-			request.Reset()
 			if err := request.Decode(d); err != nil {
 				return err
 			}
@@ -265,7 +261,133 @@ func (s *Server) decodeCreateLocalUserRequest(r *http.Request) (
 			}
 			return req, close, err
 		}
-		return request, close, nil
+		return &request, close, nil
+	default:
+		return req, close, validate.InvalidContentType(ct)
+	}
+}
+
+func (s *Server) decodeLoginRequest(r *http.Request) (
+	req *LoginReq,
+	close func() error,
+	rerr error,
+) {
+	var closers []func() error
+	close = func() error {
+		var merr error
+		// Close in reverse order, to match defer behavior.
+		for i := len(closers) - 1; i >= 0; i-- {
+			c := closers[i]
+			merr = multierr.Append(merr, c())
+		}
+		return merr
+	}
+	defer func() {
+		if rerr != nil {
+			rerr = multierr.Append(rerr, close())
+		}
+	}()
+	ct, _, err := mime.ParseMediaType(r.Header.Get("Content-Type"))
+	if err != nil {
+		return req, close, errors.Wrap(err, "parse media type")
+	}
+	switch {
+	case ct == "application/json":
+		if r.ContentLength == 0 {
+			return req, close, validate.ErrBodyRequired
+		}
+		buf, err := io.ReadAll(r.Body)
+		if err != nil {
+			return req, close, err
+		}
+
+		if len(buf) == 0 {
+			return req, close, validate.ErrBodyRequired
+		}
+
+		d := jx.DecodeBytes(buf)
+
+		var request LoginReq
+		if err := func() error {
+			if err := request.Decode(d); err != nil {
+				return err
+			}
+			if err := d.Skip(); err != io.EOF {
+				return errors.New("unexpected trailing data")
+			}
+			return nil
+		}(); err != nil {
+			err = &ogenerrors.DecodeBodyError{
+				ContentType: ct,
+				Body:        buf,
+				Err:         err,
+			}
+			return req, close, err
+		}
+		return &request, close, nil
+	default:
+		return req, close, validate.InvalidContentType(ct)
+	}
+}
+
+func (s *Server) decodeRefreshRequest(r *http.Request) (
+	req *RefreshReq,
+	close func() error,
+	rerr error,
+) {
+	var closers []func() error
+	close = func() error {
+		var merr error
+		// Close in reverse order, to match defer behavior.
+		for i := len(closers) - 1; i >= 0; i-- {
+			c := closers[i]
+			merr = multierr.Append(merr, c())
+		}
+		return merr
+	}
+	defer func() {
+		if rerr != nil {
+			rerr = multierr.Append(rerr, close())
+		}
+	}()
+	ct, _, err := mime.ParseMediaType(r.Header.Get("Content-Type"))
+	if err != nil {
+		return req, close, errors.Wrap(err, "parse media type")
+	}
+	switch {
+	case ct == "application/json":
+		if r.ContentLength == 0 {
+			return req, close, validate.ErrBodyRequired
+		}
+		buf, err := io.ReadAll(r.Body)
+		if err != nil {
+			return req, close, err
+		}
+
+		if len(buf) == 0 {
+			return req, close, validate.ErrBodyRequired
+		}
+
+		d := jx.DecodeBytes(buf)
+
+		var request RefreshReq
+		if err := func() error {
+			if err := request.Decode(d); err != nil {
+				return err
+			}
+			if err := d.Skip(); err != io.EOF {
+				return errors.New("unexpected trailing data")
+			}
+			return nil
+		}(); err != nil {
+			err = &ogenerrors.DecodeBodyError{
+				ContentType: ct,
+				Body:        buf,
+				Err:         err,
+			}
+			return req, close, err
+		}
+		return &request, close, nil
 	default:
 		return req, close, validate.InvalidContentType(ct)
 	}
@@ -461,7 +583,7 @@ func (s *Server) decodeUpdateGroupLinkRequest(r *http.Request) (
 }
 
 func (s *Server) decodeUpdateLocalUserPasswordRequest(r *http.Request) (
-	req OptUpdateLocalUserPasswordReq,
+	req *UpdateLocalUserPasswordReq,
 	close func() error,
 	rerr error,
 ) {
@@ -480,9 +602,6 @@ func (s *Server) decodeUpdateLocalUserPasswordRequest(r *http.Request) (
 			rerr = multierr.Append(rerr, close())
 		}
 	}()
-	if _, ok := r.Header["Content-Type"]; !ok && r.ContentLength == 0 {
-		return req, close, nil
-	}
 	ct, _, err := mime.ParseMediaType(r.Header.Get("Content-Type"))
 	if err != nil {
 		return req, close, errors.Wrap(err, "parse media type")
@@ -490,7 +609,7 @@ func (s *Server) decodeUpdateLocalUserPasswordRequest(r *http.Request) (
 	switch {
 	case ct == "application/json":
 		if r.ContentLength == 0 {
-			return req, close, nil
+			return req, close, validate.ErrBodyRequired
 		}
 		buf, err := io.ReadAll(r.Body)
 		if err != nil {
@@ -498,14 +617,13 @@ func (s *Server) decodeUpdateLocalUserPasswordRequest(r *http.Request) (
 		}
 
 		if len(buf) == 0 {
-			return req, close, nil
+			return req, close, validate.ErrBodyRequired
 		}
 
 		d := jx.DecodeBytes(buf)
 
-		var request OptUpdateLocalUserPasswordReq
+		var request UpdateLocalUserPasswordReq
 		if err := func() error {
-			request.Reset()
 			if err := request.Decode(d); err != nil {
 				return err
 			}
@@ -521,7 +639,7 @@ func (s *Server) decodeUpdateLocalUserPasswordRequest(r *http.Request) (
 			}
 			return req, close, err
 		}
-		return request, close, nil
+		return &request, close, nil
 	default:
 		return req, close, validate.InvalidContentType(ct)
 	}

@@ -1,68 +1,36 @@
 package web
 
 import (
-	"errors"
-	"fmt"
-	"net/http"
+	"context"
+	"stoke/client/stoke"
 	"stoke/internal/cfg"
+	"stoke/internal/ent/ogent"
 	"stoke/internal/key"
 	"stoke/internal/tel"
 
-	"github.com/go-faster/jx"
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/rs/zerolog"
 	"github.com/vincentfree/opentelemetry/otelzerolog"
 )
 
-type RefreshApiHandler struct {}
-
-// Request takes refresh token only. Must be authenticated by a valid token
-func (r RefreshApiHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
-	ctx := req.Context()
+// Refresh implements ogent.Handler.
+func (h *entityHandler) Refresh(ctx context.Context, req *ogent.RefreshReq) (ogent.RefreshRes, error) {
 	logger := zerolog.Ctx(ctx)
 
-	ctx, span := tel.GetTracer().Start(ctx, "RefreshApiHandler.ServeHTTP")
+	ctx, span := tel.GetTracer().Start(ctx, "RefreshHandler")
 	defer span.End()
 
-	if req.Method != http.MethodPost {
-		MethodNotAllowed.Write(res)
-		return
-	}
-
-	var refresh string
-	decoder := jx.Decode(req.Body, 256)
-	err := decoder.Obj(func (d *jx.Decoder, key string) error {
-		var err error
-		switch key {
-		case "refresh":
-			refresh, err = d.Str()
-		default:
-			return errors.New("Bad Request")
-		}
-		return err
-	})
-
-	if err != nil || refresh == "" {
-		logger.Debug().
-			Func(otelzerolog.AddTracingContext(span)).
-			Err(err).
-			Str("refresh", refresh).
-			Msg("Missing body parameters")
-		BadRequest.Write(res)
-		return
-	}
-
-	token := req.Context().Value("jwt.Token").(*jwt.Token)
-	newToken, newRefresh, err := key.IssuerFromCtx(ctx).RefreshToken(token, refresh, cfg.Ctx(ctx).Tokens.TokenDuration, ctx)
+	newToken, newRefresh, err := key.IssuerFromCtx(ctx).RefreshToken(stoke.Token(ctx), req.Refresh, cfg.Ctx(ctx).Tokens.TokenDuration, ctx)
 	if err != nil {
 		logger.Debug().
 			Func(otelzerolog.AddTracingContext(span)).
 			Err(err).
-			Str("refresh", refresh).
+			Str("refresh", req.Refresh).
 			Msg("Failed to refresh token")
-		BadRequest.Write(res)
-		return
+		return &ogent.RefreshUnauthorized{}, nil
 	}
 
-	res.Write([]byte(fmt.Sprintf("{\"token\":\"%s\",\"refresh\":\"%s\"}", newToken, newRefresh)))
+	return &ogent.RefreshOK{
+		Token:   newToken,
+		Refresh: newRefresh,
+	}, nil
 }
