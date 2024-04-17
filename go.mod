@@ -36,7 +36,6 @@ replace ariga.io/ogent v0.0.0-20230621041143-ed3e5d4da458 => github.com/swalkerh
 
 require (
 	ariga.io/atlas v0.19.1-0.20240203083654-5948b60a8e43 // indirect
-	ariga.io/ogent v0.0.0-20230621041143-ed3e5d4da458 // indirect
 	github.com/Azure/go-ntlmssp v0.0.0-20221128193559-754e69321358 // indirect
 	github.com/agext/levenshtein v1.2.3 // indirect
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect

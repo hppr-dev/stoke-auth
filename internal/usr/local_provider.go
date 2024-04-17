@@ -243,7 +243,7 @@ func (l LocalProvider) UpdateUserPassword(username, oldPassword, newPassword str
 	newSalt := l.genSalt()
 	newPassHash := l.hashPass(newPassword, newSalt)
 
-	_, err = ent.FromContext(ctx).User.Update().
+	_, err = usr.Update().
 		SetSalt(newSalt).
 		SetPassword(newPassHash).
 		Save(ctx)

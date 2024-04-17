@@ -3,6 +3,7 @@ package web
 import (
 	"context"
 	"fmt"
+	"stoke/client/stoke"
 	"stoke/internal/cfg"
 	"stoke/internal/ent"
 	"stoke/internal/ent/ogent"
@@ -54,7 +55,7 @@ func (h *entityHandler) Login(ctx context.Context, req *ogent.LoginReq) (ogent.L
 
 	populateUserInfo(cfg.Ctx(ctx), user, claimMap)
 
-	token, refresh, err := key.IssuerFromCtx(ctx).IssueToken(key.Claims{
+	token, refresh, err := key.IssuerFromCtx(ctx).IssueToken(&stoke.Claims{
 		StokeClaims : claimMap,
 		RegisteredClaims: createRegisteredClaims(cfg.Ctx(ctx).Tokens),
 	}, ctx)

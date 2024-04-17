@@ -35,7 +35,7 @@ func (w TokenHandler) InjectToken(token string, ctx context.Context) (context.Co
 		return ctx, InvalidTokenError
 	}
 
-	jwtToken, err := w.store.ParseClaims(ctx, token, w.reqClaims, w.parserOpts...)
+	jwtToken, err := w.store.ParseClaims(ctx, token, w.reqClaims.New(), w.parserOpts...)
 	if err != nil || 
 			AddTokenToSpan(jwtToken, span) || // This is a shortcut to always add the token to the span
 			!jwtToken.Valid {

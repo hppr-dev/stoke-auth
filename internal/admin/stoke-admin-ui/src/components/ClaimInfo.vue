@@ -20,7 +20,7 @@
 
     <template #subtitle>
       <div v-if="store.currentClaim.name">
-        stk.{{ store.currentClaim.short_name }} = {{ store.currentClaim.value }}
+        {{ store.currentClaim.short_name }} = {{ store.currentClaim.value }}
       </div>
     </template>
 

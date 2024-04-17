@@ -2,7 +2,7 @@ import http from 'k6/http'
 import { check } from 'k6'
 
 export const okLogin = function() {
-  const resp = http.post('https://localhost:8080/api/login',
+  const resp = http.post('http://localhost:8080/api/login',
 		JSON.stringify({
 			"username" : "tester",
 			"password" : "tester",
@@ -27,7 +27,7 @@ export const okLogin = function() {
 }
 
 export const badLogin = function() {
-  const resp = http.post('https://localhost:8080/api/login',
+  const resp = http.post('http://localhost:8080/api/login',
 		JSON.stringify({
 			"username" : "tester",
 			"password" : "badpass",

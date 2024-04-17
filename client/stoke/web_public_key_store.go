@@ -36,7 +36,7 @@ func (s *WebPublicKeyStore) goManage(ctx context.Context){
 func (s *WebPublicKeyStore) ParseClaims(ctx context.Context, token string, reqClaims *Claims, parserOpts ...jwt.ParserOption) (*jwt.Token, error) {
 	_, span := getTracer().Start(ctx, "ClientPublicKeyStore.ParseClaims")
 	defer span.End()
-	return jwt.ParseWithClaims(token, reqClaims, s.keyFunc, parserOpts...)
+	return jwt.ParseWithClaims(token, reqClaims.New(), s.keyFunc, parserOpts...)
 }
 
 func (s *WebPublicKeyStore) keyFunc(token *jwt.Token) (interface{}, error) {

@@ -133,8 +133,6 @@ github.com/stretchr/testify v1.9.0 h1:HtqpIVDClZ4nwg75+f6Lvsy/wHu+3BoSGCbBAcpTsT
 github.com/stretchr/testify v1.9.0/go.mod h1:r2ic/lqez/lEtzL7wO/rwa5dbSLXVDPFyf8C91i36aY=
 github.com/swalkerhppr/ent-contrib v0.0.0-20240415204700-185b78ea4766 h1:9txHKMmvR79RbJBePlsmokZGeIO0Rnm18OhPsQbwhX8=
 github.com/swalkerhppr/ent-contrib v0.0.0-20240415204700-185b78ea4766/go.mod h1:q8dXQCmzqpSlVdT2bWDydjgznGcy3y4zmsYmVFC9V/U=
-github.com/swalkerhppr/ogent v0.0.0-20240416025651-87740ceb514a h1:11l+4bFQ+JRP+I39J2putxYJxdkxygzDIEZ1eNjomFM=
-github.com/swalkerhppr/ogent v0.0.0-20240416025651-87740ceb514a/go.mod h1:95vCbvAYAW6NsWUrSL23k2SQykuf/yjellmwV1X+svI=
 github.com/vincentfree/opentelemetry/otelzerolog v0.0.10 h1:XiiDAdQapagWQcEhhIBxegCmXqBasmDrhA1YQyw/Ckg=
 github.com/vincentfree/opentelemetry/otelzerolog v0.0.10/go.mod h1:J+tXshN4tXeNji8Rp+Kq60VgDdvoK229DXcqvEuFblc=
 github.com/yuin/goldmark v1.4.13/go.mod h1:6yULJ656Px+3vBD8DxQVa3kxgyrAnzto9xy5taEt/CY=

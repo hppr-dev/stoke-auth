@@ -8,6 +8,7 @@ import (
 	"stoke/internal/ent"
 	"stoke/internal/ent/privatekey"
 	"stoke/internal/tel"
+	"sync"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -18,6 +19,7 @@ import (
 
 type KeyCache[P PrivateKey] struct {
 	activeKey int
+	keysMutex sync.Mutex
 	keys []KeyPair[P]
 	Ctx context.Context
 	KeyDuration time.Duration
@@ -52,7 +54,9 @@ func (c *KeyCache[P]) goManage(ctx context.Context) {
 
 		time.Sleep(c.TokenDuration)
 		sLogger.Info().Msg("Activating new key...")
+		c.keysMutex.Lock()
 		c.activeKey += 1
+		c.keysMutex.Unlock()
 
 		time.Sleep(c.TokenDuration)
 		c.Clean(sCtx)
@@ -62,6 +66,8 @@ func (c *KeyCache[P]) goManage(ctx context.Context) {
 }
 
 func (c *KeyCache[P]) CurrentKey() KeyPair[P] {
+	c.keysMutex.Lock()
+	defer c.keysMutex.Unlock()
 	return c.keys[c.activeKey]
 }
 
@@ -112,7 +118,10 @@ func (c *KeyCache[P]) Generate(ctx context.Context) error {
 
 	expires := time.Now().Add(c.KeyDuration)
 	newKey.SetExpires(expires)
+
+	c.keysMutex.Lock()
 	c.keys = append(c.keys, newKey)
+	c.keysMutex.Unlock()
 
 	logger.Debug().
 		Func(otelzerolog.AddTracingContext(span)).
@@ -218,8 +227,11 @@ func (c *KeyCache[P]) Clean(ctx context.Context) {
 			valid = append(valid, e)
 		}
 	}
+
+	c.keysMutex.Lock()
 	c.keys = valid
 	c.activeKey = len(c.keys) - 1
+	c.keysMutex.Unlock()
 
 	if c.PersistKeys {
 		_, err := ent.FromContext(ctx).PrivateKey.Delete().
@@ -252,7 +264,7 @@ func (c *KeyCache[P]) ParseClaims(ctx context.Context, token string, claims *sto
 	ctx, span := tel.GetTracer().Start(ctx, "KeyCache.ParseClaims")
 	defer span.End()
 
-	jwtToken, err := jwt.ParseWithClaims(token, claims, c.publicKeys, parserOpts...)
+	jwtToken, err := jwt.ParseWithClaims(token, claims.New(), c.publicKeys, parserOpts...)
 	if err != nil {
 		logger.Debug().
 			Func(otelzerolog.AddTracingContext(span)).
@@ -283,8 +295,10 @@ func (c *KeyCache[P]) ParseClaims(ctx context.Context, token string, claims *sto
 
 func (c *KeyCache[P]) publicKeys(_ *jwt.Token) (interface{}, error) {
 	pkeys := jwt.VerificationKeySet{}
+	c.keysMutex.Lock()
 	for _, p := range c.keys {
 		pkeys.Keys = append(pkeys.Keys, p.PublicKey())
 	}
+	c.keysMutex.Unlock()
 	return pkeys, nil
 }

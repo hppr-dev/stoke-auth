@@ -12,13 +12,8 @@ import (
 	"github.com/vincentfree/opentelemetry/otelzerolog"
 )
 
-type Claims struct {
-	jwt.RegisteredClaims
-	StokeClaims map[string]string `json:"stk"`
-}
-
 type TokenIssuer interface {
-	IssueToken(Claims, context.Context) (string, string, error)
+	IssueToken(*stoke.Claims, context.Context) (string, string, error)
 	RefreshToken(*jwt.Token, string, time.Duration, context.Context) (string, string, error)
 	PublicKeys(context.Context) ([]byte, error)
 	stoke.PublicKeyStore
@@ -29,7 +24,7 @@ type AsymetricTokenIssuer[P PrivateKey]  struct {
 	KeyCache[P]
 }
 
-func (a *AsymetricTokenIssuer[P]) IssueToken(claims Claims, ctx context.Context) (string, string, error) {
+func (a *AsymetricTokenIssuer[P]) IssueToken(claims *stoke.Claims, ctx context.Context) (string, string, error) {
 	logger := zerolog.Ctx(ctx)
 	ctx, span := tel.GetTracer().Start(ctx, "AsymetricTokenIssuer.IssueToken")
 	defer span.End()
@@ -96,10 +91,7 @@ func (a *AsymetricTokenIssuer[P]) RefreshToken(jwtToken *jwt.Token, refreshToken
 	now := time.Now()
 	stokeClaims.RegisteredClaims.ExpiresAt = jwt.NewNumericDate(now.Add(extendTime))
 
-	return a.IssueToken(Claims {
-		RegisteredClaims: stokeClaims.RegisteredClaims,
-		StokeClaims : stokeClaims.StokeClaims,
-	}, ctx)
+	return a.IssueToken(stokeClaims, ctx)
 }
 
 func (a *AsymetricTokenIssuer[P]) verifyRefreshToken(jwtToken *jwt.Token, refreshBytes []byte) error {

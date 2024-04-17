@@ -91,19 +91,22 @@ The server was configured as follows
     * 1s request timeout
     * Connected to a test LDAP container instance
     * Token issued for a user with 3 groups and 30 seperate claims
+    * Aggressive key/token rotation:
+        * Key Duration: 5m
+        * Token duration 1m
 
 Default run environment:
-    * 273-662 microseconds / token in isolation
-    * Breakpoint:            241 tokens / second
-    * ✓ High Load Test:      200 tokens / second for 10m with no loss
-    * ✓ Medium Load Test:    150 tokens / second for 20m with no loss
+    * ~5 milliseconds / token in isolation
+    * Breakpoint: ~230 tokens / second
+    * High Load Test:        200 tokens / second for 10m with no loss
+    * Medium Load Test:      150 tokens / second for 20m with no loss
     * Max Nominal Load Test: 100 tokens / second for 2h with no loss
 
 GOMAXPROCS=1:
-    * 161-525 microseconds / token in isolation
-    * Breakpoint:       58 tokens / second
-    * ✓ High Load Test:   50 tokens / second for 10m with no loss
-    * ✓ Medium Load Test: 25 tokens / second for 20m with no loss
+    * ~20 milliseconds / token in isolation
+    * Breakpoint: ~58 tokens / second
+    * High Load Test:        50 tokens / second for 10m with no loss
+    * Medium Load Test:      25 tokens / second for 20m with no loss
     * Max Nominal Load Test: 15 tokens / second for 2h with no loss
 
 In resource constrained environments with low traffic expectations,GOMAXPROCS=1 can be used to limit the memory/cpu footprint of the server.
