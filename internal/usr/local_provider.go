@@ -22,6 +22,16 @@ func (l LocalProvider) Init(ctx context.Context) error {
 	return l.checkForSuperUser(ctx)
 }
 
+func HashPass(pass, salt string) string {
+		return base64.StdEncoding.EncodeToString(argon2.IDKey([]byte(pass), []byte(salt), 2, 19*1024, 1, 64))
+}
+
+func GenSalt() string {
+	saltBytes := make([]byte, 32)
+	rand.Read(saltBytes)
+	return base64.StdEncoding.EncodeToString(saltBytes)
+}
+
 func (l LocalProvider) AddUser(fname, lname, email, username, password string, superUser bool, ctx context.Context) error {
 	logger := zerolog.Ctx(ctx)
 	ctx, span := tel.GetTracer().Start(ctx, "LoginApiHandler.ServeHTTP")
@@ -37,7 +47,7 @@ func (l LocalProvider) AddUser(fname, lname, email, username, password string, s
 		Bool("superuser", superUser).
 		Msg("Creating user")
 
-	salt := l.genSalt()
+	salt := GenSalt()
 	userInfo, err := ent.FromContext(ctx).User.Create().
 		SetFname(fname).
 		SetLname(lname).
@@ -45,7 +55,7 @@ func (l LocalProvider) AddUser(fname, lname, email, username, password string, s
 		SetUsername(username).
 		SetSource("LOCAL").
 		SetSalt(salt).
-		SetPassword(l.hashPass(password, salt)).
+		SetPassword(HashPass(password, salt)).
 		Save(ctx)
 	if err != nil {
 		logger.Error().
@@ -116,7 +126,7 @@ func (l LocalProvider) GetUserClaims(username, password string, ctx context.Cont
 		return nil, nil, err
 	}
 
-	if usr.Source != "LDAP" && l.hashPass(password, usr.Salt) != usr.Password {
+	if usr.Source != "LDAP" && HashPass(password, usr.Salt) != usr.Password {
 		logger.Debug().
 			Func(otelzerolog.AddTracingContext(span)).
 			Str("username", username).
@@ -142,20 +152,8 @@ func (l LocalProvider) GetUserClaims(username, password string, ctx context.Cont
 	return usr, allClaims, nil
 }
 
-func (l LocalProvider) hashPass(pass, salt string) string {
-		return base64.StdEncoding.EncodeToString(argon2.IDKey([]byte(pass), []byte(salt), 2, 19*1024, 1, 64))
-}
-
-func (l LocalProvider) genSalt() string {
-	saltBytes := make([]byte, 32)
-	rand.Read(saltBytes)
-	return base64.StdEncoding.EncodeToString(saltBytes)
-}
-
 func (l LocalProvider) getOrCreateSuperGroup(ctx context.Context) (*ent.ClaimGroup, error) {
 	logger := zerolog.Ctx(ctx)
-	ctx, span := tel.GetTracer().Start(ctx, "LocalUserProvider.getOrCreateSuperGroup")
-	defer span.End()
 
 	client := ent.FromContext(ctx)
 
@@ -173,7 +171,6 @@ func (l LocalProvider) getOrCreateSuperGroup(ctx context.Context) (*ent.ClaimGro
 
 	if ent.IsNotFound(err) {
 		logger.Info().
-			Func(otelzerolog.AddTracingContext(span)).
 			Msg("Stoke superusers not found. Creating...")
 
 		superClaim, err := client.Claim.Create().
@@ -202,15 +199,12 @@ func (l LocalProvider) getOrCreateSuperGroup(ctx context.Context) (*ent.ClaimGro
 }
 
 func (l LocalProvider) checkForSuperUser(ctx context.Context) error {
-	ctx, span := tel.GetTracer().Start(ctx, "LocalUserProvider.checkForSuperUser")
-	defer span.End()
-
 	superGroup, err := l.getOrCreateSuperGroup(ctx)
 	if err != nil {
 		return err
 	}
 	if len(superGroup.Edges.Users) == 0 {
-		randomPass := l.genSalt()
+		randomPass := GenSalt()
 		l.AddUser("Stoke", "Admin", "sadmin@localhost", "sadmin", randomPass, true, ctx)
 		zerolog.Ctx(ctx).Info().
 			Str("password", randomPass).
@@ -231,7 +225,7 @@ func (l LocalProvider) UpdateUserPassword(username, oldPassword, newPassword str
 		return err
 	}
 
-	if !force && l.hashPass(oldPassword, usr.Salt) != usr.Password {
+	if !force && HashPass(oldPassword, usr.Salt) != usr.Password {
 		logger.Debug().
 			Func(otelzerolog.AddTracingContext(span)).
 			Str("username", username).
@@ -240,8 +234,8 @@ func (l LocalProvider) UpdateUserPassword(username, oldPassword, newPassword str
 		return fmt.Errorf("Bad Password")
 	}
 
-	newSalt := l.genSalt()
-	newPassHash := l.hashPass(newPassword, newSalt)
+	newSalt := GenSalt()
+	newPassHash := HashPass(newPassword, newSalt)
 
 	_, err = usr.Update().
 		SetSalt(newSalt).

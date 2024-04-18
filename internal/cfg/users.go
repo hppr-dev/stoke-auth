@@ -133,13 +133,6 @@ func (u Users) withContext(ctx context.Context) context.Context {
 		provider = usr.LocalProvider{}
 	}
 
-	err := provider.Init(ctx)
-	if err != nil {
-		logger.Fatal().
-			Err(err).
-			Msg("Could not initialize user provider")
-	}
-
 	return context.WithValue(ctx, "user-provider", provider)
 }
 

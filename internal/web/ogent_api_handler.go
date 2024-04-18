@@ -9,7 +9,6 @@ import (
 	"stoke/internal/key"
 	"stoke/internal/usr"
 
-	"github.com/ogen-go/ogen/ogenerrors"
 	"github.com/rs/zerolog"
 )
 
@@ -22,7 +21,6 @@ func NewEntityAPIHandler(prefix string, ctx context.Context) http.Handler {
 	eHandler.Init(ctx)
 
 	sHandler := &secHandler{
-		InsecureOperations: []string{"login", "pkeys"},
 		TokenHandler: stoke.NewTokenHandler(
 			key.IssuerFromCtx(ctx),
 			stoke.WithToken().Requires("srol", "spr").ForAccess(),
@@ -44,20 +42,11 @@ func NewEntityAPIHandler(prefix string, ctx context.Context) http.Handler {
 }
 
 type secHandler struct {
-	InsecureOperations []string
 	*stoke.TokenHandler
 }
 
 // HandleToken implements ogent.SecurityHandler.
 func (s *secHandler) HandleToken(ctx context.Context, operationName string, t ogent.Token) (context.Context, error) {
-	zerolog.Ctx(ctx).Debug().
-		Str("operationName", operationName).
-		Msg("Authenticating operation")
-	for _, op := range s.InsecureOperations {
-		if op == operationName {
-			return ctx, ogenerrors.ErrSkipServerSecurity
-		}
-	}
 	return s.TokenHandler.InjectToken(t.GetToken(), ctx)
 }
 

@@ -3,21 +3,81 @@ package main
 import (
 	"context"
 	"errors"
+	"flag"
+	"fmt"
+	"os"
 	"stoke/internal/cfg"
+	"stoke/internal/usr"
 	"stoke/internal/web"
 
 	"github.com/rs/zerolog"
 )
 
 func main() {
-	// TODO command line flags for config
-	config := cfg.FromFile("config.yaml") 
+	flagSet := flag.NewFlagSet("flags", flag.ExitOnError)
+	dbInitFile := flagSet.String("dbinit", "", "Database initialization file")
+	configFile := flagSet.String("config", "config.yaml", "Configuration file to use")
+
+	var allFlags []string
+	validateOnly := false
+	migrateOnly := false
+	hashOnly := false
+	for _, arg := range os.Args[1:] {
+		switch arg {
+		case "hash-password":
+			hashOnly = true
+		case "validate":
+			validateOnly = true
+		case "migrate":
+			migrateOnly = true
+		default:
+			allFlags = append(allFlags, arg)
+		}
+	}
+
+	if hashOnly {
+		getAndHashPassword()
+		return
+	}
+
+	flagSet.Parse(allFlags)
+
+	config := cfg.FromFile(*configFile) 
+
+	if validateOnly {
+		fmt.Printf("Config Validated: %+v", config)
+		return
+	}
 
 	rootCtx := config.WithContext(context.Background())
-
 	logger := zerolog.Ctx(rootCtx)
 
-	logger.Debug().Interface("config", config).Msg("Config Loaded")
+	logger.Debug().
+		Str("configFile", *configFile).
+		Str("dbInitFile", *dbInitFile).
+		Interface("config", config).
+		Msg("Config Loaded")
+
+	if *dbInitFile != "" {
+		if err := cfg.InitializeDatabaseFromFile(*dbInitFile, rootCtx); err != nil {
+			logger.Error().
+				Err(err).
+				Str("initFile", *dbInitFile).
+				Msg("Could not initialize database from file")
+		}
+	}
+
+	if migrateOnly {
+		return
+	}
+
+	err := usr.ProviderFromCtx(rootCtx).Init(rootCtx)
+	if err != nil {
+		logger.Fatal().
+			Err(err).
+			Msg("Could not initialize user provider")
+	}
+
 	logger.Info().
 		Str("addr",config.Server.Address).
 		Int("port", config.Server.Port).
@@ -50,3 +110,13 @@ func main() {
 	logger.Info().Err(err).Msg("Stoke Server Terminated.")
 }
 
+func getAndHashPassword() {
+	var pass string
+	fmt.Println("Creating password hash for db-init file...")
+	fmt.Print("password:\033[8m")
+	fmt.Scanln(&pass)
+	salt := usr.GenSalt()
+	hash := usr.HashPass(pass, salt)
+	fmt.Println("\033[28mAdd the following to the db-init yaml file:")
+	fmt.Printf("\npassword_hash: %s\npassword_salt: %s\n", hash, salt)
+}
