@@ -22,15 +22,29 @@ groups:
     links:
       - ship_crew
     claims:
-      - Stoke Super User
-      - Ship Crew
+      - Ship Access
+
+  - name: Ship Staff
+    description: Planet express ship staff
+    links:
+      - ship_staff
+    claims:
+      - Engineer Role
 
 
 claims:
   - name: Stoke Super User
     description: Grants stoke admin super user priviledges
-    claim_string: srol=spr
-  - name: Ship Crew
+    short_name: srol
+    value: spr
+
+  - name: Ship Access
     description:  Grants crew ability to access ship
-    claim_string: ship=acc
+    short_name: ship
+    value: acc
+
+  - name: Engineer Role
+    description: Specifies role as engineer
+    short_name: role
+    value: eng
 

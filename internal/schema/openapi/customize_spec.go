@@ -21,6 +21,7 @@ func CustomizeSpec(g *gen.Graph, spec *ogen.Spec) error {
 	addLocalUserEndpoint(spec, security)
 	addTotalsEndpoint(spec, security)
 	addRefreshEndpoint(spec, security)
+	addCapabilitesEndpoint(spec, security)
 	
 	addLoginEndpoint(spec)
 	addPkeysEndpoint(spec)

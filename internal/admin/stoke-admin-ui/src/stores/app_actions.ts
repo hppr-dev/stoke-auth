@@ -88,6 +88,20 @@ export const appActions = {
       throw err
     }
   },
+  fetchCapabilites: async function() {
+    const response = await fetch(`${this.api_url}/api/capabilities`, {
+      method: "GET",
+      headers: {
+        "Content-Type" : "application/json",
+        "Authorization" : `Bearer ${this.token}`,
+      }
+    })
+
+    const result = await response.json();
+    if ( result.capabilities ) {
+      this.capabilites = result.capabilities
+    }
+  },
   scheduleRefresh: function() {
     this.refreshTimeout = window.setTimeout(this.refreshSession, this.tokenExpiration.getTime() - Date.now() - 10000)
   },

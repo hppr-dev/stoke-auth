@@ -36,7 +36,7 @@ func InitializeDatabaseFromFile(filename string, ctx context.Context) error {
 	if err := dbInitFile.validate(); err != nil {
 		logger.Error().
 			Err(err).
-			Msg("Could not start database transaction")
+			Msg("Could not start validate db init file")
 		return err
 	}
 
@@ -53,6 +53,7 @@ func InitializeDatabaseFromFile(filename string, ctx context.Context) error {
 			logger.Error().
 				Err(err).
 				AnErr("rollbackErr", tx.Rollback()).
+				Interface("claim", c).
 				Msg("Failed to initialize claims in database")
 			return err
 		}
@@ -63,6 +64,7 @@ func InitializeDatabaseFromFile(filename string, ctx context.Context) error {
 			logger.Error().
 				Err(err).
 				AnErr("rollbackErr", tx.Rollback()).
+				Interface("group", g).
 				Msg("Failed to initialize claims in database")
 			return err
 		}
@@ -73,6 +75,7 @@ func InitializeDatabaseFromFile(filename string, ctx context.Context) error {
 			logger.Error().
 				Err(err).
 				AnErr("rollbackErr", tx.Rollback()).
+				Interface("user", u).
 				Msg("Failed to initialize claims in database")
 			return err
 		}
@@ -91,23 +94,34 @@ func (d *databaseInitFile) validate() error {
 	claimMap := make(map[string]bool)
 	groupMap := make(map[string]bool)
 
-	for _, claim := range d.Claims {
-		claimMap[claim.Name] = true
+	for i := range d.Claims {
+		if err := d.Claims[i].parseShortHand(); err != nil {
+			return err
+		}
+
+		claimMap[d.Claims[i].Name] = true
 	}
 
-	for _, group := range d.Groups {
-		groupMap[group.Name] = true
-		for _, claimName := range group.Claims {
+	for i := range d.Groups {
+		if err := d.Groups[i].parseShortHand(); err != nil {
+			return err
+		}
+
+		groupMap[d.Groups[i].Name] = true
+		for _, claimName := range d.Groups[i].Claims {
 			if _, ok := claimMap[claimName]; !ok {
-				return fmt.Errorf("Could not find claim %s for group %s", claimName, group.Name)
+				return fmt.Errorf("Could not find claim %s for group %s", claimName, d.Groups[i].Name)
 			}
 		}
 	}
 
-	for _, user := range d.Users {
-		for _, groupName := range user.Groups {
+	for i := range d.Users {
+		if err := d.Users[i].parseShortHand(); err != nil {
+			return err
+		}
+		for _, groupName := range d.Users[i].Groups {
 			if _, ok := groupMap[groupName]; !ok {
-				return fmt.Errorf("Could not find group %s for user %s", groupName, user.Username)
+				return fmt.Errorf("Could not find group %s for user %s", groupName, d.Users[i].Username)
 			}
 		}
 	}
@@ -116,13 +130,30 @@ func (d *databaseInitFile) validate() error {
 }
 
 type initUser struct {
+	Username string      `json:"username"`
 	FName string         `json:"first_name"`
 	LName string         `json:"last_name"`
 	Email string         `json:"email"`
-	Username string      `json:"username"`
 	PasswordHash string  `json:"password_hash"`
 	PasswordSalt string  `json:"password_salt"`
 	Groups []string      `json:"groups"`
+
+	UserString string    `json:"user_string"`
+}
+
+func (u *initUser) parseShortHand() error {
+	if u.UserString != "" {
+		splitStr := strings.Split(u.UserString, ",")
+		if len(splitStr) != 4 {
+			return fmt.Errorf("Bad user_string format. Got %s but expected value like username,first_name,last_name,email", u.UserString)
+		}
+		u.Username = strings.Trim(splitStr[0], " ")
+		u.FName = strings.Trim(splitStr[1], " ")
+		u.LName = strings.Trim(splitStr[2], " ")
+		u.Email = strings.Trim(splitStr[3], " ")
+	}
+
+	return nil
 }
 
 func (u initUser) writeToDB(tx *ent.Tx, ctx context.Context) error {
@@ -153,6 +184,20 @@ type initGroup struct {
 	Description string `json:"description"`
 	Claims []string    `json:"claims"`
 	Links []string     `json:"links"`
+
+	GroupString string `json:"group_string"`
+}
+
+func (g *initGroup) parseShortHand() error {
+	if g.GroupString != "" {
+		splitStr := strings.Split(g.GroupString, ",")
+		if len(splitStr) != 2 {
+			return fmt.Errorf("Bad claim_string format. Got %s but expected value like name,description", g.GroupString)
+		}
+		g.Name = strings.Trim(splitStr[0], " ")
+		g.Description = strings.Trim(splitStr[1], " ")
+	}
+	return nil
 }
 
 func (g initGroup) writeToDB(tx *ent.Tx, ctx context.Context) error {
@@ -198,15 +243,21 @@ type initClaim struct {
 	ClaimString string `json:"claim_string"`
 }
 
-func (c initClaim) writeToDB(tx *ent.Tx, ctx context.Context) error {
+func (c *initClaim) parseShortHand() error {
 	if c.ClaimString != "" {
-		splitStr := strings.Split(c.ClaimString, "=")
-		if len(splitStr) != 2 {
-			return fmt.Errorf("Bad claim_string format. Got %s but expected value like short_name=value.", c.ClaimString)
+		splitStr := strings.Split(c.ClaimString, ",")
+		if len(splitStr) != 4 {
+			return fmt.Errorf("Bad claim_string format. Got %s but expected value like name,description,short_name,value", c.ClaimString)
 		}
-		c.ShortName = splitStr[0]
-		c.Value = splitStr[1]
+		c.Name = strings.Trim(splitStr[0], " ")
+		c.Description = strings.Trim(splitStr[1], " ")
+		c.ShortName = strings.Trim(splitStr[2], " ")
+		c.Value = strings.Trim(splitStr[3], " ")
 	}
+	return nil
+}
+
+func (c initClaim) writeToDB(tx *ent.Tx, ctx context.Context) error {
 
 	_, err := tx.Claim.Create().
 		SetDescription(c.Description).

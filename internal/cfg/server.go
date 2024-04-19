@@ -15,4 +15,7 @@ type Server struct {
 
 	// Allowed Hosts
 	AllowedHosts []string `json:"allowed_hosts"`
+
+	// Disable the admin UI
+	DisableAdmin bool     `json:"disable_admin"`
 }

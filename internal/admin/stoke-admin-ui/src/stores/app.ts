@@ -27,6 +27,7 @@ export const useAppStore = defineStore('app', {
   state: () => ({
     api_url: import.meta.env.DEV? import.meta.env.VITE_API_URL : "",
     username: "",
+    capabilities : [] as string[],
 
     token: "",
     refreshToken: "",

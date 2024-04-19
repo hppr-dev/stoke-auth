@@ -54,8 +54,8 @@ func (l LDAPUserProvider) Init(ctx context.Context) error {
 
 // AddUser implements Provider.
 // LDAP users should be added upon login
-func (l LDAPUserProvider) AddUser(fname, lname, email, username, password string, superUser bool, ctx context.Context) error {
-	return l.localProvider.AddUser(fname, lname, email, username, password, superUser, ctx)
+func (l LDAPUserProvider) AddUser(fname, lname, email, username, password string, superuser bool, ctx context.Context) error {
+	return l.localProvider.AddUser(fname, lname, email, username, password, superuser, ctx)
 }
 
 // GetUserClaims implements Provider.
@@ -87,7 +87,7 @@ func (l LDAPUserProvider) GetUserClaims(username, password string, ctx context.C
 			Str("url", l.ServerURL).
 			Str("bindUserDN", l.BindUserDN).
 			Msg("Bind user authentication failed")
-		return nil, nil, err
+		return l.localProvider.GetUserClaims(username, password, ctx)
 	}
 
 	usr, groupLinks, err := l.getOrCreateUser(username, password, conn, ctx)

@@ -8,6 +8,12 @@ import (
 
 // Handler handles operations described by OpenAPI v3 specification.
 type Handler interface {
+	// Capabilities implements capabilities operation.
+	//
+	// Get server capabilities.
+	//
+	// GET /capabilities
+	Capabilities(ctx context.Context) (*CapabilitiesOK, error)
 	// CreateClaim implements createClaim operation.
 	//
 	// Creates a new Claim and persists it to storage.

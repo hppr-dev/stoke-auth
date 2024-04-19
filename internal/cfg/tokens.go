@@ -36,6 +36,11 @@ type Tokens struct {
 	// May have any or all of the following keys: username, first_name, last_name, full_name, email
 	UserInfo         map[string]string `json:"user_info"`
 
+	// Maximum number of refreshes per token. Set to 0 for unlimited
+	TokenRefreshLimit     int `json:"token_refresh_limit"`
+	// Key to hold the token's refresh count. Omit to not include in tokens. Defaults to using the registered jwt id header.
+	TokenRefreshCountKey  string `json:"token_refresh_count_key"`
+
 	// Non-parsed fields
 	TokenDuration time.Duration `json:"-"`
 	KeyDuration time.Duration   `json:"-"`
@@ -120,7 +125,9 @@ func createAsymetricIssuer[P key.PrivateKey](t *Tokens, ctx context.Context, pai
 	}
 
 	return &key.AsymetricTokenIssuer[P]{
-		KeyCache: cache,
+		KeyCache: &cache,
+		TokenRefreshLimit: t.TokenRefreshLimit,
+		TokenRefreshCountKey: t.TokenRefreshCountKey,
 	}
 }
 

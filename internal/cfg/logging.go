@@ -50,7 +50,6 @@ func (l Logging) withContext(ctx context.Context) context.Context {
 		logger = logger.With().Caller().Logger()
 	case "DEBUG", "debug":
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
-		logger = logger.With().Caller().Logger()
 	case "INFO", "info":
 		zerolog.SetGlobalLevel(zerolog.InfoLevel)
 	case "WARN", "warn":

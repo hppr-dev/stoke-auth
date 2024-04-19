@@ -22,8 +22,7 @@
       <v-list-item link title="Users" @click="go('/user')" :prepend-icon="icons.USER"></v-list-item>
       <v-list-item link title="Groups" @click="go('/group')" :prepend-icon="icons.GROUP"></v-list-item>
       <v-list-item link title="Claims" @click="go('/claim')" :prepend-icon="icons.CLAIM"></v-list-item>
-      <v-list-item link title="Keys" @click="go('/key')" :prepend-icon="icons.KEYS"></v-list-item>
-      <v-list-item link title="Monitor" @click="go('/monitor')" :prepend-icon="icons.MONITOR"></v-list-item>
+      <v-list-item link title="Monitor" v-if="store.capabilities.includes('monitoring')" @click="go('/monitor')" :prepend-icon="icons.MONITOR"></v-list-item>
     </v-list>
 
     <template #append>
@@ -48,7 +47,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue"
+import { ref, onMounted } from "vue"
 import { useRouter } from "vue-router"
 import { useAppStore } from "../stores/app"
 import icons from '../util/icons'
@@ -64,5 +63,9 @@ function go(path : string) {
     router.push("/")
   }
 }
+
+onMounted(async () => {
+  await store.fetchCapabilites()
+})
 
 </script>

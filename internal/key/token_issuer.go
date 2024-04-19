@@ -3,10 +3,11 @@ package key
 import (
 	"context"
 	"encoding/base64"
-	"stoke/client/stoke"
+	"fmt"
 	"stoke/internal/tel"
 	"time"
 
+	"hppr.dev/stoke"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/rs/zerolog"
 	"github.com/vincentfree/opentelemetry/otelzerolog"
@@ -21,13 +22,24 @@ type TokenIssuer interface {
 
 type AsymetricTokenIssuer[P PrivateKey]  struct {
 	Ctx context.Context
-	KeyCache[P]
+	TokenRefreshLimit int
+	TokenRefreshCountKey string
+
+	*KeyCache[P]
 }
 
 func (a *AsymetricTokenIssuer[P]) IssueToken(claims *stoke.Claims, ctx context.Context) (string, string, error) {
 	logger := zerolog.Ctx(ctx)
 	ctx, span := tel.GetTracer().Start(ctx, "AsymetricTokenIssuer.IssueToken")
 	defer span.End()
+
+	if err := a.setJWTID(claims); err != nil {
+		logger.Debug().
+			Err(err).
+			Int("refreshLimit", a.TokenRefreshLimit).
+			Msg("Reached token refresh limit")
+		return "", "", err
+	}
 
 	curr := a.CurrentKey()
 	token, err := jwt.NewWithClaims(curr.SigningMethod(), claims).SignedString(curr.Key())
@@ -103,4 +115,34 @@ func (a *AsymetricTokenIssuer[P]) verifyRefreshToken(jwtToken *jwt.Token, refres
 		}
 	}
 	return err
+}
+
+func (a *AsymetricTokenIssuer[P]) setJWTID(claims *stoke.Claims) error {
+	if a.TokenRefreshLimit != 0 {
+		var oldJwtID, jwtID string
+		if a.TokenRefreshCountKey == "" {
+			oldJwtID = claims.ID
+		} else {
+			oldJwtID, _ = claims.StokeClaims[a.TokenRefreshCountKey]
+		}
+		
+		if oldJwtID == "" {
+			jwtID = fmt.Sprintf("%d:1", a.activeKey)
+		} else {
+			var ak, gen int
+			fmt.Sscanf(claims.ID, "%d:%d", &ak, &gen)
+			if gen > a.TokenRefreshLimit {
+				return fmt.Errorf("Token refresh limit reached.")
+			}
+			jwtID = fmt.Sprintf("%d:%d", a.activeKey, gen+1)
+		}
+
+		if a.TokenRefreshCountKey == "" {
+			claims.ID = jwtID
+		} else {
+			claims.StokeClaims[a.TokenRefreshCountKey] = jwtID
+		}
+	}
+
+	return nil
 }

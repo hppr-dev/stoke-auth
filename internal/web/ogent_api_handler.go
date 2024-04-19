@@ -3,12 +3,13 @@ package web
 import (
 	"context"
 	"net/http"
-	"stoke/client/stoke"
+	"stoke/internal/cfg"
 	"stoke/internal/ent"
 	"stoke/internal/ent/ogent"
 	"stoke/internal/key"
 	"stoke/internal/usr"
 
+	"hppr.dev/stoke"
 	"github.com/rs/zerolog"
 )
 
@@ -52,6 +53,25 @@ func (s *secHandler) HandleToken(ctx context.Context, operationName string, t og
 
 type entityHandler struct {
 	*ogent.OgentHandler
+}
+
+// Capabilities implements ogent.Handler.
+func (h *entityHandler) Capabilities(ctx context.Context) (*ogent.CapabilitiesOK, error) {
+	var caps []string
+	config := cfg.Ctx(ctx)
+
+	if !config.Server.DisableAdmin {
+		caps = append(caps, "admin")
+	}
+	
+	if !config.Telemetry.DisableMonitoring {
+		caps = append(caps, "monitoring")
+	}
+
+	return &ogent.CapabilitiesOK{
+		Capabilities: caps,
+	}, nil
+
 }
 
 func (h *entityHandler) Init(ctx context.Context) {

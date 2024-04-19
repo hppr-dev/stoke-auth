@@ -12,7 +12,7 @@ type PublicKeyStore interface {
 }
 
 func DefaultPublicKeyStore(endpoint string) PublicKeyStore {
-	return &WebPublicKeyStore{
+	return &WebCachePublicKeyStore{
 		Endpoint: endpoint,
 	}
 }

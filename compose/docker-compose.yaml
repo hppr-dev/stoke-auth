@@ -9,6 +9,10 @@ services:
       - 0.0.0.0:4317:4317
       - 0.0.0.0:8000:16686
       - 14269:14269
+  restfox:
+    image: flawiddsouza/restfox:0.10.1
+    ports:
+      - 4004:4004
   ldap_test:
     image: ghcr.io/rroemhild/docker-test-openldap:master
     ports:

@@ -2,12 +2,12 @@ package web
 
 import (
 	"context"
-	"stoke/client/stoke"
 	"stoke/internal/cfg"
 	"stoke/internal/ent/ogent"
 	"stoke/internal/key"
 	"stoke/internal/tel"
 
+	"hppr.dev/stoke"
 	"github.com/rs/zerolog"
 	"github.com/vincentfree/opentelemetry/otelzerolog"
 )

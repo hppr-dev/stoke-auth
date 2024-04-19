@@ -13,6 +13,15 @@ type UnimplementedHandler struct{}
 
 var _ Handler = UnimplementedHandler{}
 
+// Capabilities implements capabilities operation.
+//
+// Get server capabilities.
+//
+// GET /capabilities
+func (UnimplementedHandler) Capabilities(ctx context.Context) (r *CapabilitiesOK, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
 // CreateClaim implements createClaim operation.
 //
 // Creates a new Claim and persists it to storage.

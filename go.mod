@@ -1,6 +1,6 @@
 module stoke
 
-go 1.22.0
+go 1.22.1
 
 require (
 	entgo.io/contrib v0.3.5
@@ -28,11 +28,14 @@ require (
 	go.opentelemetry.io/otel/trace v1.25.0
 	go.uber.org/multierr v1.11.0
 	golang.org/x/crypto v0.21.0
+	hppr.dev/stoke v0.0.0
 )
 
 replace entgo.io/contrib v0.3.5 => github.com/swalkerhppr/ent-contrib v0.0.0-20240415204700-185b78ea4766
 
 replace ariga.io/ogent v0.0.0-20230621041143-ed3e5d4da458 => github.com/swalkerhppr/ogent v0.0.0-20240416025651-87740ceb514a
+
+replace hppr.dev/stoke v0.0.0 => ./client/stoke
 
 require (
 	ariga.io/atlas v0.19.1-0.20240203083654-5948b60a8e43 // indirect

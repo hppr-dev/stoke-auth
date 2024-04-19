@@ -9,6 +9,21 @@ import (
 	"github.com/go-faster/jx"
 )
 
+type CapabilitiesOK struct {
+	// List of enabled capabilites.
+	Capabilities []string `json:"capabilities"`
+}
+
+// GetCapabilities returns the value of Capabilities.
+func (s *CapabilitiesOK) GetCapabilities() []string {
+	return s.Capabilities
+}
+
+// SetCapabilities sets the value of Capabilities.
+func (s *CapabilitiesOK) SetCapabilities(val []string) {
+	s.Capabilities = val
+}
+
 // Ref: #/components/schemas/Claim_ClaimGroupsList
 type ClaimClaimGroupsList struct {
 	ID          int    `json:"id"`

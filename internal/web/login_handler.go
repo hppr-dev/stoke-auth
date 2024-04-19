@@ -3,7 +3,6 @@ package web
 import (
 	"context"
 	"fmt"
-	"stoke/client/stoke"
 	"stoke/internal/cfg"
 	"stoke/internal/ent"
 	"stoke/internal/ent/ogent"
@@ -12,6 +11,7 @@ import (
 	"stoke/internal/usr"
 	"time"
 
+	"hppr.dev/stoke"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/rs/zerolog"
 	"github.com/vincentfree/opentelemetry/otelzerolog"

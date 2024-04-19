@@ -11,11 +11,11 @@ import (
 	"strings"
 	"time"
 
-	"stoke/client/stoke"
 	"stoke/internal/admin"
 	"stoke/internal/cfg"
 	"stoke/internal/key"
 
+	"hppr.dev/stoke"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/zerolog"
 )
@@ -71,8 +71,10 @@ func NewServer(ctx context.Context) *http.Server {
 			Msg("Failed to initialize TLS.")
 	}
 
-	// Static files
-	mux.Handle("/admin/", http.StripPrefix("/admin/", http.FileServerFS(admin.Pages)))
+	if !config.DisableAdmin {
+		// Static files
+		mux.Handle("/admin/", http.StripPrefix("/admin/", http.FileServerFS(admin.Pages)))
+	}
 
 	allowedHosts := strings.Join(config.AllowedHosts,",")
 

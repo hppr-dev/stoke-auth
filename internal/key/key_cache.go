@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"stoke/client/stoke"
 	"stoke/internal/ent"
 	"stoke/internal/ent/privatekey"
 	"stoke/internal/tel"
@@ -15,6 +14,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/rs/zerolog"
 	"github.com/vincentfree/opentelemetry/otelzerolog"
+	"hppr.dev/stoke"
 )
 
 type KeyCache[P PrivateKey] struct {
