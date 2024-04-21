@@ -24,7 +24,7 @@ func NewEntityAPIHandler(prefix string, ctx context.Context) http.Handler {
 	sHandler := &secHandler{
 		TokenHandler: stoke.NewTokenHandler(
 			key.IssuerFromCtx(ctx),
-			stoke.WithToken().Requires("srol", "spr").ForAccess(),
+			stoke.RequireToken().WithClaim("srol", "spr"),
 		),
 	}
 
