@@ -9,6 +9,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
+// Gets the current tracer
 func getTracer() trace.Tracer {
 	return otel.GetTracerProvider().
 		Tracer("stoke-client", 
@@ -16,6 +17,8 @@ func getTracer() trace.Tracer {
 		)
 }
 
+// Adds a token and all of it's field information to a given span
+// Always returns false to allow incorperating it a chain of ors (|)
 func AddTokenToSpan(jwtToken *jwt.Token, span trace.Span) bool {
 	var traceAttrs []attribute.KeyValue
 	issuer, err := jwtToken.Claims.GetIssuer()

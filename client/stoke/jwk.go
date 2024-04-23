@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-// Customized Json Web Key (JWK) Set to include exp (expires time)
+// Customized Json Web Key (JWK) Set.
 // {
 //   "exp" : "next update", // When to pull the next certificates
 //   "keys": [
@@ -28,6 +28,8 @@ type JWKSet struct {
 	Keys    []*JWK    `json:"keys"`
 }
 
+// Represents a Json Web Key that conforms to the proposed standard in RF7517
+// See also: https://datatracker.ietf.org/doc/html/rfc7517#autoid-5
 type JWK struct {
 	KeyType   string `json:"kty,omitempty"`
 	Use       string `json:"use,omitempty"`
@@ -42,7 +44,7 @@ type JWK struct {
 	// OKP (ed25519) uses Curve and X
 }
 
-// Converts a JWK into a public key
+// Converts a JWK into a crypto.PublicKey
 func (j *JWK) ToPublicKey() (crypto.PublicKey, error) {
 	switch j.KeyType {
 	case "EC":
@@ -62,6 +64,8 @@ func CreateJWK() *JWK {
 	return &JWK{}
 }
 
+// Loads a JWK with info from a crypto.PublicKey
+// Supported key types are: *ecdsa.PublicKey, *rsa.PublicKey, and ed25519.PublicKey
 func (j *JWK) FromPublicKey(key crypto.PublicKey) *JWK {
 	switch key.(type) {
 	case *ecdsa.PublicKey:
@@ -163,6 +167,7 @@ func (j *JWK) ToRSA() (*rsa.PublicKey, error) {
 }
 
 
+// Converts a given string in base64 URL encoding to a *big.Int
 func stringToBigInt(b string) (*big.Int, error) {
 	convB, err := base64.URLEncoding.DecodeString(b)
 	if err != nil {

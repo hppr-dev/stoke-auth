@@ -7,6 +7,9 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+// stoke.Claims is used to hold and validate claims on a JWT.
+// StokeClaims hold all custom claims that are set.
+// It is marshalled using custom logic to place all StokeClaims and RegisteredClaims at the same level in the resulting token.
 type Claims struct {
 	StokeClaims map[string]string `json:"-"`
 	jwt.RegisteredClaims
@@ -14,8 +17,10 @@ type Claims struct {
 	alternateClaims []Claims
 }
 
+// claimPredicates are custom functions to verify claims satisfy conditions
 type claimPredicate func(c Claims) bool
 
+// Creates an claim object with the same RegisteredClaims and an empty StokeClaims map.
 func (c *Claims) New() *Claims {
 	return &Claims{
 		RegisteredClaims: c.RegisteredClaims,
@@ -23,6 +28,8 @@ func (c *Claims) New() *Claims {
 	}
 }
 
+// Implements json.Marshaler.
+// Custom logic to place StokeClaims and RegisteredClaims at the same level in json.
 func (c *Claims) MarshalJSON() ([]byte, error) {
 	encoder := jx.GetEncoder()
 
@@ -93,6 +100,8 @@ func (c *Claims) MarshalJSON() ([]byte, error) {
 	return encoder.Bytes(), nil
 }
 
+// Implements json.Unmarshaler.
+// Custom logic to parse StokeClaims and RegisteredClaims at the same level in json.
 func (c *Claims) UnmarshalJSON(b []byte) error {
 	decoder := jx.DecodeBytes(b)
 	c.StokeClaims = make(map[string]string)

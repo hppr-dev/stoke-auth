@@ -11,29 +11,28 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+// BasePublicKeyStore implements contains common public key store functionality
 type BasePublicKeyStore struct {
 	Endpoint   string
 	nextUpdate time.Time
 	keySet jwt.VerificationKeySet
 	keyFunc jwt.Keyfunc
-	mutex sync.Mutex
+	keySetMutex sync.RWMutex
 }
 
+// Parses Claims according to the configured required claims and parser options.
+// keyFuncs must manage locking and unlocking the keySetMutex while using the keySet.
 func (s *BasePublicKeyStore) ParseClaims(ctx context.Context, token string, reqClaims *Claims, parserOpts ...jwt.ParserOption) (*jwt.Token, error) {
 	_, span := getTracer().Start(ctx, "ClientKeyStore.ParseClaims")
 	defer span.End()
 
-	// TODO check for client data races
-	return jwt.ParseWithClaims(token, reqClaims.New(), s.wrappedKeyFunc, parserOpts...)
+	s.keySetMutex.RLock()
+	defer s.keySetMutex.RUnlock()
+
+	return jwt.ParseWithClaims(token, reqClaims.New(), s.keyFunc, parserOpts...)
 }
 
-func (s *BasePublicKeyStore) wrappedKeyFunc(token *jwt.Token) (interface{}, error) {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
-
-	return s.keyFunc(token)
-}
-
+// refreshPublicKeys retreives public keys from the configured endpoint and saves them to the store
 func (s *BasePublicKeyStore) refreshPublicKeys(ctx context.Context) error {
 	_, span := getTracer().Start(ctx, "ClientKeyStore.refreshPublicKeys")
 	defer span.End()
@@ -61,8 +60,8 @@ func (s *BasePublicKeyStore) refreshPublicKeys(ctx context.Context) error {
 		}
 	}
 
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
+	s.keySetMutex.Lock()
+	defer s.keySetMutex.Unlock()
 
 	s.keySet = jwt.VerificationKeySet {
 		Keys : pkeys,

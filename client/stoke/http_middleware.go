@@ -7,6 +7,27 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+// Requires authentication for access to a handler
+// Wraps the given http.Handler to:
+//	* Verify token signature
+//	* Verify required claims
+//	* Inject token into the request context.
+//
+//	// Simple Example Handler
+//	type myHandler struct {}
+//	func (myHandler) ServeHTTP(rs http.ResponseWriter, rq *http.Request) { rs.Write(byte[](fmt.Sprintf("I got token: %s", stoke.Token(rq.Context()).Raw()))) }
+//
+//	func ConfigureHttp() {
+//		// Initialize key store
+//		publicKeyStore := stoke.DefaultPublicKeyStore()
+//		publicKeyStore.Init(context.Background)
+//		
+//		// myHandler requires a valid token
+//		http.Handle(
+//			"/my-token",
+//			stoke.Auth(myHandler{}, publicKeyStore, stoke.RequireToken()),
+//		)
+//	}
 func Auth(handler http.Handler, store PublicKeyStore, claims *Claims, parserOpts ...jwt.ParserOption) http.Handler {
 	return authWrapper{
 		inner:      handler.ServeHTTP,
@@ -14,6 +35,27 @@ func Auth(handler http.Handler, store PublicKeyStore, claims *Claims, parserOpts
 	}
 }
 
+// Requires authentication for access to a handler function
+// Wraps the given http.HandlerFunc to:
+//	* Verify token signature
+//	* Verify required claims
+//	* Inject token into the request context.
+//
+//	func ConfigureHttp() {
+//		// Initialize key store
+//		publicKeyStore := stoke.DefaultPublicKeyStore()
+//		publicKeyStore.Init(context.Background)
+//		
+//		// myHandler requires a valid token
+//		http.Handle(
+//			"/my-token",
+//			stoke.AuthFunc(
+//				func(rs http.ResponseWriter, rq *http.Request) { rs.Write(byte[](fmt.Sprintf("I got token: %s", stoke.Token(rq.Context()).Raw()))) },
+//				publicKeyStore,
+//				stoke.RequireToken(),
+//			),
+//		)
+//	}
 func AuthFunc(handler http.HandlerFunc, store PublicKeyStore, claims *Claims, parserOpts ...jwt.ParserOption) http.Handler {
 	return authWrapper{
 		inner:      handler,
@@ -21,11 +63,18 @@ func AuthFunc(handler http.HandlerFunc, store PublicKeyStore, claims *Claims, pa
 	}
 }
 
+// Authentication wrapper that is used to require authentication
 type authWrapper struct {
 	inner http.HandlerFunc
 	*TokenHandler
 }
 
+// Authentication wrapper ServeHTTP function.
+// Returns 401 Unauthorized if:
+//	* The token's signature cannot be verified
+//	* Required claims do not match specified criteria
+//
+// Injects the token into the request context.
 func (w authWrapper) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
 	ctx, span := getTracer().Start(ctx, "AuthHandler.ServeHTTP")

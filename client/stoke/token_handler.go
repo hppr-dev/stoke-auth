@@ -11,6 +11,7 @@ var (
 	InvalidTokenError error = errors.New("Invalid token")
 )
 
+// Creates a new TokenHandler that verifies claims against a public keystore
 func NewTokenHandler(store PublicKeyStore, claims *Claims, parserOpts ...jwt.ParserOption) *TokenHandler {
 	return &TokenHandler{
 		store: store,
@@ -19,6 +20,7 @@ func NewTokenHandler(store PublicKeyStore, claims *Claims, parserOpts ...jwt.Par
 	}
 }
 
+// TokenHandler is resposible for verifying token claims against a public key store 
 type TokenHandler struct {
 	store PublicKeyStore
 	reqClaims *Claims
@@ -46,6 +48,7 @@ func (w TokenHandler) InjectToken(token string, ctx context.Context) (context.Co
 
 }
 
+// Gets the current JWT from the context
 func Token(ctx context.Context) *jwt.Token {
 	return ctx.Value("jwt.Token").(*jwt.Token)
 }
