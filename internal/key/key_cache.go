@@ -19,7 +19,7 @@ import (
 
 type KeyCache[P PrivateKey] struct {
 	activeKey int
-	keysMutex sync.Mutex
+	keysMutex sync.RWMutex
 	keys []KeyPair[P]
 	Ctx context.Context
 	KeyDuration time.Duration
@@ -66,8 +66,8 @@ func (c *KeyCache[P]) goManage(ctx context.Context) {
 }
 
 func (c *KeyCache[P]) CurrentKey() KeyPair[P] {
-	c.keysMutex.Lock()
-	defer c.keysMutex.Unlock()
+	c.keysMutex.RLock()
+	defer c.keysMutex.RUnlock()
 	return c.keys[c.activeKey]
 }
 
@@ -295,10 +295,10 @@ func (c *KeyCache[P]) ParseClaims(ctx context.Context, token string, claims *sto
 
 func (c *KeyCache[P]) publicKeys(_ *jwt.Token) (interface{}, error) {
 	pkeys := jwt.VerificationKeySet{}
-	c.keysMutex.Lock()
+	c.keysMutex.RLock()
 	for _, p := range c.keys {
 		pkeys.Keys = append(pkeys.Keys, p.PublicKey())
 	}
-	c.keysMutex.Unlock()
+	c.keysMutex.RUnlock()
 	return pkeys, nil
 }
