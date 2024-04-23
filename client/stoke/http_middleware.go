@@ -13,16 +13,14 @@ import (
 //	* Verify required claims
 //	* Inject token into the request context.
 //
-//	// Simple Example Handler
+// Example Usage:
+//
 //	type myHandler struct {}
-//	func (myHandler) ServeHTTP(rs http.ResponseWriter, rq *http.Request) { rs.Write(byte[](fmt.Sprintf("I got token: %s", stoke.Token(rq.Context()).Raw()))) }
+//	func (myHandler) ServeHTTP(rs http.ResponseWriter, rq *http.Request) {rs.Write([]byte(fmt.Sprintf("I got token: %s", stoke.Token(rq.Context()).Raw)))}
 //
 //	func ConfigureHttp() {
-//		// Initialize key store
 //		publicKeyStore := stoke.DefaultPublicKeyStore()
 //		publicKeyStore.Init(context.Background)
-//		
-//		// myHandler requires a valid token
 //		http.Handle(
 //			"/my-token",
 //			stoke.Auth(myHandler{}, publicKeyStore, stoke.RequireToken()),
@@ -41,16 +39,15 @@ func Auth(handler http.Handler, store PublicKeyStore, claims *Claims, parserOpts
 //	* Verify required claims
 //	* Inject token into the request context.
 //
+// Example Usage:
+//
 //	func ConfigureHttp() {
-//		// Initialize key store
 //		publicKeyStore := stoke.DefaultPublicKeyStore()
 //		publicKeyStore.Init(context.Background)
-//		
-//		// myHandler requires a valid token
 //		http.Handle(
 //			"/my-token",
 //			stoke.AuthFunc(
-//				func(rs http.ResponseWriter, rq *http.Request) { rs.Write(byte[](fmt.Sprintf("I got token: %s", stoke.Token(rq.Context()).Raw()))) },
+//				func(rs http.ResponseWriter, rq *http.Request) { rs.Write([]byte(fmt.Sprintf("I got token: %s", stoke.Token(rq.Context()).Raw))) },
 //				publicKeyStore,
 //				stoke.RequireToken(),
 //			),
