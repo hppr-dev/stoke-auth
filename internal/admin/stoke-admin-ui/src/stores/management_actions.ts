@@ -1,4 +1,4 @@
-import { User, Claim, Group } from '../util/entityTypes'
+import { User, Claim, Group, GroupLink } from '../util/entityTypes'
 
 export const managementActions = {
   simpleGet: async function(endpoint : string, stateName : string, page: number, refresh? : boolean) {
@@ -132,7 +132,7 @@ export const managementActions = {
         this.fetchLinksForGroup(this.currentGroup.id)
       })
   },
-  simpleDelete: async function(endpoint : string, value : User | Claim | Group) {
+  simpleDelete: async function(endpoint : string, value : User | Claim | Group | GroupLink) {
     const response = await fetch(`${this.api_url}${endpoint}/${value.id}`, {
       method: "DELETE",
       headers: {
@@ -160,6 +160,10 @@ export const managementActions = {
     return this.simpleDelete("/api/admin/claims", claim)
       .then(() => this.currentClaim = {})
       .then(this.fetchAllClaims)
+  },
+  deleteLink: function(link: GroupLink) {
+    return this.simpleDelete("/api/admin/group-links", link)
+      .then(() => this.fetchLinksForGroup(this.currentGroup.id))
   },
   resetScratchUser: function() {
     this.scratchUser = {}

@@ -8,6 +8,9 @@
     <template #no-data>
       <span> Group is not linked </span>
     </template>
+    <template #item.row-delete="{ item }">
+      <v-icon size="sm" color="error" :icon="icons.DELETE" @click="deleteLink(item)" ></v-icon>
+    </template>
     <template #bottom>
       <div class="text-center pt-2">
         <v-row>
@@ -35,11 +38,13 @@
   import { useAppStore } from "../stores/app"
   import icons from '../util/icons'
   import AddLinkDialog from './dialogs/AddLinkDialog'
+  import { GroupLink } from "../util/entityTypes";
 
   const page = ref(1)
   const headers = [
     { key : "type", title: "Link Type" },
     { key : "resource_spec", title: "Resource"},
+    { key : "row-delete", title: "" },
   ]
 
   const headerProps = {
@@ -48,5 +53,10 @@
   }
 
   const store = useAppStore()
+
+  async function deleteLink(item : GroupLink) {
+    console.log(item)
+    await store.deleteLink(item)
+  }
 
 </script>
