@@ -3,6 +3,7 @@ package stoke
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -13,9 +14,10 @@ import (
 type TestPublicKeyStore struct {
 	DefaultTokenStr string
 	reject bool
+	invalid bool
 }
 
-// Treat all calls to ParseClaims as invalid tokens.
+// Treat all calls to ParseClaims as an error
 func (t *TestPublicKeyStore) SetReject() {
 	t.reject = true
 }
@@ -23,6 +25,16 @@ func (t *TestPublicKeyStore) SetReject() {
 // Allow ParseClaims to return a token
 func (t *TestPublicKeyStore) SetAllow() {
 	t.reject = false
+}
+
+// Treat all calls to ParseClaims as valid tokens.
+func (t *TestPublicKeyStore) SetValid() {
+	t.invalid = false
+}
+
+// Treat all calls to ParseClaims as invalid tokens.
+func (t *TestPublicKeyStore) SetInvalid() {
+	t.invalid = true
 }
 
 // NOOP
@@ -41,7 +53,12 @@ func (t TestPublicKeyStore) ParseClaims(ctx context.Context, tokenStr string, cl
 	if tokenStr == "" {
 		tokenStr = t.DefaultTokenStr
 	}
-	return jwt.ParseWithClaims(tokenStr, claims.New(), fakeKeyFunc, jwt.WithoutClaimsValidation())
+
+	token, _ := jwt.ParseWithClaims(tokenStr, claims.New(), fakeKeyFunc,
+		jwt.WithoutClaimsValidation(),
+	)
+	token.Valid = !t.invalid
+	return token, nil
 }
 
 // NOOP
