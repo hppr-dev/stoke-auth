@@ -1,11 +1,10 @@
-package util
+package stoke
 
 import (
 	"context"
 	"fmt"
 
 	"github.com/golang-jwt/jwt/v5"
-	"hppr.dev/stoke"
 )
 
 // TestPublicKeyStore is a mocked out public keystore
@@ -34,7 +33,7 @@ func (TestPublicKeyStore) Init(ctx context.Context) error { return nil }
 // tokenStr must be a parsable JWT token or an empty string.
 //
 // TestPublicKeyStore implements PublicKeyStore
-func (t TestPublicKeyStore) ParseClaims(ctx context.Context, tokenStr string, claims *stoke.Claims, _ ...jwt.ParserOption) (*jwt.Token, error) {
+func (t TestPublicKeyStore) ParseClaims(ctx context.Context, tokenStr string, claims *Claims, _ ...jwt.ParserOption) (*jwt.Token, error) {
 	if t.reject {
 		return nil, fmt.Errorf("Reject set.")
 	}
