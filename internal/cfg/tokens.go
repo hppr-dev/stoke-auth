@@ -3,9 +3,7 @@ package cfg
 import (
 	"context"
 	"fmt"
-	"regexp"
 	"stoke/internal/key"
-	"strconv"
 	"time"
 
 	"github.com/rs/zerolog"
