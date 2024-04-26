@@ -2,6 +2,7 @@ package cfg
 
 import (
 	"context"
+	"fmt"
 	"regexp"
 	"stoke/internal/key"
 	"strconv"
@@ -47,8 +48,15 @@ type Tokens struct {
 }
 
 func (t *Tokens) ParseDurations() {
-	t.TokenDuration = strToDuration(t.TokenDurationStr)
-	t.KeyDuration = strToDuration(t.KeyDurationStr)
+	var err error
+	t.TokenDuration, err = time.ParseDuration(t.TokenDurationStr)
+	if err != nil {
+		panic(fmt.Sprintf("Could not parse duration \"%s\": %v", t.TokenDurationStr, err))
+	}
+	t.KeyDuration, err = time.ParseDuration(t.KeyDurationStr)
+	if err != nil {
+		panic(fmt.Sprintf("Could not parse duration \"%s\": %v", t.KeyDurationStr, err))
+	}
 }
 
 func (t *Tokens) withContext(ctx context.Context) context.Context {
@@ -79,7 +87,7 @@ func (t *Tokens) withContext(ctx context.Context) context.Context {
 			Msg("Could not initialize issuer")
 	}
 
-	return context.WithValue(ctx, "issuer", issuer)
+	return issuer.WithContext(ctx)
 }
 
 func (t *Tokens) createECDSAIssuer(ctx context.Context) key.TokenIssuer {
@@ -109,7 +117,7 @@ func (t *Tokens) createRSAIssuer(ctx context.Context) key.TokenIssuer {
 }
 
 func createAsymetricIssuer[P key.PrivateKey](t *Tokens, ctx context.Context, pair key.KeyPair[P]) *key.AsymetricTokenIssuer[P] {
-	cache := key.KeyCache[P]{
+	cache := key.PrivateKeyCache[P]{
 		Ctx: augmentContext(ctx, "KeyCache"),
 		KeyDuration:   t.KeyDuration,
 		TokenDuration: t.TokenDuration,
@@ -129,28 +137,4 @@ func createAsymetricIssuer[P key.PrivateKey](t *Tokens, ctx context.Context, pai
 		TokenRefreshLimit: t.TokenRefreshLimit,
 		TokenRefreshCountKey: t.TokenRefreshCountKey,
 	}
-}
-
-var durationRegex *regexp.Regexp = regexp.MustCompile(`(\d+)([sSmMhHdDyY])`)
-
-func strToDuration(s string) time.Duration {
-	matches := durationRegex.FindStringSubmatch(s)
-	if len(matches) != 3 {
-		panic("Duration string did not match regex [0-9]+[sSmMhHdDyY")
-	}
-	num, _ := strconv.Atoi(matches[1])
-	dur := time.Duration(num)
-	switch matches[2] {
-	case "s", "S":
-		return time.Second * dur
-	case "m", "M":
-		return time.Minute * dur
-	case "h", "H":
-		return time.Hour * dur
-	case "d", "D":
-		return time.Hour * 24 * dur
-	case "y", "Y":
-		return time.Hour * 24 * 265 * dur
-	}
-	panic("Unreachable. If it reaches here, it means that durationRegex is broken.")
 }

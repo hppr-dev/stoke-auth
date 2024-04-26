@@ -17,10 +17,22 @@ import (
 	"hppr.dev/stoke"
 )
 
-type KeyCache[P PrivateKey] struct {
+type KeyCache[P PrivateKey] interface {
+	CurrentKey() KeyPair[P]
+	PublicKeys(context.Context) ([]byte, error)
+	Generate(context.Context) error
+	Bootstrap(context.Context, KeyPair[P]) error
+	Keys() []KeyPair[P]
+	ReadLock()
+	ReadUnlock()
+
+	stoke.PublicKeyStore
+}
+
+type PrivateKeyCache[P PrivateKey] struct {
 	activeKey int
-	keysMutex sync.RWMutex
-	keys []KeyPair[P]
+	keyPairsMutex sync.RWMutex
+	KeyPairs []KeyPair[P]
 	Ctx context.Context
 	KeyDuration time.Duration
 	TokenDuration time.Duration
@@ -28,13 +40,13 @@ type KeyCache[P PrivateKey] struct {
 }
 
 // Implements stoke.PublicKeyStore
-func (c *KeyCache[P]) Init(ctx context.Context) error {
+func (c *PrivateKeyCache[P]) Init(ctx context.Context) error {
 	c.activeKey = 0
 	go c.goManage(ctx)
 	return nil
 }
 
-func (c *KeyCache[P]) goManage(ctx context.Context) {
+func (c *PrivateKeyCache[P]) goManage(ctx context.Context) {
 	logger := zerolog.Ctx(ctx)
 
 	logger.Info().Msg("Starting key cache management...")
@@ -43,9 +55,9 @@ func (c *KeyCache[P]) goManage(ctx context.Context) {
 		nextRenew  := nextExpire - (c.TokenDuration * 2)
 
 		time.Sleep(nextRenew)
-		sCtx, span := tel.GetTracer().Start(ctx, "KeyCache.Rotation")
+		sCtx, span := tel.GetTracer().Start(ctx, "PrivateKeyCache.Rotation")
 		sLogger := logger.With().
-			Str("component", "KeyCache.Management").
+			Str("component", "PrivateKeyCache.Management").
 			Logger().
 			Hook(tel.LogHook{ Ctx : sCtx } )
 		sCtx = sLogger.WithContext(sCtx)
@@ -54,9 +66,9 @@ func (c *KeyCache[P]) goManage(ctx context.Context) {
 
 		time.Sleep(c.TokenDuration)
 		sLogger.Info().Msg("Activating new key...")
-		c.keysMutex.Lock()
+		c.keyPairsMutex.Lock()
 		c.activeKey += 1
-		c.keysMutex.Unlock()
+		c.keyPairsMutex.Unlock()
 
 		time.Sleep(c.TokenDuration)
 		c.Clean(sCtx)
@@ -65,19 +77,19 @@ func (c *KeyCache[P]) goManage(ctx context.Context) {
 	}
 }
 
-func (c *KeyCache[P]) CurrentKey() KeyPair[P] {
-	c.keysMutex.RLock()
-	defer c.keysMutex.RUnlock()
-	return c.keys[c.activeKey]
-}
+func (c *PrivateKeyCache[P]) CurrentKey() KeyPair[P] { return c.KeyPairs[c.activeKey] }
+func (c *PrivateKeyCache[P]) Keys() []KeyPair[P] { return c.KeyPairs }
+func (c *PrivateKeyCache[P]) ReadLock() { c.keyPairsMutex.RLock() }
+func (c *PrivateKeyCache[P]) ReadUnlock() { c.keyPairsMutex.RUnlock() }
 
-func (c *KeyCache[P]) PublicKeys(ctx context.Context) ([]byte, error) {
-	ctx, span := tel.GetTracer().Start(ctx, "KeyCache.PublicKeys")
+// Marshalls the current key's public parts into a JWKSet
+func (c *PrivateKeyCache[P]) PublicKeys(ctx context.Context) ([]byte, error) {
+	ctx, span := tel.GetTracer().Start(ctx, "PrivateKeyCache.PublicKeys")
 	defer span.End()
 
 	now := time.Now()
-	jwks := make([]*stoke.JWK, len(c.keys))
-	for i, k := range c.keys {
+	jwks := make([]*stoke.JWK, len(c.KeyPairs))
+	for i, k := range c.KeyPairs {
 		jwks[i] = stoke.CreateJWK().FromPublicKey(k.PublicKey())
 		jwks[i].KeyId = fmt.Sprintf("p-%d", i)
 	}
@@ -94,20 +106,21 @@ func (c *KeyCache[P]) PublicKeys(ctx context.Context) ([]byte, error) {
 	})
 }
 
-func (c *KeyCache[P]) Generate(ctx context.Context) error {
+// Generates a new key and appends it to the list of keys
+func (c *PrivateKeyCache[P]) Generate(ctx context.Context) error {
 	logger := zerolog.Ctx(ctx)
-	ctx, span := tel.GetTracer().Start(ctx, "KeyCache.Generate")
+	ctx, span := tel.GetTracer().Start(ctx, "PrivateKeyCache.Generate")
 	defer span.End()
 
 	logger.Debug().
 		Func(otelzerolog.AddTracingContext(span)).
 		Msg("Generating new key...")
 
-	if len(c.keys) == 0 {
-		logger.Fatal().Msg("Unable to generate keys. No keys in keystore!")
+	if len(c.KeyPairs) == 0 {
+		logger.Fatal().Msg("Unable to generate keyPairs. No keys in keystore!")
 	}
 
-	newKey, err := c.keys[0].Generate()
+	newKey, err := c.KeyPairs[0].Generate()
 	if err != nil {
 		logger.Error().
 			Func(otelzerolog.AddTracingContext(span)).
@@ -119,13 +132,13 @@ func (c *KeyCache[P]) Generate(ctx context.Context) error {
 	expires := time.Now().Add(c.KeyDuration)
 	newKey.SetExpires(expires)
 
-	c.keysMutex.Lock()
-	c.keys = append(c.keys, newKey)
-	c.keysMutex.Unlock()
+	c.keyPairsMutex.Lock()
+	c.KeyPairs = append(c.KeyPairs, newKey)
+	c.keyPairsMutex.Unlock()
 
 	logger.Debug().
 		Func(otelzerolog.AddTracingContext(span)).
-		Int("numKeys", len(c.keys)).
+		Int("numKeys", len(c.KeyPairs)).
 		Time("expires", expires).
 		Dur("keyDuration", c.KeyDuration).
 		Dur("tokenDuration", c.TokenDuration).
@@ -151,9 +164,10 @@ func (c *KeyCache[P]) Generate(ctx context.Context) error {
 	return nil
 }
 
-func (c *KeyCache[P]) Bootstrap(ctx context.Context, pair KeyPair[P]) error {
+// Bootstraps the keycache by pulling persisted keys from the database, if they exist
+func (c *PrivateKeyCache[P]) Bootstrap(ctx context.Context, pair KeyPair[P]) error {
 	logger := zerolog.Ctx(ctx)
-	ctx, span := tel.GetTracer().Start(ctx, "KeyCache.Bootstrap")
+	ctx, span := tel.GetTracer().Start(ctx, "PrivateKeyCache.Bootstrap")
 	defer span.End()
 
 	logger.Info().
@@ -196,13 +210,14 @@ func (c *KeyCache[P]) Bootstrap(ctx context.Context, pair KeyPair[P]) error {
 
 	pair.SetExpires(pk.Expires)
 
-	c.keys = append(c.keys, pair)
+	c.KeyPairs = append(c.KeyPairs, pair)
 	return nil
 }
 
-func (c *KeyCache[P]) Clean(ctx context.Context) {
+// Removes expired certificates from the key cache
+func (c *PrivateKeyCache[P]) Clean(ctx context.Context) {
 	logger := zerolog.Ctx(ctx)
-	ctx, span := tel.GetTracer().Start(ctx, "KeyCache.Clean")
+	ctx, span := tel.GetTracer().Start(ctx, "PrivateKeyCache.Clean")
 	defer span.End()
 
 	logger.Info().
@@ -212,8 +227,8 @@ func (c *KeyCache[P]) Clean(ctx context.Context) {
 	logger.Debug().
 		Func(otelzerolog.AddTracingContext(span)).
 		Func(func(e *zerolog.Event) {
-			pkeyStrs := make([]string, len(c.keys))
-			for i, k := range c.keys {
+			pkeyStrs := make([]string, len(c.KeyPairs))
+			for i, k := range c.KeyPairs {
 				pkeyStrs[i] = k.PublicString()
 			}
 			e.Strs("publicKeys", pkeyStrs)
@@ -222,16 +237,16 @@ func (c *KeyCache[P]) Clean(ctx context.Context) {
 
 	now := time.Now()
 	var valid []KeyPair[P]
-	for _, e := range c.keys {
+	for _, e := range c.KeyPairs {
 		if e.ExpiresAt().After(now) {
 			valid = append(valid, e)
 		}
 	}
 
-	c.keysMutex.Lock()
-	c.keys = valid
-	c.activeKey = len(c.keys) - 1
-	c.keysMutex.Unlock()
+	c.keyPairsMutex.Lock()
+	c.KeyPairs = valid
+	c.activeKey = len(c.KeyPairs) - 1
+	c.keyPairsMutex.Unlock()
 
 	if c.PersistKeys {
 		_, err := ent.FromContext(ctx).PrivateKey.Delete().
@@ -243,25 +258,25 @@ func (c *KeyCache[P]) Clean(ctx context.Context) {
 			logger.Error().
 				Func(otelzerolog.AddTracingContext(span)).
 				Err(err).
-				Msg("Could not delete expired keys from database.")
+				Msg("Could not delete expired keyPairs from database.")
 		}
 	}
 
 	logger.Debug().
 		Func(otelzerolog.AddTracingContext(span)).
 		Func(func(e *zerolog.Event) {
-			pkeyStrs := make([]string, len(c.keys))
-			for i, k := range c.keys {
+			pkeyStrs := make([]string, len(c.KeyPairs))
+			for i, k := range c.KeyPairs {
 				pkeyStrs[i] = k.PublicString()
 			}
 			e.Strs("publicKeys", pkeyStrs)
 		}).Msg("Finished cleaning.")
 }
 
-// Implements stoke.PublicKeyStore
-func (c *KeyCache[P]) ParseClaims(ctx context.Context, token string, claims *stoke.Claims, parserOpts ...jwt.ParserOption) (*jwt.Token, error) {
+// Parses and validates a given string token
+func (c *PrivateKeyCache[P]) ParseClaims(ctx context.Context, token string, claims *stoke.Claims, parserOpts ...jwt.ParserOption) (*jwt.Token, error) {
 	logger := zerolog.Ctx(ctx)
-	ctx, span := tel.GetTracer().Start(ctx, "KeyCache.ParseClaims")
+	ctx, span := tel.GetTracer().Start(ctx, "PrivateKeyCache.ParseClaims")
 	defer span.End()
 
 	jwtToken, err := jwt.ParseWithClaims(token, claims.New(), c.publicKeys, parserOpts...)
@@ -293,12 +308,12 @@ func (c *KeyCache[P]) ParseClaims(ctx context.Context, token string, claims *sto
 	return jwtToken, err
 }
 
-func (c *KeyCache[P]) publicKeys(_ *jwt.Token) (interface{}, error) {
+func (c *PrivateKeyCache[P]) publicKeys(_ *jwt.Token) (interface{}, error) {
 	pkeys := jwt.VerificationKeySet{}
-	c.keysMutex.RLock()
-	for _, p := range c.keys {
+	c.keyPairsMutex.RLock()
+	for _, p := range c.KeyPairs {
 		pkeys.Keys = append(pkeys.Keys, p.PublicKey())
 	}
-	c.keysMutex.RUnlock()
+	c.keyPairsMutex.RUnlock()
 	return pkeys, nil
 }

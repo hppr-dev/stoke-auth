@@ -3,7 +3,6 @@ package stoke
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 )

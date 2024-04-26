@@ -13,10 +13,15 @@ import (
 	"github.com/vincentfree/opentelemetry/otelzerolog"
 )
 
+func IssuerFromCtx(ctx context.Context) TokenIssuer {
+	return ctx.Value("issuer").(TokenIssuer)
+}
+
 type TokenIssuer interface {
 	IssueToken(*stoke.Claims, context.Context) (string, string, error)
 	RefreshToken(*jwt.Token, string, time.Duration, context.Context) (string, string, error)
 	PublicKeys(context.Context) ([]byte, error)
+	WithContext(context.Context) context.Context
 	stoke.PublicKeyStore
 }
 
@@ -25,11 +30,15 @@ type AsymetricTokenIssuer[P PrivateKey]  struct {
 	TokenRefreshLimit int
 	TokenRefreshCountKey string
 
-	*KeyCache[P]
+	KeyCache[P]
+}
+
+func (a *AsymetricTokenIssuer[P]) WithContext(ctx context.Context) context.Context {
+	return context.WithValue(ctx, "issuer", a)
 }
 
 func (a *AsymetricTokenIssuer[P]) IssueToken(claims *stoke.Claims, ctx context.Context) (string, string, error) {
-	logger := zerolog.Ctx(ctx)
+	logger := zerolog.Ctx(ctx).With().Str("function", "AsymetricTokenIssuer.IssueToken").Logger()
 	ctx, span := tel.GetTracer().Start(ctx, "AsymetricTokenIssuer.IssueToken")
 	defer span.End()
 
@@ -41,8 +50,11 @@ func (a *AsymetricTokenIssuer[P]) IssueToken(claims *stoke.Claims, ctx context.C
 		return "", "", err
 	}
 
+	a.ReadLock()
 	curr := a.CurrentKey()
-	token, err := jwt.NewWithClaims(curr.SigningMethod(), claims).SignedString(curr.Key())
+	priv := curr.Key()
+	a.ReadUnlock()
+	token, err := jwt.NewWithClaims(curr.SigningMethod(), claims).SignedString(priv)
 	if err != nil {
 		logger.Error().
 			Func(otelzerolog.AddTracingContext(span)).
@@ -51,7 +63,7 @@ func (a *AsymetricTokenIssuer[P]) IssueToken(claims *stoke.Claims, ctx context.C
 		return "", "", err
 	}
 
-	refresh, err := curr.SigningMethod().Sign(token, curr.Key())
+	refresh, err := curr.SigningMethod().Sign(token, priv)
 	if err != nil {
 		logger.Error().
 			Func(otelzerolog.AddTracingContext(span)).
@@ -63,7 +75,7 @@ func (a *AsymetricTokenIssuer[P]) IssueToken(claims *stoke.Claims, ctx context.C
 }
 
 func (a *AsymetricTokenIssuer[P]) RefreshToken(jwtToken *jwt.Token, refreshToken string, extendTime time.Duration, ctx context.Context) (string, string, error) {
-	logger := zerolog.Ctx(ctx)
+	logger := zerolog.Ctx(ctx).With().Str("function", "AsymetricTokenIssuer.RefreshToken").Logger()
 	ctx, span := tel.GetTracer().Start(ctx, "AsymetricTokenIssuer.RefreshToken")
 	defer span.End()
 
@@ -100,15 +112,17 @@ func (a *AsymetricTokenIssuer[P]) RefreshToken(jwtToken *jwt.Token, refreshToken
 		return "", "", err
 	}
 
-	now := time.Now()
-	stokeClaims.RegisteredClaims.ExpiresAt = jwt.NewNumericDate(now.Add(extendTime))
+	oldTime := stokeClaims.RegisteredClaims.ExpiresAt
+	stokeClaims.RegisteredClaims.ExpiresAt = jwt.NewNumericDate(oldTime.Add(extendTime))
 
 	return a.IssueToken(stokeClaims, ctx)
 }
 
 func (a *AsymetricTokenIssuer[P]) verifyRefreshToken(jwtToken *jwt.Token, refreshBytes []byte) error {
 	var err error
-	for _, curr := range a.keys {
+	a.ReadLock()
+	defer a.ReadUnlock()
+	for _, curr := range a.Keys() {
 		err = curr.SigningMethod().Verify(jwtToken.Raw, refreshBytes, curr.PublicKey())
 		if err == nil {
 			return nil
@@ -116,6 +130,8 @@ func (a *AsymetricTokenIssuer[P]) verifyRefreshToken(jwtToken *jwt.Token, refres
 	}
 	return err
 }
+
+const jwtFormat = "k%d"
 
 func (a *AsymetricTokenIssuer[P]) setJWTID(claims *stoke.Claims) error {
 	if a.TokenRefreshLimit != 0 {
@@ -127,14 +143,14 @@ func (a *AsymetricTokenIssuer[P]) setJWTID(claims *stoke.Claims) error {
 		}
 		
 		if oldJwtID == "" {
-			jwtID = fmt.Sprintf("%d:1", a.activeKey)
+			jwtID = fmt.Sprintf(jwtFormat, 1)
 		} else {
-			var ak, gen int
-			fmt.Sscanf(claims.ID, "%d:%d", &ak, &gen)
+			var gen int
+			fmt.Sscanf(claims.ID, jwtFormat, &gen)
 			if gen > a.TokenRefreshLimit {
 				return fmt.Errorf("Token refresh limit reached.")
 			}
-			jwtID = fmt.Sprintf("%d:%d", a.activeKey, gen+1)
+			jwtID = fmt.Sprintf(jwtFormat, gen+1)
 		}
 
 		if a.TokenRefreshCountKey == "" {
