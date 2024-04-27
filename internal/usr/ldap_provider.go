@@ -17,7 +17,6 @@ import (
 )
 
 type LDAPUserProvider struct {
-	localProvider         LocalProvider
 	ServerURL             string
 	BindUserDN            string
 	BindUserPassword      string
@@ -36,6 +35,8 @@ type LDAPUserProvider struct {
 	SearchTimeout         int
 
 	DialOpts 							[]ldap.DialOpt
+
+	LocalProvider
 }
 
 type templateValues struct {
@@ -46,17 +47,6 @@ type templateValues struct {
 var AuthenticationError = errors.New("Could not authenticate user")
 var LDAPNotFoundError = errors.New("No results")
 var LDAPError = errors.New("Error communicating with LDAP")
-
-// Init implements Provider.
-func (l LDAPUserProvider) Init(ctx context.Context) error {
-	return l.localProvider.Init(ctx)
-}
-
-// AddUser implements Provider.
-// LDAP users should be added upon login
-func (l LDAPUserProvider) AddUser(fname, lname, email, username, password string, superuser bool, ctx context.Context) error {
-	return l.localProvider.AddUser(fname, lname, email, username, password, superuser, ctx)
-}
 
 // GetUserClaims implements Provider.
 func (l LDAPUserProvider) GetUserClaims(username, password string, ctx context.Context) (*ent.User, ent.Claims, error) {
@@ -76,7 +66,7 @@ func (l LDAPUserProvider) GetUserClaims(username, password string, ctx context.C
 			Err(err).
 			Str("url", l.ServerURL).
 			Msg("Could not connect to LDAP server")
-		return l.localProvider.GetUserClaims(username, password, ctx)
+		return l.LocalProvider.GetUserClaims(username, password, ctx)
 	}
 	defer conn.Close()
 
@@ -87,7 +77,7 @@ func (l LDAPUserProvider) GetUserClaims(username, password string, ctx context.C
 			Str("url", l.ServerURL).
 			Str("bindUserDN", l.BindUserDN).
 			Msg("Bind user authentication failed")
-		return l.localProvider.GetUserClaims(username, password, ctx)
+		return l.LocalProvider.GetUserClaims(username, password, ctx)
 	}
 
 	usr, groupLinks, err := l.getOrCreateUser(username, password, conn, ctx)
@@ -97,7 +87,7 @@ func (l LDAPUserProvider) GetUserClaims(username, password string, ctx context.C
 			Str("url", l.ServerURL).
 			Str("username", username).
 			Msg("User not found in ldap")
-		return l.localProvider.GetUserClaims(username, password, ctx)
+		return l.LocalProvider.GetUserClaims(username, password, ctx)
 
 	} else if err != nil {
 		logger.Error().
@@ -125,13 +115,7 @@ func (l LDAPUserProvider) GetUserClaims(username, password string, ctx context.C
 		return nil, nil, err
 	}
 
-	return l.localProvider.GetUserClaims(username, "", ctx)
-}
-
-// UpdateUserPassword implements Provider.
-// Changes local passwords only. LDAP password change is not supported
-func (l LDAPUserProvider) UpdateUserPassword(username, oldPassword, newPassword string, force bool, ctx context.Context) error {
-	return l.localProvider.UpdateUserPassword(username, oldPassword, newPassword, force, ctx)
+	return l.LocalProvider.GetUserClaims(username, "", ctx)
 }
 
 // Creates the user if it exists in LDAP

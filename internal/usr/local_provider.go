@@ -18,10 +18,6 @@ import (
 
 type LocalProvider struct {}
 
-func (l LocalProvider) Init(ctx context.Context) error {
-	return l.checkForSuperUser(ctx)
-}
-
 func HashPass(pass, salt string) string {
 		return base64.StdEncoding.EncodeToString(argon2.IDKey([]byte(pass), []byte(salt), 2, 19*1024, 1, 64))
 }
@@ -198,7 +194,7 @@ func (l LocalProvider) getOrCreateSuperGroup(ctx context.Context) (*ent.ClaimGro
 	return superGroup, nil
 }
 
-func (l LocalProvider) checkForSuperUser(ctx context.Context) error {
+func (l LocalProvider) CheckCreateForSuperUser(ctx context.Context) error {
 	superGroup, err := l.getOrCreateSuperGroup(ctx)
 	if err != nil {
 		return err

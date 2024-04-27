@@ -79,7 +79,6 @@ func (m *MockKeyCache) PublicKeys(context.Context) ([]byte, error) {
 
 func (m *MockKeyCache) Bootstrap(context.Context, key.KeyPair[ed25519.PrivateKey]) error { return nil }
 func (m *MockKeyCache) Generate(context.Context) error { return nil }
-func (m *MockKeyCache) Init(context.Context) error { return nil }
 func (m *MockKeyCache) ReadLock() { return }
 func (m *MockKeyCache) ReadUnlock() { return }
 

@@ -78,13 +78,6 @@ func (t *Tokens) withContext(ctx context.Context) context.Context {
 			Msg("Unsupported algorithm")
 	}
 
-	if err := issuer.Init(ctx); err != nil {
-		zerolog.Ctx(ctx).Fatal().
-			Str("component", "cfg.Tokens").
-			Err(err).
-			Msg("Could not initialize issuer")
-	}
-
 	return issuer.WithContext(ctx)
 }
 
@@ -115,23 +108,16 @@ func (t *Tokens) createRSAIssuer(ctx context.Context) key.TokenIssuer {
 }
 
 func createAsymetricIssuer[P key.PrivateKey](t *Tokens, ctx context.Context, pair key.KeyPair[P]) *key.AsymetricTokenIssuer[P] {
-	cache := key.PrivateKeyCache[P]{
-		Ctx: augmentContext(ctx, "KeyCache"),
-		KeyDuration:   t.KeyDuration,
-		TokenDuration: t.TokenDuration,
-		PersistKeys:   t.PersistKeys,
-	}
-
-	err := cache.Bootstrap(ctx, pair)
+	cache, err := key.NewPrivateKeyCache(t.KeyDuration, t.TokenDuration, t.PersistKeys, pair, ctx)
 	if err != nil {
 		zerolog.Ctx(ctx).Fatal().
 			Str("component", "cfg.Tokens").
 			Err(err).
-			Msg("Could not bootstrap key cache")
+			Msg("Could not create private key cache")
 	}
 
 	return &key.AsymetricTokenIssuer[P]{
-		KeyCache: &cache,
+		KeyCache: cache,
 		TokenRefreshLimit: t.TokenRefreshLimit,
 		TokenRefreshCountKey: t.TokenRefreshCountKey,
 	}

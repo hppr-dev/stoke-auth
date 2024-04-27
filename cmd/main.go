@@ -71,13 +71,6 @@ func main() {
 		return
 	}
 
-	err := usr.ProviderFromCtx(rootCtx).Init(rootCtx)
-	if err != nil {
-		logger.Fatal().
-			Err(err).
-			Msg("Could not initialize user provider")
-	}
-
 	logger.Info().
 		Str("addr",config.Server.Address).
 		Int("port", config.Server.Port).

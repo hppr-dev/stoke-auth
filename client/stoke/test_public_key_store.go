@@ -16,6 +16,13 @@ type TestPublicKeyStore struct {
 	invalid bool
 }
 
+// Initializes and returns a new TestPublicKeyStore
+func NewTestPublicKeyStore(defaultToken string) (*TestPublicKeyStore, error){
+	return &TestPublicKeyStore{
+		DefaultTokenStr: defaultToken,
+	}, nil
+}
+
 // Treat all calls to ParseClaims as an error
 func (t *TestPublicKeyStore) SetReject() {
 	t.reject = true

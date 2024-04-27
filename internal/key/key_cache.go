@@ -14,6 +14,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/rs/zerolog"
 	"github.com/vincentfree/opentelemetry/otelzerolog"
+	"go.opentelemetry.io/otel/trace"
 	"hppr.dev/stoke"
 )
 
@@ -21,7 +22,6 @@ type KeyCache[P PrivateKey] interface {
 	CurrentKey() KeyPair[P]
 	PublicKeys(context.Context) ([]byte, error)
 	Generate(context.Context) error
-	Bootstrap(context.Context, KeyPair[P]) error
 	Keys() []KeyPair[P]
 	ReadLock()
 	ReadUnlock()
@@ -30,50 +30,84 @@ type KeyCache[P PrivateKey] interface {
 }
 
 type PrivateKeyCache[P PrivateKey] struct {
-	activeKey int
-	keyPairsMutex sync.RWMutex
-	KeyPairs []KeyPair[P]
 	Ctx context.Context
 	KeyDuration time.Duration
 	TokenDuration time.Duration
 	PersistKeys bool
+
+	activeKey int
+	keyPairsMutex sync.RWMutex
+	KeyPairs []KeyPair[P]
 }
 
-// Implements stoke.PublicKeyStore
-func (c *PrivateKeyCache[P]) Init(ctx context.Context) error {
-	c.activeKey = 0
+// Initializes a new PrivateKeyCache. Starts a management goroutine
+func NewPrivateKeyCache[P PrivateKey](tokenDur, keyDur time.Duration, persistKeys bool, keyPair KeyPair[P], ctx context.Context) (*PrivateKeyCache[P], error) {
+	c := &PrivateKeyCache[P]{
+		Ctx : ctx,
+		TokenDuration: tokenDur,
+		KeyDuration: keyDur,
+		PersistKeys: persistKeys,
+	}
+	c.Bootstrap(ctx, keyPair)
 	go c.goManage(ctx)
-	return nil
+	return c, nil
 }
+
+const (
+	CERT_IN_USE uint8 = iota
+	CERT_RENEW_START
+	CERT_ACTIVATED
+)
 
 func (c *PrivateKeyCache[P]) goManage(ctx context.Context) {
-	logger := zerolog.Ctx(ctx)
+	logger := zerolog.Ctx(ctx).With().
+			Str("component", "PrivateKeyCache.Management").
+			Logger()
+
+	var sCtx context.Context
+	var span trace.Span
+	var sLogger zerolog.Logger
+	state := CERT_IN_USE
+	nextUpdateIn := c.CurrentKey().ExpiresAt().Sub(time.Now()) - ( c.TokenDuration * 2 )
 
 	logger.Info().Msg("Starting key cache management...")
 	for {
-		nextExpire := c.CurrentKey().ExpiresAt().Sub(time.Now())
-		nextRenew  := nextExpire - (c.TokenDuration * 2)
+		select {
+		case <-ctx.Done():
+			logger.Info().Msg("Context canceled. Stopping.")
+			return
+		case <-time.After(nextUpdateIn):
+			switch state {
+			case CERT_IN_USE :
+				sCtx, span = tel.GetTracer().Start(ctx, "PrivateKeyCache.Rotation")
+				sLogger = logger.Hook(tel.LogHook{ Ctx : sCtx } )
+				sCtx = sLogger.WithContext(sCtx)
 
-		time.Sleep(nextRenew)
-		sCtx, span := tel.GetTracer().Start(ctx, "PrivateKeyCache.Rotation")
-		sLogger := logger.With().
-			Str("component", "PrivateKeyCache.Management").
-			Logger().
-			Hook(tel.LogHook{ Ctx : sCtx } )
-		sCtx = sLogger.WithContext(sCtx)
+				if err := c.Generate(sCtx); err != nil {
+					sLogger.Error().Err(err).Msg("Could not generate key")
+				}
 
-		c.Generate(sCtx)
+				state = CERT_RENEW_START
+				nextUpdateIn = c.TokenDuration
 
-		time.Sleep(c.TokenDuration)
-		sLogger.Info().Msg("Activating new key...")
-		c.keyPairsMutex.Lock()
-		c.activeKey += 1
-		c.keyPairsMutex.Unlock()
+			case CERT_RENEW_START :
+				sLogger.Info().Msg("Activating new key...")
 
-		time.Sleep(c.TokenDuration)
-		c.Clean(sCtx)
+				c.keyPairsMutex.Lock()
+				c.activeKey += 1
+				c.keyPairsMutex.Unlock()
 
-		span.End()
+				state = CERT_ACTIVATED
+				nextUpdateIn = c.TokenDuration
+
+			case CERT_ACTIVATED :
+				c.Clean(sCtx)
+				span.End()
+
+				state = CERT_IN_USE
+				nextUpdateIn = c.CurrentKey().ExpiresAt().Sub(time.Now()) - ( c.TokenDuration * 2 )
+			}
+		}
 	}
 }
 
@@ -108,7 +142,7 @@ func (c *PrivateKeyCache[P]) PublicKeys(ctx context.Context) ([]byte, error) {
 
 // Generates a new key and appends it to the list of keys
 func (c *PrivateKeyCache[P]) Generate(ctx context.Context) error {
-	logger := zerolog.Ctx(ctx)
+	logger := zerolog.Ctx(ctx).With().Str("function", "Generate").Logger()
 	ctx, span := tel.GetTracer().Start(ctx, "PrivateKeyCache.Generate")
 	defer span.End()
 

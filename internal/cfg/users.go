@@ -133,6 +133,10 @@ func (u Users) withContext(ctx context.Context) context.Context {
 		provider = usr.LocalProvider{}
 	}
 
+	if err := provider.CheckCreateForSuperUser(ctx); err != nil {
+		logger.Error().Err(err).Msg("Could not check/create superuser.")
+	}
+
 	return context.WithValue(ctx, "user-provider", provider)
 }
 

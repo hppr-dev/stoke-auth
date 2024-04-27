@@ -18,8 +18,7 @@ func NewEntityAPIHandler(prefix string, ctx context.Context) http.Handler {
 		prefix = prefix[0 : len(prefix)-1]
 	}
 
-	eHandler := &entityHandler{}
-	eHandler.Init(ctx)
+	eHandler := newEntityHandler(ctx)
 
 	sHandler := &secHandler{
 		TokenHandler: stoke.NewTokenHandler(
@@ -55,6 +54,12 @@ type entityHandler struct {
 	*ogent.OgentHandler
 }
 
+func newEntityHandler(ctx context.Context) *entityHandler {
+	return &entityHandler{
+		OgentHandler: ogent.NewOgentHandler(ent.FromContext(ctx)),
+	}
+}
+
 // Capabilities implements ogent.Handler.
 func (h *entityHandler) Capabilities(ctx context.Context) (*ogent.CapabilitiesOK, error) {
 	var caps []string
@@ -72,10 +77,6 @@ func (h *entityHandler) Capabilities(ctx context.Context) (*ogent.CapabilitiesOK
 		Capabilities: caps,
 	}, nil
 
-}
-
-func (h *entityHandler) Init(ctx context.Context) {
-	h.OgentHandler = ogent.NewOgentHandler(ent.FromContext(ctx))
 }
 
 func (h *entityHandler) Totals(ctx context.Context) (*ogent.TotalsOK, error) {

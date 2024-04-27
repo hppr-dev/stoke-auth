@@ -14,18 +14,24 @@ type WebCachePublicKeyStore struct {
 	BasePublicKeyStore
 }
 
-// Initialize the WebCachePublicKeyStore. Must be called before use.
+// Initialize a WebCachePublicKeyStore
 // Starts the management go routine.
-func (s *WebCachePublicKeyStore) Init(ctx context.Context) error {
-  s.BasePublicKeyStore.keyFunc = func(token *jwt.Token) (interface{}, error) {
+func NewWebCachePublicKeyStore(endpoint string, ctx context.Context) (*WebCachePublicKeyStore, error) {
+	s := &WebCachePublicKeyStore{
+		BasePublicKeyStore: BasePublicKeyStore{
+			Endpoint: endpoint,
+		},
+	}
+	s.keyFunc = func(token *jwt.Token) (interface{}, error) {
 		return s.keySet, nil
 	}
-	s.BasePublicKeyStore.Endpoint = s.Endpoint
+
   if err := s.refreshPublicKeys(ctx); err != nil {
-		return err
+		return nil, err
 	}
+
 	go s.goManage(ctx)
-	return nil
+	return s, nil
 }
 
 // Manages the keystore from a go routine, pulling public keys at the time specified by exp

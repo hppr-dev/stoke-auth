@@ -141,3 +141,7 @@ func TestPrivateKeyCacheCurrentKey(t *testing.T) {
 		t.Fatal("Returned KeyCache Key did not match CurrentKey")
 	}
 }
+
+func TestPrivateKeyCacheInitManagement(t *testing.T) {
+
+}
