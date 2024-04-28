@@ -88,13 +88,30 @@ func NewMockContext() context.Context {
 	return ctx
 }
 
-func WithDatabase(t *testing.T, ctx context.Context) context.Context {
+type DatabaseMutation func(*ent.Client) error
+
+func WithDatabase(t *testing.T, ctx context.Context, mutations ...DatabaseMutation) context.Context {
 	client := enttest.Open(t, "sqlite3", "file:ent?mode=memory&_fk=1")
-	client.PrivateKey.Create().
-		SetExpires(time.Date(5000, time.January, 10, 10, 10, 10, 10, time.UTC)).
-		SetText("DHGQKw0oDDcMcZArDSgMNwxxkCsNKAw3DHGQKw0oDDc=").
-		SaveX(ctx)
+	for _, mut := range mutations {
+		if err := mut(client); err != nil {
+			t.Logf("Database mutation failed: %v", err)
+		}
+	}
 	return ent.NewContext(ctx, client)
+}
+
+func ForeverToken() DatabaseMutation {
+	return TokenWithExpires(time.Date(5000, time.January, 10, 10, 10, 10, 10, time.UTC))
+}
+
+func TokenWithExpires(exp time.Time) DatabaseMutation {
+	return func(client *ent.Client) error {
+		_, err := client.PrivateKey.Create().
+			SetExpires(exp).
+			SetText("DHGQKw0oDDcMcZArDSgMNwxxkCsNKAw3DHGQKw0oDDe1+1s+xW4vzlPSPGN3OTEStdBKaW3SHjMRGJL5rk6IAA==").
+			Save(context.Background())
+		return err
+	}
 }
 
 

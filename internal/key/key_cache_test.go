@@ -1,7 +1,9 @@
 package key_test
 
 import (
+	"context"
 	"crypto/ed25519"
+	"encoding/base64"
 	"stoke/internal/key"
 	"testing"
 	"time"
@@ -49,7 +51,7 @@ func TestPrivateKeyCacheGenerate(t *testing.T) {
 }
 
 func TestPrivateKeyCacheBootstrap(t *testing.T) {
-	ctx := WithDatabase(t, NewMockContext())
+	ctx := WithDatabase(t, NewMockContext(), ForeverToken())
 	bsCache := key.PrivateKeyCache[ed25519.PrivateKey]{
 		KeyPairs:      []key.KeyPair[ed25519.PrivateKey]{},
 		Ctx:           ctx,
@@ -62,8 +64,13 @@ func TestPrivateKeyCacheBootstrap(t *testing.T) {
 		t.Fail()
 	}
 
-	if len(bsCache.KeyPairs) != 1 || bsCache.KeyPairs[0].Key().Equal(buildEdDSAKey()) {
-		t.Log("Bootstrapped keys do not match expected values")
+	if len(bsCache.KeyPairs) != 1 {
+		t.Logf("Do not have expected number of bootstrapped keys: %d", len(bsCache.KeyPairs))
+		t.Fail()
+	}
+
+	if !bsCache.KeyPairs[0].Key().Equal(edKey) {
+		t.Logf("Bootstrapped key does not match:\nExp %s\nRes %s", base64.StdEncoding.EncodeToString(edKey), base64.StdEncoding.EncodeToString(bsCache.KeyPairs[0].Key()))
 		t.Fail()
 	}
 }
@@ -142,6 +149,68 @@ func TestPrivateKeyCacheCurrentKey(t *testing.T) {
 	}
 }
 
-func TestPrivateKeyCacheInitManagement(t *testing.T) {
+func TestNewPrivateKeyCacheWithManagement(t *testing.T) {
+	tokenDuration := 10 * time.Millisecond
+	keyDuration := 100 * time.Millisecond
+
+	ctx := WithDatabase(t, NewMockContext(), TokenWithExpires(time.Now().Add(keyDuration)))
+
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	keyCache, err := key.NewPrivateKeyCache(tokenDuration, keyDuration, false, edKeyPair, ctx)
+	if err != nil {
+		t.Logf("Failed to create private key cache: %v", err)
+		t.Fail()
+	}
+
+	if len(keyCache.KeyPairs) != 1 {
+		t.Logf("Private key cache did not have correct number of keys before starting: %d", len(kc.KeyPairs))
+		t.Fail()
+	}
+
+	currKey := keyCache.CurrentKey()
+
+	time.Sleep(keyDuration - (tokenDuration * 2))
+	time.Sleep(2 * time.Millisecond)
+
+	// Should have created a new key and not activated it yet
+	if len(keyCache.KeyPairs) != 2 {
+		t.Logf("Private key cache did not have correct number of keys after creating: %d", len(kc.KeyPairs))
+		t.Fail()
+	}
+
+	if keyCache.CurrentKey() != currKey {
+		t.Log("Current key was updated before intended")
+		t.Fail()
+	}
+
+	time.Sleep(tokenDuration)
+
+	// Should have activated the new key but not cleaned the old one
+	if len(keyCache.KeyPairs) != 2 {
+		t.Logf("Private key cache did not have correct number of keys after activation: %d", len(kc.KeyPairs))
+		t.Fail()
+	}
+
+	if keyCache.CurrentKey() == currKey {
+		t.Log("New key was not activated")
+		t.Fail()
+	}
+
+	currKey = keyCache.CurrentKey()
+
+	time.Sleep(tokenDuration)
+
+	// Should have cleaned the inactive key
+	if len(keyCache.KeyPairs) != 1 {
+		t.Logf("Private key cache did not have correct number of keys after clean: %d", len(kc.KeyPairs))
+		t.Fail()
+	}
+
+	if keyCache.CurrentKey() != currKey {
+		t.Log("Activated key was changed after activation")
+		t.Fail()
+	}
 
 }
