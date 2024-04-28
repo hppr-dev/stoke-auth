@@ -61,22 +61,10 @@ var (
 
 type MockKeyCache struct{}
 
-func (m *MockKeyCache) Keys() []key.KeyPair[ed25519.PrivateKey] {
-	return []key.KeyPair[ed25519.PrivateKey]{ edKeyPair }
-}
-
-func (m *MockKeyCache) ParseClaims(context.Context, string, *stoke.Claims, ...jwt.ParserOption) (*jwt.Token, error) {
-	return nil, nil
-}
-
-func (m *MockKeyCache) CurrentKey() key.KeyPair[ed25519.PrivateKey] {
-	return edKeyPair
-}
-
-func (m *MockKeyCache) PublicKeys(context.Context) ([]byte, error) {
-	return edKeyPair.PrivateKey.Public().([]byte), nil
-}
-
+func (m *MockKeyCache) Keys() []key.KeyPair[ed25519.PrivateKey] { return []key.KeyPair[ed25519.PrivateKey]{ edKeyPair } }
+func (m *MockKeyCache) ParseClaims(context.Context, string, *stoke.Claims, ...jwt.ParserOption) (*jwt.Token, error) { return nil, nil }
+func (m *MockKeyCache) CurrentKey() key.KeyPair[ed25519.PrivateKey] { return edKeyPair }
+func (m *MockKeyCache) PublicKeys(context.Context) ([]byte, error) { return edKeyPair.PrivateKey.Public().([]byte), nil }
 func (m *MockKeyCache) Bootstrap(context.Context, key.KeyPair[ed25519.PrivateKey]) error { return nil }
 func (m *MockKeyCache) Generate(context.Context) error { return nil }
 func (m *MockKeyCache) ReadLock() { return }

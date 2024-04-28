@@ -51,6 +51,119 @@ func TestAsymetricIssueTokenHappy(t *testing.T) {
 	expectToken(token, refresh, expBody, t)
 }
 
+func TestAsymetricIssueTokenWithTokenLimit(t *testing.T) {
+	later := time.Date(5000, time.January, 10, 10, 10, 10, 10, time.UTC)
+	earlier := time.Date(1000, time.January, 10, 10, 10, 10, 10, time.UTC)
+	ctx := NewMockContext()
+
+	claims := &stoke.Claims{
+		StokeClaims: map[string]string {
+			"hello" : "world",
+			"foo": "bar",
+		},
+		RegisteredClaims: jwt.RegisteredClaims{
+			Issuer:    "Me",
+			Subject:   "Myself",
+			Audience:  []string{"eye"},
+			ExpiresAt: jwt.NewNumericDate(later),
+			NotBefore: jwt.NewNumericDate(earlier),
+			IssuedAt:  jwt.NewNumericDate(earlier),
+		},
+	}
+
+	issuer := key.AsymetricTokenIssuer[ed25519.PrivateKey]{
+		TokenRefreshLimit : 3,
+		KeyCache: &MockKeyCache{},
+	}
+
+	token, refresh, err := issuer.IssueToken(claims, ctx)
+	if err != nil {
+		t.Logf("An error occurred while generating token: %v", err)
+		t.Fail()
+	}
+
+	// We need to handle any valid ordering of keys and order will change the signature
+	expBody := map[string]string {
+		"eyJpc3MiOiJNZSIsInN1YiI6Ik15c2VsZiIsImF1ZCI6WyJleWUiXSwiZXhwIjo5NTYxODM5ODIxMCwianRpIjoiazMiLCJoZWxsbyI6IndvcmxkIiwiZm9vIjoiYmFyIn0.DZ1jEMzSrh12jMZyXkbotR5rdWPum0lMmIhIo_NjgoYBvOHBNzb60Yn4T9wNpYXH7mCOvgpBrhbCheRcTlmQAQ" : "tfUZwVnyxrNDMKVUvnz8xOa31NWXLJFNMCd07OiANTkJHVdtlfeXqXOwwxT0kWZMr25xcS7ynoLV0M6YnmRABg==",
+		"eyJpc3MiOiJNZSIsInN1YiI6Ik15c2VsZiIsImF1ZCI6WyJleWUiXSwiZXhwIjo5NTYxODM5ODIxMCwianRpIjoiazMiLCJmb28iOiJiYXIiLCJoZWxsbyI6IndvcmxkIn0.Q8Mdg8ikzxaXbAb0XINXb9WukhxkdNiWdE0ms3i1SMgbGb1Ry7XKbz8pfpx8Y5k9X44EMnvq9TBn2u3gJfjmBQ" : "Bwc4kdQo/Pv4wvty8PhSl/ruZRlHv3lfGckjA+CMtedK37kPkVeJrYnFAcPB5sePV5XOYuxlOWFy30kr8wOrCw==",
+	}
+
+	expectToken(token, refresh, expBody, t)
+}
+
+func TestAsymetricIssueTokenWithTokenLimitWithCustomKey(t *testing.T) {
+	later := time.Date(5000, time.January, 10, 10, 10, 10, 10, time.UTC)
+	earlier := time.Date(1000, time.January, 10, 10, 10, 10, 10, time.UTC)
+	ctx := NewMockContext()
+
+	claims := &stoke.Claims{
+		StokeClaims: map[string]string {
+			"ref": "k3",
+		},
+		RegisteredClaims: jwt.RegisteredClaims{
+			Issuer:    "Me",
+			Subject:   "Myself",
+			Audience:  []string{"eye"},
+			ExpiresAt: jwt.NewNumericDate(later),
+			NotBefore: jwt.NewNumericDate(earlier),
+			IssuedAt:  jwt.NewNumericDate(earlier),
+			ID:        "someID",
+		},
+	}
+
+	issuer := key.AsymetricTokenIssuer[ed25519.PrivateKey]{
+		TokenRefreshLimit : 3,
+		TokenRefreshCountKey: "ref",
+		KeyCache: &MockKeyCache{},
+	}
+
+	token, refresh, err := issuer.IssueToken(claims, ctx)
+	if err != nil {
+		t.Logf("An error occurred while generating token: %v", err)
+		t.Fail()
+	}
+
+	// Since we only have the one claim, we only need one entry
+	expBody := map[string]string {
+		"eyJpc3MiOiJNZSIsInN1YiI6Ik15c2VsZiIsImF1ZCI6WyJleWUiXSwiZXhwIjo5NTYxODM5ODIxMCwianRpIjoic29tZUlEIiwicmVmIjoiazIifQ.aVJ25NNcbwWR90_YYESMtj6v94P39Wtgmyhl9iBcPVmMQfPjpZz_wxAsR97yEyS95Oxx8eBk4eyPtydPqlyICQ" : "HmsfnnYzuhd/Q1uLMoBTCp+G+brDXXxN1lLg7F5rIqh6YBi61ME4/V551LK+lxQlRts4yJwG67uhP1ivy9pyBQ==",
+	}
+
+	expectToken(token, refresh, expBody, t)
+}
+
+func TestAsymetricIssueTokenAtRefreshLimit(t *testing.T) {
+	later := time.Date(5000, time.January, 10, 10, 10, 10, 10, time.UTC)
+	earlier := time.Date(1000, time.January, 10, 10, 10, 10, 10, time.UTC)
+	ctx := NewMockContext()
+
+	claims := &stoke.Claims{
+		StokeClaims: map[string]string {
+			"ref": "k0",
+		},
+		RegisteredClaims: jwt.RegisteredClaims{
+			Issuer:    "Me",
+			Subject:   "Myself",
+			Audience:  []string{"eye"},
+			ExpiresAt: jwt.NewNumericDate(later),
+			NotBefore: jwt.NewNumericDate(earlier),
+			IssuedAt:  jwt.NewNumericDate(earlier),
+			ID:        "someID",
+		},
+	}
+
+	issuer := key.AsymetricTokenIssuer[ed25519.PrivateKey]{
+		TokenRefreshLimit : 3,
+		TokenRefreshCountKey: "ref",
+		KeyCache: &MockKeyCache{},
+	}
+
+	token, refresh, err := issuer.IssueToken(claims, ctx)
+	if err == nil {
+		t.Logf("Was able to refresh token with reached token limit:\nt: %s\nr:%s", token, refresh)
+		t.Fail()
+	}
+}
+
 func TestAsymetricRefreshHappy(t *testing.T) {
 	ctx := NewMockContext()
 
@@ -80,6 +193,76 @@ func TestAsymetricRefreshHappy(t *testing.T) {
 	}
 
 	expectToken(token, refresh, expBodyMap, t)
+}
+
+func TestAsymetricRefreshTokenBadBase64Encoding(t *testing.T) {
+	ctx := NewMockContext()
+
+	issuer := key.AsymetricTokenIssuer[ed25519.PrivateKey]{
+		KeyCache: &MockKeyCache{},
+	}
+
+	tokenStr := "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJNZSIsInN1YiI6Ik15c2VsZiIsImF1ZCI6WyJleWUiXSwiZXhwIjo5NTYxODM5ODIxMCwianRpIjoiazEiLCJoZWxsbyI6IndvcmxkIiwiZm9vIjoiYmFyIn0.6ZTrIrOHhUIvT5-3h2WGCwW0DCnuAJMPNdNIG5VMPWPgEix4fTqTUK8qsJUZH1SXbv0xmztPZOvvfuuykR06DQ"
+	refreshStr := "i***@@@##$%%%^"
+
+	jwtToken, err := jwt.ParseWithClaims(tokenStr, &stoke.Claims{}, func(*jwt.Token) (interface{}, error) { return issuer.CurrentKey().PublicKey(), nil })
+	if err != nil {
+		t.Logf("An error occurent while parsing static token: %v", err)
+		t.Fail()
+	}
+
+	token, refresh, err := issuer.RefreshToken(jwtToken, refreshStr, time.Hour, ctx)
+	if err == nil {
+		t.Logf("Was able to refresh with bad base64 refresh token:\nt: %s\nr: %s", token, refresh)
+		t.Fail()
+	}
+}
+
+func TestAsymetricRefreshTokenInvalidRefreshToken(t *testing.T) {
+	ctx := NewMockContext()
+
+	issuer := key.AsymetricTokenIssuer[ed25519.PrivateKey]{
+		KeyCache: &MockKeyCache{},
+	}
+
+	tokenStr := "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJNZSIsInN1YiI6Ik15c2VsZiIsImF1ZCI6WyJleWUiXSwiZXhwIjo5NTYxODM5ODIxMCwianRpIjoiazEiLCJoZWxsbyI6IndvcmxkIiwiZm9vIjoiYmFyIn0.6ZTrIrOHhUIvT5-3h2WGCwW0DCnuAJMPNdNIG5VMPWPgEix4fTqTUK8qsJUZH1SXbv0xmztPZOvvfuuykR06DQ"
+	refreshStr := "abcdefGHIJKabc=="
+
+	jwtToken, err := jwt.ParseWithClaims(tokenStr, &stoke.Claims{}, func(*jwt.Token) (interface{}, error) { return issuer.CurrentKey().PublicKey(), nil })
+	if err != nil {
+		t.Logf("An error occurent while parsing static token: %v", err)
+		t.Fail()
+	}
+
+	token, refresh, err := issuer.RefreshToken(jwtToken, refreshStr, time.Hour, ctx)
+	if err == nil {
+		t.Logf("Was able to refresh with unverifiable refresh token:\nt: %s\nr: %s", token, refresh)
+		t.Fail()
+	}
+}
+
+func TestAsymetricRefreshTokenInvalidClaimsType(t *testing.T) {
+	ctx := NewMockContext()
+
+	issuer := key.AsymetricTokenIssuer[ed25519.PrivateKey]{
+		KeyCache: &MockKeyCache{},
+	}
+
+	tokenStr := "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJNZSIsInN1YiI6Ik15c2VsZiIsImF1ZCI6WyJleWUiXSwiZXhwIjo5NTYxODM5ODIxMCwianRpIjoiazEiLCJoZWxsbyI6IndvcmxkIiwiZm9vIjoiYmFyIn0.6ZTrIrOHhUIvT5-3h2WGCwW0DCnuAJMPNdNIG5VMPWPgEix4fTqTUK8qsJUZH1SXbv0xmztPZOvvfuuykR06DQ"
+	refreshStr := "02CwLlpkhkT2UHqanet2vztwchNC/7WhiwwJ2pK4sdd/FpBs4lJvWTTaCKvJARs3q0SkALJWLPYzfkW+pXkvDg=="
+
+	mapClaims := make(jwt.MapClaims)
+	jwtToken, err := jwt.ParseWithClaims(tokenStr, mapClaims, func(*jwt.Token) (interface{}, error) { return issuer.CurrentKey().PublicKey(), nil })
+	if err != nil {
+		t.Logf("An error occurent while parsing static token: %v", err)
+		t.Fail()
+	}
+
+	token, refresh, err := issuer.RefreshToken(jwtToken, refreshStr, time.Hour, ctx)
+	if err == nil {
+		t.Logf("Was able to refresh with bad claims type:\nt: %s\nr: %s", token, refresh)
+		t.Fail()
+	}
 }
 
 func TestAsymetricWithContextFromContext(t *testing.T) {
@@ -121,3 +304,4 @@ func expectToken(token, refresh string, expBodyMap map[string]string, t *testing
 		t.Fail()
 	}
 }
+

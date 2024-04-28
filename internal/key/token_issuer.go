@@ -3,14 +3,15 @@ package key
 import (
 	"context"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"stoke/internal/tel"
 	"time"
 
-	"hppr.dev/stoke"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/rs/zerolog"
 	"github.com/vincentfree/opentelemetry/otelzerolog"
+	"hppr.dev/stoke"
 )
 
 func IssuerFromCtx(ctx context.Context) TokenIssuer {
@@ -54,24 +55,12 @@ func (a *AsymetricTokenIssuer[P]) IssueToken(claims *stoke.Claims, ctx context.C
 	curr := a.CurrentKey()
 	priv := curr.Key()
 	a.ReadUnlock()
-	token, err := jwt.NewWithClaims(curr.SigningMethod(), claims).SignedString(priv)
-	if err != nil {
-		logger.Error().
-			Func(otelzerolog.AddTracingContext(span)).
-			Err(err).
-			Msg("Failed to sign auth token")
-		return "", "", err
-	}
 
-	refresh, err := curr.SigningMethod().Sign(token, priv)
-	if err != nil {
-		logger.Error().
-			Func(otelzerolog.AddTracingContext(span)).
-			Err(err).
-			Msg("Failed to sign refresh token")
-		return "", "", err
-	}
-	return token, base64.StdEncoding.EncodeToString(refresh), err
+	token, tok_err := jwt.NewWithClaims(curr.SigningMethod(), claims).SignedString(priv)
+
+	refresh, ref_err := curr.SigningMethod().Sign(token, priv)
+
+	return token, base64.StdEncoding.EncodeToString(refresh), errors.Join(tok_err, ref_err)
 }
 
 func (a *AsymetricTokenIssuer[P]) RefreshToken(jwtToken *jwt.Token, refreshToken string, extendTime time.Duration, ctx context.Context) (string, string, error) {
@@ -103,13 +92,12 @@ func (a *AsymetricTokenIssuer[P]) RefreshToken(jwtToken *jwt.Token, refreshToken
 	if !ok {
 		logger.Debug().
 			Func(otelzerolog.AddTracingContext(span)).
-			Err(err).
 			Str("refreshToken", refreshToken).
 			Str("authToken", jwtToken.Raw).
 			Type("claimsType", jwtToken.Claims).
 			Interface("claimsValues", jwtToken.Claims).
 			Msg("Failed to convert jwt.Claims to stoke.Claims")
-		return "", "", err
+		return "", "", fmt.Errorf("Failed to convert jwt.Claims")
 	}
 
 	oldTime := stokeClaims.RegisteredClaims.ExpiresAt
@@ -143,14 +131,14 @@ func (a *AsymetricTokenIssuer[P]) setJWTID(claims *stoke.Claims) error {
 		}
 		
 		if oldJwtID == "" {
-			jwtID = fmt.Sprintf(jwtFormat, 1)
+			jwtID = fmt.Sprintf(jwtFormat, a.TokenRefreshLimit)
 		} else {
 			var gen int
-			fmt.Sscanf(claims.ID, jwtFormat, &gen)
-			if gen > a.TokenRefreshLimit {
+			fmt.Sscanf(oldJwtID, jwtFormat, &gen)
+			if gen == 0 {
 				return fmt.Errorf("Token refresh limit reached.")
 			}
-			jwtID = fmt.Sprintf(jwtFormat, gen+1)
+			jwtID = fmt.Sprintf(jwtFormat, gen-1)
 		}
 
 		if a.TokenRefreshCountKey == "" {
