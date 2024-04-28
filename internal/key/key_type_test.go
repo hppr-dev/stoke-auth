@@ -26,9 +26,43 @@ func TestGenerateHappy(t *testing.T) {
 		t.Fatalf("Failed to generate ECDSAKeyPair: %v", err)
 	}
 
+	ec.NumBits = 384
+	newEc, err = ec.Generate()
+	if err != nil || newEc == nil {
+		t.Fatalf("Failed to generate ECDSAKeyPair: %v", err)
+	}
+
+	ec.NumBits = 512
+	newEc, err = ec.Generate()
+	if err != nil || newEc == nil {
+		t.Fatalf("Failed to generate ECDSAKeyPair: %v", err)
+	}
+
+	// Bad num bits defaults to 256
+	ec.NumBits = 1
+	newEc, err = ec.Generate()
+	if err != nil || newEc == nil {
+		t.Fatalf("Failed to generate ECDSAKeyPair: %v", err)
+	}
+
+	if newEc.Key().Params().BitSize != 256 {
+		t.Fatalf("Defaultd bit sized ECDSAKeyPair was not 256: %d", newEc.Key().Params().BitSize)
+	}
+
 	newRs, err := rs.Generate()
 	if err != nil || newRs == nil {
 		t.Fatalf("Failed to generate RSSAKeyPair: %v", err)
+	}
+
+	// Bad num bits defaults to 256
+	rs.NumBits = 1
+	newRs, err = rs.Generate()
+	if err != nil || newRs == nil {
+		t.Fatalf("Failed to generate RSSAKeyPair: %v", err)
+	}
+
+	if newRs.Key().Size() != (256 / 8) {
+		t.Fatalf("RSA was not what was expected: %d", newRs.Key().Size())
 	}
 }
 
@@ -54,7 +88,7 @@ func TestPublicStringHappy(t *testing.T) {
 	}
 }
 
-func TestECDSAEncode(t *testing.T) {
+func TestEncode(t *testing.T) {
 	ed := &key.EdDSAKeyPair{ PrivateKey: buildEdDSAKey() }
 	ec := &key.ECDSAKeyPair{ NumBits: 256, PrivateKey: buildECDSAKey() }
 	rs := &key.RSAKeyPair{ NumBits: 256, PrivateKey: buildRSAKey() }
@@ -95,6 +129,41 @@ func TestDecodeHappy(t *testing.T) {
 
 	if err := rs.Decode(rsStr); err != nil || !rs.PrivateKey.Equal(buildRSAKey()) {
 		t.Fatalf("Failed to decode RSAKeyPair from string: %v.", err)
+	}
+}
+
+func TestDecodeBadBase64Encoding(t *testing.T) {
+	ed := key.EdDSAKeyPair{}
+	ec := key.ECDSAKeyPair{}
+	rs := key.RSAKeyPair{}
+
+	badBase64 := "^^^$$$####^&&@"
+
+	if err := ed.Decode(badBase64); err == nil {
+		t.Fatal("Decoding bad base64 EdDSA string did not produce an error")
+	}
+
+	if err := ec.Decode(badBase64); err == nil {
+		t.Fatal("Decoding bad base64 ECDSA string did not produce an error")
+	}
+
+	if err := rs.Decode(badBase64); err == nil {
+		t.Fatal("Decoding bad base64 RSA string did not produce an error")
+	}
+}
+
+func TestDecodeBadCertEncoding(t *testing.T) {
+	ec := key.ECDSAKeyPair{}
+	rs := key.RSAKeyPair{}
+
+	badCert := "abcdefGHIJKabc=="
+
+	if err := ec.Decode(badCert); err == nil {
+		t.Fatal("Decoding bad ECDSA string did not produce an error")
+	}
+
+	if err := rs.Decode(badCert); err == nil {
+		t.Fatal("Decoding bad RSA string did not produce an error")
 	}
 
 }

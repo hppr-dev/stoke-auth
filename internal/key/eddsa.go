@@ -24,12 +24,7 @@ func (k *EdDSAKeyPair) Generate() (KeyPair[ed25519.PrivateKey], error) {
 }
 
 func (k *EdDSAKeyPair) PublicString() string {
-	b, ok := k.PrivateKey.Public().(ed25519.PublicKey)
-	if !ok {
-		k.Logger.Error().Msg("Failed to convert public key to bytes.")
-		return ""
-	}
-
+	b := k.PrivateKey.Public().(ed25519.PublicKey)
 	return base64.StdEncoding.EncodeToString(b)
 }
 

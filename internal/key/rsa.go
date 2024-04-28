@@ -6,7 +6,6 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/base64"
-	"log"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/rs/zerolog"
@@ -23,16 +22,11 @@ func (k *RSAKeyPair) Generate() (KeyPair[*rsa.PrivateKey], error) {
 	k.Logger.Info().Msg("Generating RSA key...")
 
 	if k.NumBits != 256 && k.NumBits != 384 && k.NumBits != 512 {
-		log.Println("Number of bits not set to 256, 384, or 512. Setting to default 256.")
+		k.Logger.Warn().Msg("Number of bits not set to 256, 384, or 512. Setting to default 256.")
 		k.NumBits = 256
 	}
 
 	priv, err := rsa.GenerateKey(rand.Reader, k.NumBits)
-	if err != nil {
-		k.Logger.Error().Err(err).Msg("Failed to generate key")
-		return nil, err
-	}
-
 	return &RSAKeyPair{
 		NumBits: k.NumBits,
 		PrivateKey: priv,

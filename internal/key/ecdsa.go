@@ -23,11 +23,6 @@ func (k *ECDSAKeyPair) Generate() (KeyPair[*ecdsa.PrivateKey], error) {
 	k.Logger.Info().Msg("Generating new ECDSA keypair...")
 
 	priv, err := ecdsa.GenerateKey(k.getCurve(), rand.Reader)
-	if err != nil {
-		k.Logger.Error().Err(err).Msg("Could not generate ECDSA key")
-		return nil, err
-	}
-
 	return &ECDSAKeyPair{
 		NumBits: k.NumBits,
 		PrivateKey: priv,
@@ -35,12 +30,7 @@ func (k *ECDSAKeyPair) Generate() (KeyPair[*ecdsa.PrivateKey], error) {
 }
 
 func (k *ECDSAKeyPair) PublicString() string {
-	s, err := x509.MarshalPKIXPublicKey(&k.PrivateKey.PublicKey)
-	if err != nil {
-		k.Logger.Error().Err(err).Msg("Error processing public string")
-		return ""
-	}
-
+	s, _ := x509.MarshalPKIXPublicKey(&k.PrivateKey.PublicKey)
 	return base64.StdEncoding.EncodeToString(s)
 }
 
@@ -49,12 +39,7 @@ func (k *ECDSAKeyPair) PublicKey() crypto.PublicKey {
 }
 
 func (k *ECDSAKeyPair) Encode() string {
-	s, err := x509.MarshalECPrivateKey(k.PrivateKey)
-	if err != nil {
-		k.Logger.Error().Err(err).Msg("Could not encode private key")
-		return ""
-	}
-
+	s, _ := x509.MarshalECPrivateKey(k.PrivateKey)
 	return base64.StdEncoding.EncodeToString(s)
 }
 
