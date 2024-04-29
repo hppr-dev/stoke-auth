@@ -83,9 +83,7 @@ func (c *PrivateKeyCache[P]) goManage(ctx context.Context) {
 				sLogger = logger.Hook(tel.LogHook{ Ctx : sCtx } )
 				sCtx = sLogger.WithContext(sCtx)
 
-				if err := c.Generate(sCtx); err != nil {
-					sLogger.Error().Err(err).Msg("Could not generate key")
-				}
+				c.Generate(sCtx)
 
 				state = CERT_RENEW_START
 				nextUpdateIn = c.TokenDuration
@@ -151,7 +149,8 @@ func (c *PrivateKeyCache[P]) Generate(ctx context.Context) error {
 		Msg("Generating new key...")
 
 	if len(c.KeyPairs) == 0 {
-		logger.Fatal().Msg("Unable to generate keyPairs. No keys in keystore!")
+		logger.Error().Msg("Unable to generate key pair. No keys in keystore!")
+		return fmt.Errorf("No keys in keystore.")
 	}
 
 	newKey, err := c.KeyPairs[0].Generate()
@@ -223,15 +222,6 @@ func (c *PrivateKeyCache[P]) Bootstrap(ctx context.Context, pair KeyPair[P]) err
 		pair, err = pair.Generate()
 		if err != nil {
 			logger.Error().Err(err).Msg("Could not generate private key")
-			return err
-		}
-
-		pk, err = db.PrivateKey.Create().
-			SetText(pair.Encode()).
-			SetExpires(now.Add(c.KeyDuration)).
-			Save(c.Ctx)
-		if err != nil {
-			logger.Error().Err(err).Msg("Could not save private key")
 			return err
 		}
 	} else {
@@ -328,11 +318,6 @@ func (c *PrivateKeyCache[P]) ParseClaims(ctx context.Context, token string, clai
 		Bool("valid", jwtToken.Valid).
 		Str("alg", jwtToken.Method.Alg()).
 		Func(func(e *zerolog.Event) {
-			issued, _ := jwtToken.Claims.GetIssuedAt()
-			if issued != nil {
-				e.Time("issued", issued.Time)
-			}
-
 			expires, _ := jwtToken.Claims.GetExpirationTime()
 			if expires != nil {
 				e.Time("expires", expires.Time)

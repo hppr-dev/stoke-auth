@@ -2,10 +2,12 @@ package key_test
 
 import (
 	"context"
+	"crypto"
 	"crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/rsa"
 	"crypto/x509"
+	"errors"
 	"os"
 	"stoke/internal/ent"
 	"stoke/internal/ent/enttest"
@@ -61,14 +63,27 @@ var (
 
 type MockKeyCache struct{}
 
-func (m *MockKeyCache) Keys() []key.KeyPair[ed25519.PrivateKey] { return []key.KeyPair[ed25519.PrivateKey]{ edKeyPair } }
-func (m *MockKeyCache) ParseClaims(context.Context, string, *stoke.Claims, ...jwt.ParserOption) (*jwt.Token, error) { return nil, nil }
-func (m *MockKeyCache) CurrentKey() key.KeyPair[ed25519.PrivateKey] { return edKeyPair }
-func (m *MockKeyCache) PublicKeys(context.Context) ([]byte, error) { return edKeyPair.PrivateKey.Public().([]byte), nil }
-func (m *MockKeyCache) Bootstrap(context.Context, key.KeyPair[ed25519.PrivateKey]) error { return nil }
-func (m *MockKeyCache) Generate(context.Context) error { return nil }
-func (m *MockKeyCache) ReadLock() { return }
-func (m *MockKeyCache) ReadUnlock() { return }
+func (*MockKeyCache) Keys() []key.KeyPair[ed25519.PrivateKey] { return []key.KeyPair[ed25519.PrivateKey]{ edKeyPair } }
+func (*MockKeyCache) ParseClaims(context.Context, string, *stoke.Claims, ...jwt.ParserOption) (*jwt.Token, error) { return nil, nil }
+func (*MockKeyCache) CurrentKey() key.KeyPair[ed25519.PrivateKey] { return edKeyPair }
+func (*MockKeyCache) PublicKeys(context.Context) ([]byte, error) { return edKeyPair.PrivateKey.Public().([]byte), nil }
+func (*MockKeyCache) Bootstrap(context.Context, key.KeyPair[ed25519.PrivateKey]) error { return nil }
+func (*MockKeyCache) Generate(context.Context) error { return nil }
+func (*MockKeyCache) ReadLock() { return }
+func (*MockKeyCache) ReadUnlock() { return }
+
+type BadKeyPair struct {}
+var badKeyPairErr = errors.New("Bad Key Pair")
+
+func (BadKeyPair) Generate() (key.KeyPair[ed25519.PrivateKey], error) { return nil, badKeyPairErr }
+func (BadKeyPair) PublicString() string { return "" }
+func (BadKeyPair) Encode() string { return ""}
+func (BadKeyPair) Decode(string) error { return badKeyPairErr }
+func (BadKeyPair) Key() ed25519.PrivateKey { return edKey }
+func (BadKeyPair) PublicKey() crypto.PublicKey { return edKeyPair.PublicKey() }
+func (BadKeyPair) SigningMethod() jwt.SigningMethod { return edKeyPair.SigningMethod() }
+func (BadKeyPair) SetExpires(time.Time) { }
+func (BadKeyPair) ExpiresAt() time.Time { return time.Now().Add(-time.Hour) }
 
 func NewMockContext() context.Context {
 	ctx := context.Background()
@@ -88,11 +103,11 @@ func WithDatabase(t *testing.T, ctx context.Context, mutations ...DatabaseMutati
 	return ent.NewContext(ctx, client)
 }
 
-func ForeverToken() DatabaseMutation {
-	return TokenWithExpires(time.Date(5000, time.January, 10, 10, 10, 10, 10, time.UTC))
+func ForeverKey() DatabaseMutation {
+	return KeyWithExpires(time.Date(5000, time.January, 10, 10, 10, 10, 10, time.UTC))
 }
 
-func TokenWithExpires(exp time.Time) DatabaseMutation {
+func KeyWithExpires(exp time.Time) DatabaseMutation {
 	return func(client *ent.Client) error {
 		_, err := client.PrivateKey.Create().
 			SetExpires(exp).
@@ -102,6 +117,46 @@ func TokenWithExpires(exp time.Time) DatabaseMutation {
 	}
 }
 
+func ForeverKeyWithText(text string) DatabaseMutation {
+	return func(client *ent.Client) error {
+		_, err := client.PrivateKey.Create().
+			SetExpires(time.Date(5000, time.January, 10, 10, 10, 10, 10, time.UTC)).
+			SetText(text).
+			Save(context.Background())
+		return err
+	}
+}
+
+type entErrHelper struct {}
+var simEntErr = errors.New("Simulated ent error") 
+func (entErrHelper) Query(context.Context, ent.Query) (ent.Value, error) { return nil, simEntErr }
+func (entErrHelper) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) { return nil, simEntErr }
+
+func ReturnsMutateErrors() DatabaseMutation {
+	return func(client *ent.Client) error {
+		client.Use(func(ent.Mutator) ent.Mutator{
+			return entErrHelper{}
+		})
+		return nil
+	}
+}
+
+func ReturnsReadErrors() DatabaseMutation {
+	return func(client *ent.Client) error {
+		client.Intercept(ent.InterceptFunc(func(ent.Querier) ent.Querier {
+			return entErrHelper{}
+		}))
+		return nil
+	}
+}
+
+func ReturnsAllErrors() DatabaseMutation {
+	return func(client *ent.Client) error {
+		ReturnsReadErrors()(client)
+		ReturnsMutateErrors()(client)
+		return nil
+	}
+}
 
 func buildEdDSAKey() ed25519.PrivateKey {
 	return edKey

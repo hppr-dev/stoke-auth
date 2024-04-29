@@ -2,8 +2,10 @@ package key_test
 
 import (
 	"context"
+	"crypto/ecdsa"
 	"crypto/ed25519"
 	"encoding/base64"
+	"stoke/internal/ent"
 	"stoke/internal/key"
 	"testing"
 	"time"
@@ -50,8 +52,70 @@ func TestPrivateKeyCacheGenerate(t *testing.T) {
 	}
 }
 
+func TestPrivateKeyCacheGeneratePersistsKeys(t *testing.T) {
+	ctx := WithDatabase(t, NewMockContext())
+	genCache := key.PrivateKeyCache[ed25519.PrivateKey]{
+		KeyPairs:      []key.KeyPair[ed25519.PrivateKey]{ edKeyPair },
+		Ctx:           ctx,
+		KeyDuration:   time.Hour,
+		TokenDuration: time.Minute,
+		PersistKeys:   true,
+	}
+	if err := genCache.Generate(ctx) ; err != nil {
+		t.Fatalf("An error occured while generating a PrivateKey: %v", err)
+	}
+	if count, err := ent.FromContext(ctx).PrivateKey.Query().Count(ctx); err != nil || count != 1 {
+		t.Fatalf("Did not persist generated keys when persist keys enabled: error %v, key count %d", err, count)
+	}
+}
+
+func TestPrivateKeyCacheGenerateDoesNotReturnErrorIfPersistFails(t *testing.T) {
+	ctx := WithDatabase(t, NewMockContext(), ReturnsMutateErrors())
+	genCache := key.PrivateKeyCache[ed25519.PrivateKey]{
+		KeyPairs:      []key.KeyPair[ed25519.PrivateKey]{ edKeyPair },
+		Ctx:           ctx,
+		KeyDuration:   time.Hour,
+		TokenDuration: time.Minute,
+		PersistKeys:   true,
+	}
+	if err := genCache.Generate(ctx) ; err != nil {
+		t.Fatalf("An error occured while generating a PrivateKey: %v", err)
+	}
+	if len(genCache.KeyPairs) != 2 {
+		t.Fatal("KeyPairs length was not 2 after generate")
+	}
+}
+
+func TestPrivateKeyCacheGenerateWithEmptyKeyPairs(t *testing.T) {
+	ctx := NewMockContext()
+	genCache := key.PrivateKeyCache[ed25519.PrivateKey]{
+		KeyPairs:      []key.KeyPair[ed25519.PrivateKey]{},
+		Ctx:           ctx,
+		KeyDuration:   time.Hour,
+		TokenDuration: time.Minute,
+		PersistKeys:   false,
+	}
+	if err := genCache.Generate(ctx) ; err == nil {
+		t.Fatal("Generated key when no keypairs existed")
+	}
+}
+
+func TestPrivateKeyCacheGenerateFailsOnKeyPairGenerateFail(t *testing.T) {
+	ctx := NewMockContext()
+	genCache := key.PrivateKeyCache[ed25519.PrivateKey]{
+		KeyPairs:      []key.KeyPair[ed25519.PrivateKey]{ BadKeyPair{} },
+		Ctx:           ctx,
+		KeyDuration:   time.Hour,
+		TokenDuration: time.Minute,
+		PersistKeys:   false,
+	}
+	if err := genCache.Generate(ctx) ; err == nil {
+		t.Fatal("Generated key when current key pair was bad")
+	}
+}
+
 func TestPrivateKeyCacheBootstrap(t *testing.T) {
-	ctx := WithDatabase(t, NewMockContext(), ForeverToken())
+	ctx := WithDatabase(t, NewMockContext(), ForeverKey())
 	bsCache := key.PrivateKeyCache[ed25519.PrivateKey]{
 		KeyPairs:      []key.KeyPair[ed25519.PrivateKey]{},
 		Ctx:           ctx,
@@ -75,12 +139,115 @@ func TestPrivateKeyCacheBootstrap(t *testing.T) {
 	}
 }
 
+func TestPrivateKeyCacheBootstrapCreatesNewKeyIfExpired(t *testing.T) {
+	ctx := WithDatabase(t, NewMockContext(), KeyWithExpires(time.Now().Add(-time.Hour)))
+	bsCache := key.PrivateKeyCache[ed25519.PrivateKey]{
+		KeyPairs:      []key.KeyPair[ed25519.PrivateKey]{},
+		Ctx:           ctx,
+		KeyDuration:   time.Hour,
+		TokenDuration: time.Minute,
+		PersistKeys:   true,
+	}
+	if err := bsCache.Bootstrap(ctx, &key.EdDSAKeyPair{}); err != nil {
+		t.Logf("Failed to boostrap cache: %v", err)
+		t.Fail()
+	}
+
+	if len(bsCache.KeyPairs) != 1 {
+		t.Logf("Do not have expected number of bootstrapped keys: %d", len(bsCache.KeyPairs))
+		t.Fail()
+	}
+
+	if bsCache.KeyPairs[0].Key().Equal(edKey) {
+		t.Logf("Bootstrapped key matches when it should have been regenerated:\nRes %s", base64.StdEncoding.EncodeToString(bsCache.KeyPairs[0].Key()))
+		t.Fail()
+	}
+}
+
+func TestPrivateKeyCacheBootstrapReturnsAnErrorIfPairFailsToGenerate(t *testing.T) {
+	ctx := WithDatabase(t, NewMockContext() )
+	bsCache := key.PrivateKeyCache[ed25519.PrivateKey]{
+		KeyPairs:      []key.KeyPair[ed25519.PrivateKey]{ &BadKeyPair{} },
+		Ctx:           ctx,
+		KeyDuration:   time.Hour,
+		TokenDuration: time.Minute,
+		PersistKeys:   true,
+	}
+	if err := bsCache.Bootstrap(ctx, &BadKeyPair{}); err == nil {
+		t.Log("Was able to bootstrap cache with bad key text")
+		t.Fail()
+	}
+}
+
+func TestPrivateKeyCacheBootstrapReturnsAnErrorIfPairFailsToDecode(t *testing.T) {
+	ctx := WithDatabase(t, NewMockContext(), ForeverKeyWithText("baddad1234=="))
+	bsCache := key.PrivateKeyCache[*ecdsa.PrivateKey]{
+		KeyPairs:      []key.KeyPair[*ecdsa.PrivateKey]{},
+		Ctx:           ctx,
+		KeyDuration:   time.Hour,
+		TokenDuration: time.Minute,
+		PersistKeys:   true,
+	}
+	if err := bsCache.Bootstrap(ctx, &key.ECDSAKeyPair{}); err == nil {
+		t.Log("Was able to bootstrap cache with bad key text")
+		t.Fail()
+	}
+}
+
 func TestPrivateKeyCacheClean(t *testing.T) {
-	ctx := WithDatabase(t, NewMockContext())
+	expiredTime := time.Now().Add(-time.Minute) 
+	okTime := time.Now().Add(time.Minute) 
+
+	ctx := WithDatabase(t, NewMockContext(), KeyWithExpires(expiredTime), KeyWithExpires(okTime))
+
 	k1 := &key.EdDSAKeyPair{ PrivateKey: edKey }
 	k1.SetExpires(time.Now().Add(-time.Minute))
 	k2 := &key.EdDSAKeyPair{ PrivateKey: edKey }
 	k2.SetExpires(time.Now().Add(time.Minute))
+
+	cache := key.PrivateKeyCache[ed25519.PrivateKey]{
+		KeyPairs:      []key.KeyPair[ed25519.PrivateKey]{ k1, k2 },
+		Ctx:           ctx,
+		KeyDuration:   time.Hour,
+		TokenDuration: time.Minute,
+		PersistKeys:   true,
+	}
+
+	cache.Clean(ctx)
+
+	if len(cache.KeyPairs) != 1 {
+		t.Log("Clean did not remove expired certificates")
+		t.Fail()
+	}
+
+	if cache.KeyPairs[0] != k2 {
+		t.Log("Clean key pair is not expected value")
+		t.Fail()
+	}
+
+	dbKeys := ent.FromContext(ctx).PrivateKey.Query().AllX(ctx)
+
+	if len(dbKeys) != 1 {
+		t.Logf("Number of keys in the database did not match expeced value: expected:2, actual: %d", len(dbKeys))
+		t.Fail()
+	}
+
+	if !dbKeys[0].Expires.Equal(okTime) {
+		t.Logf("Expected key left in database to have unexpired time(%v): %v", okTime , dbKeys[0])
+		t.Fail()
+	}
+}
+
+func TestPrivateKeyCacheCleanLogsErrorsIfDatabaseFailsDelete(t *testing.T) {
+	expiredTime := time.Now().Add(-time.Minute) 
+	okTime := time.Now().Add(time.Minute) 
+
+	ctx := WithDatabase(t, NewMockContext(), KeyWithExpires(expiredTime), KeyWithExpires(okTime), ReturnsMutateErrors())
+
+	k1 := &key.EdDSAKeyPair{ PrivateKey: edKey }
+	k1.SetExpires(expiredTime)
+	k2 := &key.EdDSAKeyPair{ PrivateKey: edKey }
+	k2.SetExpires(okTime)
 
 	cache := key.PrivateKeyCache[ed25519.PrivateKey]{
 		KeyPairs:      []key.KeyPair[ed25519.PrivateKey]{ k1, k2 },
@@ -126,6 +293,18 @@ func TestPrivateKeyCacheParseClaims(t *testing.T) {
 	}
 }
 
+func TestPrivateKeyCacheParseClaimsWithInvalidToken(t *testing.T) {
+	ctx := WithDatabase(t, NewMockContext())
+
+	tokenStr := "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJNZSIsInN1YiI6IbaddadadVsZiIsImF1ZCI6WyJleWUiXSwiZXhwIjo5NTYxODM5ODIxMCwianRpIjoiazEiLCJoZWxsbyI6IndvcmxkIiwiZm9vIjoiYmFyIn0.6ZTrIrOHhUIvT5-3h2WGCwW0DCnuAJMPNdNIG5VMPWPgEix4fTqTUK8qsJUZH1SXbv0xmztPZOvvfuuykR06DQ"
+
+	_, err := kc.ParseClaims(ctx, tokenStr, stoke.RequireToken() )
+	if err == nil {
+		t.Logf("Parse claims validated bad token: %v", err)
+		t.Fail()
+	}
+}
+
 func TestPrivateKeyCacheKeys(t *testing.T) {
 	keys := kc.Keys()
 	if len(keys) != 1 || !keys[0].Key().Equal(buildEdDSAKey()) {
@@ -149,11 +328,11 @@ func TestPrivateKeyCacheCurrentKey(t *testing.T) {
 	}
 }
 
-func TestNewPrivateKeyCacheWithManagement(t *testing.T) {
+func TestNewPrivateKeyCacheWithManagementHappy(t *testing.T) {
 	tokenDuration := 10 * time.Millisecond
 	keyDuration := 100 * time.Millisecond
 
-	ctx := WithDatabase(t, NewMockContext(), TokenWithExpires(time.Now().Add(keyDuration)))
+	ctx := WithDatabase(t, NewMockContext(), KeyWithExpires(time.Now().Add(keyDuration)))
 
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
