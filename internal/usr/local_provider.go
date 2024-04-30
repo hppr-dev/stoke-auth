@@ -28,7 +28,7 @@ func GenSalt() string {
 	return base64.StdEncoding.EncodeToString(saltBytes)
 }
 
-func (l LocalProvider) AddUser(fname, lname, email, username, password string, superUser bool, ctx context.Context) error {
+func (l LocalProvider) AddUser(fname, lname, email, username, password string, _ bool, ctx context.Context) error {
 	logger := zerolog.Ctx(ctx)
 	ctx, span := tel.GetTracer().Start(ctx, "LoginApiHandler.ServeHTTP")
 	defer span.End()
@@ -40,11 +40,10 @@ func (l LocalProvider) AddUser(fname, lname, email, username, password string, s
 		Str("lname", lname).
 		Str("username", username).
 		Str("email", email).
-		Bool("superuser", superUser).
 		Msg("Creating user")
 
 	salt := GenSalt()
-	userInfo, err := ent.FromContext(ctx).User.Create().
+	_, err := ent.FromContext(ctx).User.Create().
 		SetFname(fname).
 		SetLname(lname).
 		SetEmail(email).
@@ -63,30 +62,6 @@ func (l LocalProvider) AddUser(fname, lname, email, username, password string, s
 		return err
 	}
 	
-	if superUser {
-		superGroup, err := l.getOrCreateSuperGroup(ctx)
-		if err != nil {
-		logger.Error().
-			Func(otelzerolog.AddTracingContext(span)).
-			Err(err).
-			Str("username", username).
-			Str("email", email).
-			Msg("Could not get superuser group")
-			return err
-		}
-
-		_, err = superGroup.Update().AddUsers(userInfo).Save(ctx)
-		if err != nil {
-			logger.Error().
-				Func(otelzerolog.AddTracingContext(span)).
-				Err(err).
-				Str("username", username).
-				Str("email", email).
-				Msg("Could add user to super group")
-				return err
-		}
-	}
-
 	return nil
 }
 

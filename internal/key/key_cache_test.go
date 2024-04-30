@@ -7,6 +7,7 @@ import (
 	"encoding/base64"
 	"stoke/internal/ent"
 	"stoke/internal/key"
+	"stoke/internal/testutil"
 	"testing"
 	"time"
 
@@ -15,7 +16,7 @@ import (
 
 var kc = key.PrivateKeyCache[ed25519.PrivateKey]{
 	KeyPairs:      []key.KeyPair[ed25519.PrivateKey]{ edKeyPair },
-	Ctx:           NewMockContext(),
+	Ctx:           testutil.NewMockContext(),
 	KeyDuration:   time.Hour,
 	TokenDuration: time.Minute,
 	PersistKeys:   false,
@@ -39,7 +40,7 @@ func TestPrivateKeyCachePublicKeys(t *testing.T) {
 func TestPrivateKeyCacheGenerate(t *testing.T) {
 	genCache := key.PrivateKeyCache[ed25519.PrivateKey]{
 		KeyPairs:      []key.KeyPair[ed25519.PrivateKey]{ edKeyPair },
-		Ctx:           NewMockContext(),
+		Ctx:           testutil.NewMockContext(),
 		KeyDuration:   time.Hour,
 		TokenDuration: time.Minute,
 		PersistKeys:   false,
@@ -53,7 +54,7 @@ func TestPrivateKeyCacheGenerate(t *testing.T) {
 }
 
 func TestPrivateKeyCacheGeneratePersistsKeys(t *testing.T) {
-	ctx := WithDatabase(t, NewMockContext())
+	ctx := testutil.NewMockContext(testutil.WithDatabase(t))
 	genCache := key.PrivateKeyCache[ed25519.PrivateKey]{
 		KeyPairs:      []key.KeyPair[ed25519.PrivateKey]{ edKeyPair },
 		Ctx:           ctx,
@@ -70,7 +71,10 @@ func TestPrivateKeyCacheGeneratePersistsKeys(t *testing.T) {
 }
 
 func TestPrivateKeyCacheGenerateDoesNotReturnErrorIfPersistFails(t *testing.T) {
-	ctx := WithDatabase(t, NewMockContext(), ReturnsMutateErrors())
+	ctx := testutil.NewMockContext(
+		testutil.WithDatabase(t, testutil.ReturnsMutateErrors()),
+	)
+
 	genCache := key.PrivateKeyCache[ed25519.PrivateKey]{
 		KeyPairs:      []key.KeyPair[ed25519.PrivateKey]{ edKeyPair },
 		Ctx:           ctx,
@@ -87,7 +91,7 @@ func TestPrivateKeyCacheGenerateDoesNotReturnErrorIfPersistFails(t *testing.T) {
 }
 
 func TestPrivateKeyCacheGenerateWithEmptyKeyPairs(t *testing.T) {
-	ctx := NewMockContext()
+	ctx := testutil.NewMockContext()
 	genCache := key.PrivateKeyCache[ed25519.PrivateKey]{
 		KeyPairs:      []key.KeyPair[ed25519.PrivateKey]{},
 		Ctx:           ctx,
@@ -101,7 +105,7 @@ func TestPrivateKeyCacheGenerateWithEmptyKeyPairs(t *testing.T) {
 }
 
 func TestPrivateKeyCacheGenerateFailsOnKeyPairGenerateFail(t *testing.T) {
-	ctx := NewMockContext()
+	ctx := testutil.NewMockContext()
 	genCache := key.PrivateKeyCache[ed25519.PrivateKey]{
 		KeyPairs:      []key.KeyPair[ed25519.PrivateKey]{ BadKeyPair{} },
 		Ctx:           ctx,
@@ -115,7 +119,10 @@ func TestPrivateKeyCacheGenerateFailsOnKeyPairGenerateFail(t *testing.T) {
 }
 
 func TestPrivateKeyCacheBootstrap(t *testing.T) {
-	ctx := WithDatabase(t, NewMockContext(), ForeverKey())
+	ctx := testutil.NewMockContext(
+		testutil.WithDatabase(t, testutil.ForeverKey()),
+	)
+
 	bsCache := key.PrivateKeyCache[ed25519.PrivateKey]{
 		KeyPairs:      []key.KeyPair[ed25519.PrivateKey]{},
 		Ctx:           ctx,
@@ -140,7 +147,10 @@ func TestPrivateKeyCacheBootstrap(t *testing.T) {
 }
 
 func TestPrivateKeyCacheBootstrapCreatesNewKeyIfExpired(t *testing.T) {
-	ctx := WithDatabase(t, NewMockContext(), KeyWithExpires(time.Now().Add(-time.Hour)))
+	ctx := testutil.NewMockContext(
+		testutil.WithDatabase(t, testutil.KeyWithExpires(time.Now().Add(-time.Hour))),
+	)
+
 	bsCache := key.PrivateKeyCache[ed25519.PrivateKey]{
 		KeyPairs:      []key.KeyPair[ed25519.PrivateKey]{},
 		Ctx:           ctx,
@@ -165,7 +175,7 @@ func TestPrivateKeyCacheBootstrapCreatesNewKeyIfExpired(t *testing.T) {
 }
 
 func TestPrivateKeyCacheBootstrapReturnsAnErrorIfPairFailsToGenerate(t *testing.T) {
-	ctx := WithDatabase(t, NewMockContext() )
+	ctx := testutil.NewMockContext(testutil.WithDatabase(t))
 	bsCache := key.PrivateKeyCache[ed25519.PrivateKey]{
 		KeyPairs:      []key.KeyPair[ed25519.PrivateKey]{ &BadKeyPair{} },
 		Ctx:           ctx,
@@ -180,7 +190,10 @@ func TestPrivateKeyCacheBootstrapReturnsAnErrorIfPairFailsToGenerate(t *testing.
 }
 
 func TestPrivateKeyCacheBootstrapReturnsAnErrorIfPairFailsToDecode(t *testing.T) {
-	ctx := WithDatabase(t, NewMockContext(), ForeverKeyWithText("baddad1234=="))
+	ctx := testutil.NewMockContext(
+		testutil.WithDatabase(t, testutil.ForeverKeyWithText("baddad1234==")),
+	)
+
 	bsCache := key.PrivateKeyCache[*ecdsa.PrivateKey]{
 		KeyPairs:      []key.KeyPair[*ecdsa.PrivateKey]{},
 		Ctx:           ctx,
@@ -198,7 +211,12 @@ func TestPrivateKeyCacheClean(t *testing.T) {
 	expiredTime := time.Now().Add(-time.Minute) 
 	okTime := time.Now().Add(time.Minute) 
 
-	ctx := WithDatabase(t, NewMockContext(), KeyWithExpires(expiredTime), KeyWithExpires(okTime))
+	ctx := testutil.NewMockContext(
+		testutil.WithDatabase(t,
+			testutil.KeyWithExpires(expiredTime),
+			testutil.KeyWithExpires(okTime),
+		),
+	)
 
 	k1 := &key.EdDSAKeyPair{ PrivateKey: edKey }
 	k1.SetExpires(time.Now().Add(-time.Minute))
@@ -242,7 +260,13 @@ func TestPrivateKeyCacheCleanLogsErrorsIfDatabaseFailsDelete(t *testing.T) {
 	expiredTime := time.Now().Add(-time.Minute) 
 	okTime := time.Now().Add(time.Minute) 
 
-	ctx := WithDatabase(t, NewMockContext(), KeyWithExpires(expiredTime), KeyWithExpires(okTime), ReturnsMutateErrors())
+	ctx := testutil.NewMockContext(
+		testutil.WithDatabase(t,
+			testutil.KeyWithExpires(expiredTime),
+			testutil.KeyWithExpires(okTime),
+			testutil.ReturnsMutateErrors(),
+		),
+	)
 
 	k1 := &key.EdDSAKeyPair{ PrivateKey: edKey }
 	k1.SetExpires(expiredTime)
@@ -271,7 +295,7 @@ func TestPrivateKeyCacheCleanLogsErrorsIfDatabaseFailsDelete(t *testing.T) {
 }
 
 func TestPrivateKeyCacheParseClaims(t *testing.T) {
-	ctx := WithDatabase(t, NewMockContext())
+	ctx := testutil.NewMockContext(testutil.WithDatabase(t))
 
 	tokenStr := "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJNZSIsInN1YiI6Ik15c2VsZiIsImF1ZCI6WyJleWUiXSwiZXhwIjo5NTYxODM5ODIxMCwianRpIjoiazEiLCJoZWxsbyI6IndvcmxkIiwiZm9vIjoiYmFyIn0.6ZTrIrOHhUIvT5-3h2WGCwW0DCnuAJMPNdNIG5VMPWPgEix4fTqTUK8qsJUZH1SXbv0xmztPZOvvfuuykR06DQ"
 
@@ -294,7 +318,7 @@ func TestPrivateKeyCacheParseClaims(t *testing.T) {
 }
 
 func TestPrivateKeyCacheParseClaimsWithInvalidToken(t *testing.T) {
-	ctx := WithDatabase(t, NewMockContext())
+	ctx := testutil.NewMockContext(testutil.WithDatabase(t))
 
 	tokenStr := "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJNZSIsInN1YiI6IbaddadadVsZiIsImF1ZCI6WyJleWUiXSwiZXhwIjo5NTYxODM5ODIxMCwianRpIjoiazEiLCJoZWxsbyI6IndvcmxkIiwiZm9vIjoiYmFyIn0.6ZTrIrOHhUIvT5-3h2WGCwW0DCnuAJMPNdNIG5VMPWPgEix4fTqTUK8qsJUZH1SXbv0xmztPZOvvfuuykR06DQ"
 
@@ -332,7 +356,9 @@ func TestNewPrivateKeyCacheWithManagementHappy(t *testing.T) {
 	tokenDuration := 10 * time.Millisecond
 	keyDuration := 100 * time.Millisecond
 
-	ctx := WithDatabase(t, NewMockContext(), KeyWithExpires(time.Now().Add(keyDuration)))
+	ctx := testutil.NewMockContext(
+		testutil.WithDatabase(t, testutil.KeyWithExpires(time.Now().Add(keyDuration))),
+	)
 
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()

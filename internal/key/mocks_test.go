@@ -8,16 +8,10 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"errors"
-	"os"
-	"stoke/internal/ent"
-	"stoke/internal/ent/enttest"
 	"stoke/internal/key"
-	"testing"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	_ "github.com/mattn/go-sqlite3"
-	"github.com/rs/zerolog"
 	"hppr.dev/stoke"
 )
 
@@ -84,79 +78,6 @@ func (BadKeyPair) PublicKey() crypto.PublicKey { return edKeyPair.PublicKey() }
 func (BadKeyPair) SigningMethod() jwt.SigningMethod { return edKeyPair.SigningMethod() }
 func (BadKeyPair) SetExpires(time.Time) { }
 func (BadKeyPair) ExpiresAt() time.Time { return time.Now().Add(-time.Hour) }
-
-func NewMockContext() context.Context {
-	ctx := context.Background()
-	ctx = zerolog.New(os.Stdout).WithContext(ctx)
-	return ctx
-}
-
-type DatabaseMutation func(*ent.Client) error
-
-func WithDatabase(t *testing.T, ctx context.Context, mutations ...DatabaseMutation) context.Context {
-	client := enttest.Open(t, "sqlite3", "file:ent?mode=memory&_fk=1")
-	for _, mut := range mutations {
-		if err := mut(client); err != nil {
-			t.Logf("Database mutation failed: %v", err)
-		}
-	}
-	return ent.NewContext(ctx, client)
-}
-
-func ForeverKey() DatabaseMutation {
-	return KeyWithExpires(time.Date(5000, time.January, 10, 10, 10, 10, 10, time.UTC))
-}
-
-func KeyWithExpires(exp time.Time) DatabaseMutation {
-	return func(client *ent.Client) error {
-		_, err := client.PrivateKey.Create().
-			SetExpires(exp).
-			SetText("DHGQKw0oDDcMcZArDSgMNwxxkCsNKAw3DHGQKw0oDDe1+1s+xW4vzlPSPGN3OTEStdBKaW3SHjMRGJL5rk6IAA==").
-			Save(context.Background())
-		return err
-	}
-}
-
-func ForeverKeyWithText(text string) DatabaseMutation {
-	return func(client *ent.Client) error {
-		_, err := client.PrivateKey.Create().
-			SetExpires(time.Date(5000, time.January, 10, 10, 10, 10, 10, time.UTC)).
-			SetText(text).
-			Save(context.Background())
-		return err
-	}
-}
-
-type entErrHelper struct {}
-var simEntErr = errors.New("Simulated ent error") 
-func (entErrHelper) Query(context.Context, ent.Query) (ent.Value, error) { return nil, simEntErr }
-func (entErrHelper) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) { return nil, simEntErr }
-
-func ReturnsMutateErrors() DatabaseMutation {
-	return func(client *ent.Client) error {
-		client.Use(func(ent.Mutator) ent.Mutator{
-			return entErrHelper{}
-		})
-		return nil
-	}
-}
-
-func ReturnsReadErrors() DatabaseMutation {
-	return func(client *ent.Client) error {
-		client.Intercept(ent.InterceptFunc(func(ent.Querier) ent.Querier {
-			return entErrHelper{}
-		}))
-		return nil
-	}
-}
-
-func ReturnsAllErrors() DatabaseMutation {
-	return func(client *ent.Client) error {
-		ReturnsReadErrors()(client)
-		ReturnsMutateErrors()(client)
-		return nil
-	}
-}
 
 func buildEdDSAKey() ed25519.PrivateKey {
 	return edKey

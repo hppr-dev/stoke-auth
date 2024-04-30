@@ -35,6 +35,6 @@ func (c *Config) WithContext(ctx context.Context) context.Context {
 	confCtx := context.WithValue(ctx, "config", c)
 	confCtx = c.Logging.withContext(confCtx)
 	confCtx = c.Database.withContext(confCtx)
-	confCtx = c.Tokens.withContext(confCtx)
-	return c.Users.withContext(confCtx)
+	confCtx = c.Users.withContext(confCtx) 
+	return c.Tokens.withContext(confCtx)
 }

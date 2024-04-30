@@ -179,11 +179,13 @@ func (c *PrivateKeyCache[P]) Generate(ctx context.Context) error {
 		Msg("Generated new key.")
 
 	if c.PersistKeys {
-		_, err = ent.FromContext(ctx).PrivateKey.Create().
+		tx, err := ent.FromContext(ctx).Tx(ctx)
+		tx.PrivateKey.Create().
 			SetText(newKey.Encode()).
 			SetExpires(newKey.ExpiresAt()).
 			Save(ctx)
-		if err != nil {
+		if tx.Commit() != nil {
+			tx.Rollback()
 			logger.Error().
 				Func(otelzerolog.AddTracingContext(span)).
 				Err(err).
@@ -215,7 +217,7 @@ func (c *PrivateKeyCache[P]) Bootstrap(ctx context.Context, pair KeyPair[P]) err
 		Order(privatekey.ByExpires(sql.OrderDesc())).
 		First(c.Ctx)
 
-	if err != nil || pk.Expires.Before(now) {
+	if !c.PersistKeys || err != nil || pk.Expires.Before(now) {
 		logger.Info().
 			Msg("Could not retrieve private key. Generating a new one.")
 
@@ -224,7 +226,9 @@ func (c *PrivateKeyCache[P]) Bootstrap(ctx context.Context, pair KeyPair[P]) err
 			logger.Error().Err(err).Msg("Could not generate private key")
 			return err
 		}
+		pair.SetExpires(now.Add(c.KeyDuration))
 	} else {
+		pair.SetExpires(pk.Expires)
 		err := pair.Decode(pk.Text)
 		if err != nil {
 			logger.Error().Err(err).Msg("Could not decode private key text from database")
@@ -232,7 +236,6 @@ func (c *PrivateKeyCache[P]) Bootstrap(ctx context.Context, pair KeyPair[P]) err
 		}
 	}
 
-	pair.SetExpires(pk.Expires)
 
 	c.KeyPairs = append(c.KeyPairs, pair)
 	return nil

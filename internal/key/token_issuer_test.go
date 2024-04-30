@@ -3,6 +3,7 @@ package key_test
 import (
 	"crypto/ed25519"
 	"stoke/internal/key"
+	"stoke/internal/testutil"
 	"strings"
 	"testing"
 	"time"
@@ -14,7 +15,7 @@ import (
 func TestAsymetricIssueTokenHappy(t *testing.T) {
 	later := time.Date(5000, time.January, 10, 10, 10, 10, 10, time.UTC)
 	earlier := time.Date(1000, time.January, 10, 10, 10, 10, 10, time.UTC)
-	ctx := NewMockContext()
+	ctx := testutil.NewMockContext()
 
 	claims := &stoke.Claims{
 		StokeClaims: map[string]string {
@@ -54,7 +55,7 @@ func TestAsymetricIssueTokenHappy(t *testing.T) {
 func TestAsymetricIssueTokenWithTokenLimit(t *testing.T) {
 	later := time.Date(5000, time.January, 10, 10, 10, 10, 10, time.UTC)
 	earlier := time.Date(1000, time.January, 10, 10, 10, 10, 10, time.UTC)
-	ctx := NewMockContext()
+	ctx := testutil.NewMockContext()
 
 	claims := &stoke.Claims{
 		StokeClaims: map[string]string {
@@ -94,7 +95,7 @@ func TestAsymetricIssueTokenWithTokenLimit(t *testing.T) {
 func TestAsymetricIssueTokenWithTokenLimitWithCustomKey(t *testing.T) {
 	later := time.Date(5000, time.January, 10, 10, 10, 10, 10, time.UTC)
 	earlier := time.Date(1000, time.January, 10, 10, 10, 10, 10, time.UTC)
-	ctx := NewMockContext()
+	ctx := testutil.NewMockContext()
 
 	claims := &stoke.Claims{
 		StokeClaims: map[string]string {
@@ -134,7 +135,7 @@ func TestAsymetricIssueTokenWithTokenLimitWithCustomKey(t *testing.T) {
 func TestAsymetricIssueTokenAtRefreshLimit(t *testing.T) {
 	later := time.Date(5000, time.January, 10, 10, 10, 10, 10, time.UTC)
 	earlier := time.Date(1000, time.January, 10, 10, 10, 10, 10, time.UTC)
-	ctx := NewMockContext()
+	ctx := testutil.NewMockContext()
 
 	claims := &stoke.Claims{
 		StokeClaims: map[string]string {
@@ -165,7 +166,7 @@ func TestAsymetricIssueTokenAtRefreshLimit(t *testing.T) {
 }
 
 func TestAsymetricRefreshHappy(t *testing.T) {
-	ctx := NewMockContext()
+	ctx := testutil.NewMockContext()
 
 	issuer := key.AsymetricTokenIssuer[ed25519.PrivateKey]{
 		KeyCache: &MockKeyCache{},
@@ -196,7 +197,7 @@ func TestAsymetricRefreshHappy(t *testing.T) {
 }
 
 func TestAsymetricRefreshTokenBadBase64Encoding(t *testing.T) {
-	ctx := NewMockContext()
+	ctx := testutil.NewMockContext()
 
 	issuer := key.AsymetricTokenIssuer[ed25519.PrivateKey]{
 		KeyCache: &MockKeyCache{},
@@ -219,7 +220,7 @@ func TestAsymetricRefreshTokenBadBase64Encoding(t *testing.T) {
 }
 
 func TestAsymetricRefreshTokenInvalidRefreshToken(t *testing.T) {
-	ctx := NewMockContext()
+	ctx := testutil.NewMockContext()
 
 	issuer := key.AsymetricTokenIssuer[ed25519.PrivateKey]{
 		KeyCache: &MockKeyCache{},
@@ -242,7 +243,7 @@ func TestAsymetricRefreshTokenInvalidRefreshToken(t *testing.T) {
 }
 
 func TestAsymetricRefreshTokenInvalidClaimsType(t *testing.T) {
-	ctx := NewMockContext()
+	ctx := testutil.NewMockContext()
 
 	issuer := key.AsymetricTokenIssuer[ed25519.PrivateKey]{
 		KeyCache: &MockKeyCache{},
@@ -266,7 +267,7 @@ func TestAsymetricRefreshTokenInvalidClaimsType(t *testing.T) {
 }
 
 func TestAsymetricWithContextFromContext(t *testing.T) {
-	ctx := NewMockContext()
+	ctx := testutil.NewMockContext()
 
 	issuer := key.AsymetricTokenIssuer[ed25519.PrivateKey]{
 		KeyCache: &MockKeyCache{},

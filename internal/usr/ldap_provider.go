@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"stoke/internal/ent"
+	"stoke/internal/ent/claimgroup"
 	"stoke/internal/ent/grouplink"
 	"stoke/internal/ent/predicate"
 	"stoke/internal/ent/user"
@@ -99,20 +100,53 @@ func (l LDAPUserProvider) GetUserClaims(username, password string, ctx context.C
 		return nil, nil, err
 	}
 
-	var claimGroups ent.ClaimGroups
+	// LDAP user groups that the user already has
+	userGroups := usr.Edges.ClaimGroups
+
+	var addClaimGroups ent.ClaimGroups
+	var found bool
 	for _, grouplink := range groupLinks {
-		claimGroups = append(claimGroups, grouplink.Edges.ClaimGroup)
+		linkGroup := grouplink.Edges.ClaimGroup
+		found = false
+		for _, userGroup := range userGroups {
+			if userGroup.ID == linkGroup.ID {
+				found = true
+				break
+			}
+		}
+		if !found {
+			addClaimGroups = append(addClaimGroups, linkGroup)
+		}
 	}
 
-	// TODO implement LDAP group removal if user is no longer a member
-	if _, err := usr.Update().AddClaimGroups(claimGroups...).Save(ctx); err != nil {
-		logger.Error().
-			Func(otelzerolog.AddTracingContext(span)).
-			Err(err).
-			Str("url", l.ServerURL).
-			Str("user", usr.Username).
-			Msg("Failed to add LDAP groups to local user")
-		return nil, nil, err
+	var delClaimGroups ent.ClaimGroups
+	for _, userGroup := range userGroups {
+		found = false
+		for _, groupLink := range groupLinks {
+			if groupLink.Edges.ClaimGroup.ID == userGroup.ID {
+				found = true
+				break
+			}
+		}
+		if !found {
+			delClaimGroups = append(delClaimGroups, userGroup)
+		}
+	}
+
+	if len(addClaimGroups) > 0 || len(delClaimGroups) > 0 {
+		_, err := usr.Update().
+			AddClaimGroups(addClaimGroups...).
+			RemoveClaimGroups(delClaimGroups...).
+			Save(ctx)
+		if err != nil {
+			logger.Error().
+				Func(otelzerolog.AddTracingContext(span)).
+				Err(err).
+				Str("url", l.ServerURL).
+				Str("user", usr.Username).
+				Msg("Failed to add LDAP groups to local user")
+			return nil, nil, err
+		}
 	}
 
 	return l.LocalProvider.GetUserClaims(username, "", ctx)
@@ -137,6 +171,13 @@ func (l LDAPUserProvider) getOrCreateUser(username, password string, conn ldap.C
 				user.SourceEQ("LDAP"),
 			),
 		).
+		WithClaimGroups(func (q *ent.ClaimGroupQuery) {
+			q.Where(
+				claimgroup.HasGroupLinksWith(
+					grouplink.TypeEQ("LDAP"),
+				),
+			)
+		}).
 		Only(ctx)
 	if dbErr != nil && !ent.IsNotFound(dbErr) {
 		return nil, nil, err
