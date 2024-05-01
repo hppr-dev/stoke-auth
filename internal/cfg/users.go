@@ -110,25 +110,21 @@ func (u Users) withContext(ctx context.Context) context.Context {
 			)
 		}
 
-		provider = usr.LDAPUserProvider{
-			ServerURL: u.ServerURL,
-			BindUserDN: u.BindUserDN,
-			BindUserPassword: u.BindUserPassword,
-
-			GroupSearchRoot: u.GroupSearchRoot,
-			GroupFilter: groupFilterTemplate,
-			GroupAttribute: u.GroupNameField,
-
-			UserSearchRoot: u.UserSearchRoot,
-			UserFilter: userFilterTemplate,
-
-			FirstNameField: u.FirstNameField,
-			LastNameField: u.LastNameField,
-			EmailField: u.EmailField,
-
-			SearchTimeout: u.SearchTimeout,
-			DialOpts: dialOpts,
-		}
+		provider = usr.NewLDAPUserProvider(
+			u.ServerURL,
+			u.BindUserDN,
+			u.BindUserPassword,
+			u.GroupSearchRoot,
+			u.GroupNameField,
+			u.UserSearchRoot,
+			u.FirstNameField,
+			u.LastNameField,
+			u.EmailField,
+			u.SearchTimeout,
+			groupFilterTemplate,
+			userFilterTemplate,
+			dialOpts...,
+		)
 	} else {
 		provider = usr.LocalProvider{}
 	}

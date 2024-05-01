@@ -790,10 +790,13 @@ func TestLDAPGetUserClaimsReturnsAnErrorOnNoLDAPGroups(t *testing.T) {
 
 func TestLDAPConnectorReturnsErrorWhenBadURL(t *testing.T) {
 	ctx := tu.NewMockContext(tu.WithDatabase(t))
-	ldapProvider := createLDAPProvider()
-
-	ldapProvider.ServerURL = "this is a bad url!"
-	ldapProvider.DefaultConnector()
+	groupTemplate, userTemplate := createTemplates()
+	ldapProvider := usr.NewLDAPUserProvider(
+		"this is a bad url!",
+		"", "", "", "", "", "", "", "",
+		0,
+		groupTemplate, userTemplate,
+	)
 
 	if _, _, err := ldapProvider.GetUserClaims("ldapuser", "luserpass", true, ctx); err == nil {
 		t.Fatal("An error did not occur.")

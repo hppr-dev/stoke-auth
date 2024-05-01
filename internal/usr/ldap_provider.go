@@ -60,6 +60,27 @@ type templateValues struct {
 
 type ldapDialer struct {}
 
+// Creates a NewLDAPUserProvider
+func NewLDAPUserProvider(url, bindDN, bindPass, groupSearch, groupAttribute, userSearch, fnameField, lnameField, emailField string, searchTimeout int, groupFilter, userFilter *template.Template, dialOpts ...ldap.DialOpt) Provider {
+	return &LDAPUserProvider{
+		ServerURL:        url,
+		BindUserDN:       bindDN,
+		BindUserPassword: bindPass,
+		GroupSearchRoot:  groupSearch,
+		GroupFilter:      groupFilter,
+		GroupAttribute:   groupAttribute,
+		UserSearchRoot:   userSearch,
+		UserFilter:       userFilter,
+		FirstNameField:   fnameField,
+		LastNameField:    lnameField,
+		EmailField:       emailField,
+		SearchTimeout:    searchTimeout,
+		DialOpts:         dialOpts,
+		connector:        ldapDialer{},
+		LocalProvider:    LocalProvider{},
+	}
+}
+
 // Connect using the ldap.DialURL function
 func (ldapDialer) Connect(url string, dialOpts ...ldap.DialOpt) (ldap.Client, error) {
 	return ldap.DialURL(url, dialOpts...)
@@ -69,11 +90,6 @@ func (ldapDialer) Connect(url string, dialOpts ...ldap.DialOpt) (ldap.Client, er
 // Should only be needed for testing, but could also be used to alter connection behaviour
 func (l *LDAPUserProvider) SetConnector(c LDAPConnector) {
 	l.connector = c
-}
-
-// Set the ldap connector to use the default ldap connector
-func (l *LDAPUserProvider) DefaultConnector() {
-	l.connector = ldapDialer{}
 }
 
 // GetUserClaims looks up claims that are associated in LDAP
