@@ -133,7 +133,7 @@ func (u Users) withContext(ctx context.Context) context.Context {
 		provider = usr.LocalProvider{}
 	}
 
-	return context.WithValue(ctx, "user-provider", provider)
+	return provider.WithContext(ctx)
 }
 
 func readPublicCertFile(name string) ([]*x509.Certificate, error) {

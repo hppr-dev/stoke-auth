@@ -1,12 +1,23 @@
 package usr_test
 
 import (
+	"context"
 	"stoke/internal/ent"
 	"stoke/internal/ent/user"
 	tu "stoke/internal/testutil"
 	"stoke/internal/usr"
 	"testing"
 )
+
+func TestLocalProviderInContext(t *testing.T) {
+	localProvider := usr.LocalProvider{}
+
+	ctx := localProvider.WithContext(context.Background())
+
+	if localProvider != usr.ProviderFromCtx(ctx) {
+		t.Fatal("Pulled provider did not match inserted provider")
+	}
+}
 
 func TestLocalGetUserClaimsHappy(t *testing.T) {
 	ctx := tu.NewMockContext(
@@ -30,7 +41,7 @@ func TestLocalGetUserClaimsHappy(t *testing.T) {
 
 	localProvider := usr.LocalProvider{}
 
-	user, claims, err := localProvider.GetUserClaims("gramsey", "thisdoesn'ttastegood", ctx)
+	user, claims, err := localProvider.GetUserClaims("gramsey", "thisdoesn'ttastegood", true, ctx)
 	if err != nil {
 		t.Fatalf("GetUserClaims returned an error: %v", err)
 	}
@@ -65,12 +76,51 @@ func TestLocalGetUserClaimsHappy(t *testing.T) {
 	}
 }
 
+func TestGetUserClaimsQueryFailure(t *testing.T) {
+	ctx := tu.NewMockContext(tu.WithDatabase(t, tu.ReturnsReadErrors()))
+
+	localProvider := usr.LocalProvider{}
+
+	if _, _, err := localProvider.GetUserClaims("gramsey", "thisdoesn'ttastegood", true, ctx); err == nil {
+		t.Fatal("GetUserClaims did not return an error")
+	}
+}
+
+func TestGetUserClaimsBadPassword(t *testing.T) {
+	ctx := tu.NewMockContext(
+		tu.WithDatabase(t,
+			tu.User(
+				tu.UserInfo("Gordan", "Ramsey", "gramsey", "gramsey@hppr.dev"),
+				tu.Source("LOCAL"),
+				tu.Password("thisdoesn'ttastegood"),
+				tu.Group(
+					tu.GroupInfo("Show Hosts", "Hosts of kitchen nightmares"),
+					tu.Claim(
+						tu.ClaimInfo("Set Access", "set", "allow", "Allows people on to set"),
+					),
+					tu.Claim(
+						tu.ClaimInfo("Kitchen Access", "kit", "deny", "Blocks people from the kitchen"),
+					),
+				),
+			),
+		),
+	)
+
+	localProvider := usr.LocalProvider{}
+
+	if _, _, err := localProvider.GetUserClaims("gramsey", "yummyintummy", true, ctx); err == nil {
+		t.Fatal("GetUserClaims did not return an error")
+	}
+}
+
 func TestLocalAddUserHappy(t *testing.T) {
 	ctx := tu.NewMockContext(tu.WithDatabase(t))
 
 	localProvider := usr.LocalProvider{}
 
-	localProvider.AddUser("Lucas", "Sky", "lsky@hppr.dev", "lsky", "fortsbe", false, ctx)
+	if err := localProvider.AddUser("Lucas", "Sky", "lsky@hppr.dev", "lsky", "fortsbe", false, ctx); err != nil {
+		t.Fatalf("AddUser returned an error: %v", err)
+	}
 
 	client := ent.FromContext(ctx)
 	allUsers := client.User.Query().AllX(ctx)
@@ -86,6 +136,16 @@ func TestLocalAddUserHappy(t *testing.T) {
 			user.Lname != "Sky" || user.Password == "fortsbe" || user.Salt == "" {
 		t.Logf("User did not match: %v", user)
 		t.Fail()
+	}
+}
+
+func TestAddUserReturnsErrorWhenDatabaseFails(t *testing.T) {
+	ctx := tu.NewMockContext(tu.WithDatabase(t, tu.ReturnsMutateErrors()))
+
+	localProvider := usr.LocalProvider{}
+
+	if err := localProvider.AddUser("Lucas", "Sky", "lsky@hppr.dev", "lsky", "fortsbe", false, ctx); err == nil {
+		t.Fatalf("AddUser did not return an error: %v", err)
 	}
 }
 
@@ -124,6 +184,57 @@ func TestLocalUpdateUserPasswordHappy(t *testing.T) {
 			user.Email != "gramsey@hppr.dev" || user.Fname != "Gordan" ||
 			user.Lname != "Ramsey" {
 		t.Logf("User did not match: %v", user)
+		t.Fail()
+	}
+}
+
+func TestLocalUpdateUserPasswordBadPassword(t *testing.T) {
+	ctx := tu.NewMockContext(
+		tu.WithDatabase(t,
+			tu.User(
+				tu.UserInfo("Gordan", "Ramsey", "gramsey", "gramsey@hppr.dev"),
+				tu.Source("LOCAL"),
+				tu.Password("changeme"),
+				tu.Group(
+					tu.GroupInfo("Show Hosts", "Hosts of kitchen nightmares"),
+					tu.Claim(
+						tu.ClaimInfo("Set Access", "set", "allow", "Allows people on to set"),
+					),
+					tu.Claim(
+						tu.ClaimInfo("Kitchen Access", "kit", "deny", "Blocks people from the kitchen"),
+					),
+				),
+			),
+		),
+	)
+	localProvider := usr.LocalProvider{}
+
+	if err := localProvider.UpdateUserPassword("gramsey", "dontchangeme", "somethingelse", false, ctx); err == nil {
+		t.Log("Did not return error")
+		t.Fail()
+	}
+
+	user := ent.FromContext(ctx).User.Query().Where(user.UsernameEQ("gramsey")).FirstX(ctx)
+
+	if tu.HashPass("changeme", user.Salt) != user.Password {
+		t.Logf("Password changed: %v", user)
+		t.Fail()
+	}
+
+	if user.Username != "gramsey" || user.Source != "LOCAL" ||
+			user.Email != "gramsey@hppr.dev" || user.Fname != "Gordan" ||
+			user.Lname != "Ramsey" {
+		t.Logf("User did not match: %v", user)
+		t.Fail()
+	}
+}
+
+func TestLocalUpdateUserPasswordDatabaseFailure(t *testing.T) {
+	ctx := tu.NewMockContext(tu.WithDatabase(t, tu.ReturnsReadErrors()))
+	localProvider := usr.LocalProvider{}
+
+	if err := localProvider.UpdateUserPassword("gramsey", "dontchangeme", "somethingelse", false, ctx); err == nil {
+		t.Log("Did not return error")
 		t.Fail()
 	}
 }
@@ -172,5 +283,35 @@ func TestLocalCheckCreateForSuperUserHappy(t *testing.T) {
 	if group.Name != "Stoke Superusers" {
 		t.Logf("Group name did not match: %v", group)
 		t.Fail()
+	}
+}
+
+func TestLocalCheckCreateForSuperUserDatabaseClaimFailure(t *testing.T) {
+	ctx := tu.NewMockContext(tu.WithDatabase(t, tu.ReturnsMutateErrors("claim")))
+
+	localProvider := usr.LocalProvider{}
+
+	if err := localProvider.CheckCreateForSuperUser(ctx); err == nil {
+		t.Fatalf("Did not return error: %v", err)
+	}
+}
+
+func TestLocalCheckCreateForSuperUserDatabaseGroupWriteFailure(t *testing.T) {
+	ctx := tu.NewMockContext(tu.WithDatabase(t, tu.ReturnsMutateErrors("claimgroup")))
+
+	localProvider := usr.LocalProvider{}
+
+	if err := localProvider.CheckCreateForSuperUser(ctx); err == nil {
+		t.Fatalf("Did not return error: %v", err)
+	}
+}
+
+func TestLocalCheckCreateForSuperUserDatabaseGroupReadFailure(t *testing.T) {
+	ctx := tu.NewMockContext(tu.WithDatabase(t, tu.ReturnsReadErrors("claimgroup")))
+
+	localProvider := usr.LocalProvider{}
+
+	if err := localProvider.CheckCreateForSuperUser(ctx); err == nil {
+		t.Fatalf("Did not return error: %v", err)
 	}
 }

@@ -19,7 +19,7 @@ import (
 type LocalProvider struct {}
 
 func HashPass(pass, salt string) string {
-		return base64.StdEncoding.EncodeToString(argon2.IDKey([]byte(pass), []byte(salt), 2, 19*1024, 1, 64))
+	return base64.StdEncoding.EncodeToString(argon2.IDKey([]byte(pass), []byte(salt), 2, 19*1024, 1, 64))
 }
 
 func GenSalt() string {
@@ -28,11 +28,18 @@ func GenSalt() string {
 	return base64.StdEncoding.EncodeToString(saltBytes)
 }
 
+func ProviderFromCtx(ctx context.Context) Provider {
+	return ctx.Value("user-provider").(Provider)
+}
+
+func (l LocalProvider) WithContext(ctx context.Context) context.Context {
+	return context.WithValue(ctx, "user-provider", l)
+}
+
 func (l LocalProvider) AddUser(fname, lname, email, username, password string, _ bool, ctx context.Context) error {
 	logger := zerolog.Ctx(ctx)
 	ctx, span := tel.GetTracer().Start(ctx, "LoginApiHandler.ServeHTTP")
 	defer span.End()
-
 
 	logger.Info().
 		Func(otelzerolog.AddTracingContext(span)).
@@ -65,7 +72,7 @@ func (l LocalProvider) AddUser(fname, lname, email, username, password string, _
 	return nil
 }
 
-func (l LocalProvider) GetUserClaims(username, password string, ctx context.Context) (*ent.User, ent.Claims, error) {
+func (l LocalProvider) GetUserClaims(username, password string, verify bool, ctx context.Context) (*ent.User, ent.Claims, error) {
 	logger := zerolog.Ctx(ctx)
 	ctx, span := tel.GetTracer().Start(ctx, "LocalUserProvider.GetUserClaims")
 	defer span.End()
@@ -97,7 +104,7 @@ func (l LocalProvider) GetUserClaims(username, password string, ctx context.Cont
 		return nil, nil, err
 	}
 
-	if usr.Source != "LDAP" && HashPass(password, usr.Salt) != usr.Password {
+	if verify && HashPass(password, usr.Salt) != usr.Password {
 		logger.Debug().
 			Func(otelzerolog.AddTracingContext(span)).
 			Str("username", username).
@@ -112,13 +119,7 @@ func (l LocalProvider) GetUserClaims(username, password string, ctx context.Cont
 	logger.Debug().
 		Str("username", username).
 		Func(otelzerolog.AddTracingContext(span)).
-		Func(func (e *zerolog.Event) {
-			var values []string
-			for _, c := range allClaims {
-				values = append(values, c.ShortName + ":" + c.Value)
-			}
-			e.Strs("claims", values)
-		}).
+		Interface("claims", allClaims).
 		Msg("Claims found")
 	return usr, allClaims, nil
 }
@@ -153,7 +154,7 @@ func (l LocalProvider) getOrCreateSuperGroup(ctx context.Context) (*ent.ClaimGro
 		if err != nil {
 			return nil, err
 		}
-
+			
 		superGroup, err = client.ClaimGroup.Create().
 			AddClaims(superClaim).
 			SetName("Stoke Superusers").
@@ -200,17 +201,15 @@ func (l LocalProvider) UpdateUserPassword(username, oldPassword, newPassword str
 		logger.Debug().
 			Func(otelzerolog.AddTracingContext(span)).
 			Str("username", username).
-			Bool("force", force).
 			Msg("User old password did not match")
 		return fmt.Errorf("Bad Password")
 	}
 
 	newSalt := GenSalt()
-	newPassHash := HashPass(newPassword, newSalt)
 
 	_, err = usr.Update().
 		SetSalt(newSalt).
-		SetPassword(newPassHash).
+		SetPassword(HashPass(newPassword, newSalt)).
 		Save(ctx)
 	return err
 }

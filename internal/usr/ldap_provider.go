@@ -17,6 +17,17 @@ import (
 	"github.com/vincentfree/opentelemetry/otelzerolog"
 )
 
+var (
+	AuthenticationError = errors.New("Could not authenticate user")
+	NoLinkedGroupsError = errors.New("No linked groups associated with user")
+	LDAPNotFoundError = errors.New("No results")
+	LDAPError = errors.New("Error communicating with LDAP")
+)
+
+type LDAPConnector interface {
+	Connect(string, ...ldap.DialOpt) (ldap.Client, error)
+}
+
 type LDAPUserProvider struct {
 	ServerURL             string
 	BindUserDN            string
@@ -37,6 +48,8 @@ type LDAPUserProvider struct {
 
 	DialOpts 							[]ldap.DialOpt
 
+	connector             LDAPConnector
+
 	LocalProvider
 }
 
@@ -45,29 +58,46 @@ type templateValues struct {
 	UserDN   string
 }
 
-var AuthenticationError = errors.New("Could not authenticate user")
-var LDAPNotFoundError = errors.New("No results")
-var LDAPError = errors.New("Error communicating with LDAP")
+type ldapDialer struct {}
 
-// GetUserClaims implements Provider.
-func (l LDAPUserProvider) GetUserClaims(username, password string, ctx context.Context) (*ent.User, ent.Claims, error) {
-	logger := zerolog.Ctx(ctx)
+// Connect using the ldap.DialURL function
+func (ldapDialer) Connect(url string, dialOpts ...ldap.DialOpt) (ldap.Client, error) {
+	return ldap.DialURL(url, dialOpts...)
+}
+
+// Set the ldap connector to use.
+// Should only be needed for testing, but could also be used to alter connection behaviour
+func (l *LDAPUserProvider) SetConnector(c LDAPConnector) {
+	l.connector = c
+}
+
+// Set the ldap connector to use the default ldap connector
+func (l *LDAPUserProvider) DefaultConnector() {
+	l.connector = ldapDialer{}
+}
+
+// GetUserClaims looks up claims that are associated in LDAP
+func (l LDAPUserProvider) GetUserClaims(username, password string, _ bool, ctx context.Context) (*ent.User, ent.Claims, error) {
+	logger := zerolog.Ctx(ctx).With().
+		Str("url", l.ServerURL).
+		Str("username", username).
+		Str("bindUserDN", l.BindUserDN).
+		Logger()
+
 	ctx, span := tel.GetTracer().Start(ctx, "LDAPUserProvider.GetUserClaims")
 	defer span.End()
 
 	logger.Debug().
 		Func(otelzerolog.AddTracingContext(span)).
-		Str("username", username).
 		Msg("Getting user claims")
 
-	conn, err := ldap.DialURL(l.ServerURL, l.DialOpts...)
+	conn, err := l.connector.Connect(l.ServerURL, l.DialOpts...)
 	if err != nil {
 		logger.Error().
 			Func(otelzerolog.AddTracingContext(span)).
 			Err(err).
-			Str("url", l.ServerURL).
 			Msg("Could not connect to LDAP server")
-		return l.LocalProvider.GetUserClaims(username, password, ctx)
+		return l.LocalProvider.GetUserClaims(username, password, true, ctx)
 	}
 	defer conn.Close()
 
@@ -75,27 +105,26 @@ func (l LDAPUserProvider) GetUserClaims(username, password string, ctx context.C
 		logger.Error().
 			Func(otelzerolog.AddTracingContext(span)).
 			Err(err).
-			Str("url", l.ServerURL).
-			Str("bindUserDN", l.BindUserDN).
 			Msg("Bind user authentication failed")
-		return l.LocalProvider.GetUserClaims(username, password, ctx)
+		return l.LocalProvider.GetUserClaims(username, password, true, ctx)
 	}
 
 	usr, groupLinks, err := l.getOrCreateUser(username, password, conn, ctx)
-	if errors.Is(LDAPNotFoundError, err) {
+	if errors.Is(LDAPNotFoundError, err) || errors.Is(LDAPError, err) {
 		logger.Debug().
 			Func(otelzerolog.AddTracingContext(span)).
-			Str("url", l.ServerURL).
-			Str("username", username).
-			Msg("User not found in ldap")
-		return l.LocalProvider.GetUserClaims(username, password, ctx)
+			Err(err).
+			Msg("Could not find User in ldap")
+		return l.LocalProvider.GetUserClaims(username, password, true, ctx)
 
+	} else if errors.Is(NoLinkedGroupsError, err) {
+		if usr == nil {
+			return nil, nil, AuthenticationError
+		}
 	} else if err != nil {
 		logger.Error().
 			Func(otelzerolog.AddTracingContext(span)).
 			Err(err).
-			Str("url", l.ServerURL).
-			Str("user", username).
 			Msg("Could not get or create user")
 		return nil, nil, err
 	}
@@ -142,19 +171,20 @@ func (l LDAPUserProvider) GetUserClaims(username, password string, ctx context.C
 			logger.Error().
 				Func(otelzerolog.AddTracingContext(span)).
 				Err(err).
-				Str("url", l.ServerURL).
-				Str("user", usr.Username).
 				Msg("Failed to add LDAP groups to local user")
 			return nil, nil, err
 		}
 	}
 
-	return l.LocalProvider.GetUserClaims(username, "", ctx)
+	return l.LocalProvider.GetUserClaims(username, "", false, ctx)
 }
 
 // Creates the user if it exists in LDAP
 func (l LDAPUserProvider) getOrCreateUser(username, password string, conn ldap.Client, ctx context.Context) (*ent.User, ent.GroupLinks, error) {
-	logger := zerolog.Ctx(ctx)
+	logger := zerolog.Ctx(ctx).With().
+			Str("url", l.ServerURL).
+			Str("user", username).
+			Logger()
 
 	userEntry, err := l.getLDAPUser(username, password, conn, ctx)
 	if err != nil{
@@ -180,15 +210,13 @@ func (l LDAPUserProvider) getOrCreateUser(username, password string, conn ldap.C
 		}).
 		Only(ctx)
 	if dbErr != nil && !ent.IsNotFound(dbErr) {
-		return nil, nil, err
+		return nil, nil, dbErr
 	}
 
 	groupLinks, err := l.getUserLDAPGroupLinks(username, userEntry.DN, conn, ctx)
 	if err != nil {
 		logger.Error().
 			Err(err).
-			Str("url", l.ServerURL).
-			Str("user", username).
 			Str("userDN", userEntry.DN).
 			Msg("Could not get users linked LDAP groups")
 		return nil, nil, err
@@ -197,11 +225,9 @@ func (l LDAPUserProvider) getOrCreateUser(username, password string, conn ldap.C
 	if len(groupLinks) == 0 {
 		logger.Error().
 			Err(err).
-			Str("url", l.ServerURL).
-			Str("user", username).
 			Str("userDN", userEntry.DN).
 			Msg("User has no linked groups")
-		return nil, nil, AuthenticationError
+		return usr, groupLinks, NoLinkedGroupsError
 	}
 
 	if ent.IsNotFound(dbErr) {
@@ -209,7 +235,6 @@ func (l LDAPUserProvider) getOrCreateUser(username, password string, conn ldap.C
 		if err != nil {
 			logger.Error().
 				Err(err).
-				Str("username", username).
 				Str("userDN", userEntry.DN).
 				Msg("Could not create local user")
 			return nil, nil, err
@@ -217,7 +242,6 @@ func (l LDAPUserProvider) getOrCreateUser(username, password string, conn ldap.C
 	}
 
 	logger.Debug().
-		Str("username", username).
 		Int("numGroups", len(groupLinks)).
 		Msg("Found user with group links")
 
@@ -234,7 +258,7 @@ func (l LDAPUserProvider) getLDAPUser(username, password string, conn ldap.Clien
 		ctx,
 	)
 	if err != nil {
-		return nil, errors.Join(LDAPError, err)
+		return nil, LDAPError
 	}
 
 	if len(result.Entries) == 0 {
@@ -329,7 +353,13 @@ func (l LDAPUserProvider) createLocalUser(username string, userEntry *ldap.Entry
 }
 
 func (l LDAPUserProvider) ldapSearch(searchRoot string, fillTemplate templateValues, filterTemplate *template.Template, attributes []string, conn ldap.Client, ctx context.Context) (*ldap.SearchResult, error) {
-	logger := zerolog.Ctx(ctx)
+	logger := zerolog.Ctx(ctx).With().
+		Str("url", l.ServerURL).
+		Str("user", fillTemplate.Username).
+		Str("userDN", fillTemplate.UserDN).
+		Str("template", filterTemplate.Root.String()).
+		Logger()
+
 	ctx, span := tel.GetTracer().Start(ctx, "LDAPUserProvider.ldapSearch")
 	defer span.End()
 
@@ -338,10 +368,6 @@ func (l LDAPUserProvider) ldapSearch(searchRoot string, fillTemplate templateVal
 		logger.Error().
 			Func(otelzerolog.AddTracingContext(span)).
 			Err(err).
-			Str("url", l.ServerURL).
-			Str("user", fillTemplate.Username).
-			Str("userDN", fillTemplate.UserDN).
-			Str("template", filterTemplate.Root.String()).
 			Msg("Could not fill filter template")
 		return nil, err
 	}
@@ -362,7 +388,6 @@ func (l LDAPUserProvider) ldapSearch(searchRoot string, fillTemplate templateVal
 	logger.Debug().
 		Func(otelzerolog.AddTracingContext(span)).
 		Str("filter", filterString).
-		Str("template", filterTemplate.Root.String()).
 		Msg("Executing LDAP search")
 
 	return conn.Search(searchRequest)
