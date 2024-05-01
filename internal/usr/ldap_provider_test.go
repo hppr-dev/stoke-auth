@@ -1,6 +1,7 @@
 package usr_test
 
 import (
+	"context"
 	"fmt"
 	tu "stoke/internal/testutil"
 	"stoke/internal/usr"
@@ -788,6 +789,15 @@ func TestLDAPGetUserClaimsReturnsAnErrorOnNoLDAPGroups(t *testing.T) {
 	}
 }
 
+func TestLDAPProviderInContext(t *testing.T) {
+	ldapProvider := createLDAPProvider()
+	ctx := ldapProvider.WithContext(context.Background())
+
+	if ldapProvider != usr.ProviderFromCtx(ctx).(*usr.LDAPUserProvider) {
+		t.Fatal("Provider from context did not match inserted provider")
+	}
+}
+
 func TestLDAPConnectorReturnsErrorWhenBadURL(t *testing.T) {
 	ctx := tu.NewMockContext(tu.WithDatabase(t))
 	groupTemplate, userTemplate := createTemplates()
@@ -803,10 +813,10 @@ func TestLDAPConnectorReturnsErrorWhenBadURL(t *testing.T) {
 	}
 }
 
-func createLDAPProvider() usr.LDAPUserProvider {
+func createLDAPProvider() *usr.LDAPUserProvider {
 	groupTemplate, userTemplate := createTemplates()
 
-	return usr.LDAPUserProvider{
+	return &usr.LDAPUserProvider{
 		BindUserDN:       "adminuser",
 		BindUserPassword: "adminpass",
 		GroupFilter:      groupTemplate,
