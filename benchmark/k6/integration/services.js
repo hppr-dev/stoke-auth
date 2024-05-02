@@ -1,8 +1,8 @@
 import http from 'k6/http'
-import { check } from 'k6'
+import { check, sleep } from 'k6'
 
 export const options = {
-  vus: 5,
+  vus: 20,
   duration: '1m',
 };
 
@@ -44,6 +44,7 @@ export default function() {
 		check(resp, {
 			"service response code was 200": (resp) => resp.status == 200,
 		})
+		sleep(Math.random() * 4)
 	})
 
 	return stokeResp
