@@ -178,6 +178,10 @@ func (l LocalProvider) CheckCreateForSuperUser(ctx context.Context) error {
 	if len(superGroup.Edges.Users) == 0 {
 		randomPass := GenSalt()
 		l.AddUser("Stoke", "Admin", "sadmin@localhost", "sadmin", randomPass, true, ctx)
+		ent.FromContext(ctx).User.Update().
+			Where(user.UsernameEQ("sadmin")).
+			AddClaimGroups(superGroup).
+			SaveX(ctx)
 		zerolog.Ctx(ctx).Info().
 			Str("password", randomPass).
 			Msg("Created superuser 'sadmin'")

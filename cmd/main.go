@@ -67,6 +67,12 @@ func main() {
 		}
 	}
 
+	if err := usr.ProviderFromCtx(rootCtx).CheckCreateForSuperUser(rootCtx); err != nil {
+		logger.Error().
+			Err(err).
+			Msg("Could not check/create super user")
+	}
+
 	if migrateOnly {
 		return
 	}

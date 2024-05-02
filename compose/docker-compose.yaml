@@ -1,7 +1,13 @@
-version: "3"
-
 services:
-  jeager:
+  stoke_server:
+    build: ../
+    volumes:
+      - ./config.yaml:/etc/stoke/config.yaml
+      - ./dbinit.yaml:/etc/stoke/dbinit.yaml
+    ports:
+      - 8080:8080
+    command: ["-dbinit", "/etc/stoke/dbinit.yaml"]
+  otlp_server:
     image: jaegertracing/all-in-one:1.56
     environment:
       - METRICS_STORAGE_TYPE=prometheus
@@ -9,12 +15,12 @@ services:
       - 0.0.0.0:4317:4317
       - 0.0.0.0:8000:16686
       - 14269:14269
-  restfox:
-    image: flawiddsouza/restfox:0.10.1
-    ports:
-      - 4004:4004
-  ldap_test:
+  ldap_server:
     image: ghcr.io/rroemhild/docker-test-openldap:master
     ports:
       - 10389:10389
       - 10636:10636
+  restfox:
+    image: flawiddsouza/restfox:0.10.1
+    ports:
+      - 4004:4004
