@@ -25,7 +25,7 @@ func (k *EdDSAKeyPair) Generate() (KeyPair[ed25519.PrivateKey], error) {
 
 func (k *EdDSAKeyPair) PublicString() string {
 	b := k.PrivateKey.Public().(ed25519.PublicKey)
-	return base64.StdEncoding.EncodeToString(b)
+	return base64.URLEncoding.EncodeToString(b)
 }
 
 func (k *EdDSAKeyPair) PublicKey() crypto.PublicKey {
@@ -33,11 +33,11 @@ func (k *EdDSAKeyPair) PublicKey() crypto.PublicKey {
 }
 
 func (k *EdDSAKeyPair) Encode() string {
-	return base64.StdEncoding.EncodeToString(k.PrivateKey)
+	return base64.URLEncoding.EncodeToString(k.PrivateKey)
 }
 
 func (k *EdDSAKeyPair) Decode(in string) error {
-	b, err := base64.StdEncoding.DecodeString(in)
+	b, err := base64.URLEncoding.DecodeString(in)
 	if err != nil {
 		k.Logger.Error().Err(err).Msg("Could not decode EdDSA private key")
 		return err

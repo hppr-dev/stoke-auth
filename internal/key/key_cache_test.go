@@ -141,7 +141,7 @@ func TestPrivateKeyCacheBootstrap(t *testing.T) {
 	}
 
 	if !bsCache.KeyPairs[0].Key().Equal(edKey) {
-		t.Logf("Bootstrapped key does not match:\nExp %s\nRes %s", base64.StdEncoding.EncodeToString(edKey), base64.StdEncoding.EncodeToString(bsCache.KeyPairs[0].Key()))
+		t.Logf("Bootstrapped key does not match:\nExp %s\nRes %s", base64.URLEncoding.EncodeToString(edKey), base64.URLEncoding.EncodeToString(bsCache.KeyPairs[0].Key()))
 		t.Fail()
 	}
 }
@@ -169,7 +169,7 @@ func TestPrivateKeyCacheBootstrapCreatesNewKeyIfExpired(t *testing.T) {
 	}
 
 	if bsCache.KeyPairs[0].Key().Equal(edKey) {
-		t.Logf("Bootstrapped key matches when it should have been regenerated:\nRes %s", base64.StdEncoding.EncodeToString(bsCache.KeyPairs[0].Key()))
+		t.Logf("Bootstrapped key matches when it should have been regenerated:\nRes %s", base64.URLEncoding.EncodeToString(bsCache.KeyPairs[0].Key()))
 		t.Fail()
 	}
 }

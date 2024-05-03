@@ -20,6 +20,7 @@ import (
 
 type KeyCache[P PrivateKey] interface {
 	CurrentKey() KeyPair[P]
+	CurrentID() int
 	PublicKeys(context.Context) ([]byte, error)
 	Generate(context.Context) error
 	Keys() []KeyPair[P]
@@ -110,6 +111,7 @@ func (c *PrivateKeyCache[P]) goManage(ctx context.Context) {
 }
 
 func (c *PrivateKeyCache[P]) CurrentKey() KeyPair[P] { return c.KeyPairs[c.activeKey] }
+func (c *PrivateKeyCache[P]) CurrentID() int { return c.activeKey }
 func (c *PrivateKeyCache[P]) Keys() []KeyPair[P] { return c.KeyPairs }
 func (c *PrivateKeyCache[P]) ReadLock() { c.keyPairsMutex.RLock() }
 func (c *PrivateKeyCache[P]) ReadUnlock() { c.keyPairsMutex.RUnlock() }

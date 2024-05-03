@@ -1312,52 +1312,6 @@ func (o OptBool) Or(d bool) bool {
 	return d
 }
 
-// NewOptDateTime returns new OptDateTime with value set to v.
-func NewOptDateTime(v time.Time) OptDateTime {
-	return OptDateTime{
-		Value: v,
-		Set:   true,
-	}
-}
-
-// OptDateTime is optional time.Time.
-type OptDateTime struct {
-	Value time.Time
-	Set   bool
-}
-
-// IsSet returns true if OptDateTime was set.
-func (o OptDateTime) IsSet() bool { return o.Set }
-
-// Reset unsets value.
-func (o *OptDateTime) Reset() {
-	var v time.Time
-	o.Value = v
-	o.Set = false
-}
-
-// SetTo sets value to v.
-func (o *OptDateTime) SetTo(v time.Time) {
-	o.Set = true
-	o.Value = v
-}
-
-// Get returns value and boolean that denotes whether value was set.
-func (o OptDateTime) Get() (v time.Time, ok bool) {
-	if !o.Set {
-		return v, false
-	}
-	return o.Value, true
-}
-
-// Or returns value if set, or given parameter if does not.
-func (o OptDateTime) Or(d time.Time) time.Time {
-	if v, ok := o.Get(); ok {
-		return v
-	}
-	return d
-}
-
 // NewOptInt returns new OptInt with value set to v.
 func NewOptInt(v int) OptInt {
 	return OptInt{
@@ -1544,13 +1498,13 @@ func (o OptString) Or(d string) string {
 
 type PkeysOK struct {
 	// Next key expiring time, next time to pull public keys.
-	Expires OptDateTime       `json:"expires"`
-	Keys    []PkeysOKKeysItem `json:"keys"`
+	Exp  time.Time         `json:"exp"`
+	Keys []PkeysOKKeysItem `json:"keys"`
 }
 
-// GetExpires returns the value of Expires.
-func (s *PkeysOK) GetExpires() OptDateTime {
-	return s.Expires
+// GetExp returns the value of Exp.
+func (s *PkeysOK) GetExp() time.Time {
+	return s.Exp
 }
 
 // GetKeys returns the value of Keys.
@@ -1558,9 +1512,9 @@ func (s *PkeysOK) GetKeys() []PkeysOKKeysItem {
 	return s.Keys
 }
 
-// SetExpires sets the value of Expires.
-func (s *PkeysOK) SetExpires(val OptDateTime) {
-	s.Expires = val
+// SetExp sets the value of Exp.
+func (s *PkeysOK) SetExp(val time.Time) {
+	s.Exp = val
 }
 
 // SetKeys sets the value of Keys.

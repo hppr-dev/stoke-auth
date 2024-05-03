@@ -34,7 +34,7 @@ func (k *RSAKeyPair) Generate() (KeyPair[*rsa.PrivateKey], error) {
 }
 
 func (k *RSAKeyPair) PublicString() string {
-	return base64.StdEncoding.EncodeToString(x509.MarshalPKCS1PublicKey(&k.PrivateKey.PublicKey))
+	return base64.URLEncoding.EncodeToString(x509.MarshalPKCS1PublicKey(&k.PrivateKey.PublicKey))
 }
 
 func (k *RSAKeyPair) PublicKey() crypto.PublicKey {
@@ -42,11 +42,11 @@ func (k *RSAKeyPair) PublicKey() crypto.PublicKey {
 }
 
 func (k *RSAKeyPair) Encode() string {
-	return base64.StdEncoding.EncodeToString(x509.MarshalPKCS1PrivateKey(k.PrivateKey))
+	return base64.URLEncoding.EncodeToString(x509.MarshalPKCS1PrivateKey(k.PrivateKey))
 }
 
 func (k *RSAKeyPair) Decode(in string) error {
-	b, err := base64.StdEncoding.DecodeString(in)
+	b, err := base64.URLEncoding.DecodeString(in)
 	if err != nil {
 		k.Logger.Error().Err(err).Msg("Error decoding base64 RSA private key")
 		return err

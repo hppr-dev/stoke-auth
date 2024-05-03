@@ -1,2 +1,4 @@
 **/stoke.db
 **/stoke.log
+client/pystokeauth/pystokeauth.egg-info/
+client/pystokeauth/stoke/__pycache__/

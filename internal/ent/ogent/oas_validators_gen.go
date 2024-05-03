@@ -120,6 +120,9 @@ func (s *PkeysOK) Validate() error {
 
 	var failures []validate.FieldError
 	if err := func() error {
+		if s.Keys == nil {
+			return errors.New("nil is invalid value")
+		}
 		var failures []validate.FieldError
 		for i, elem := range s.Keys {
 			if err := func() error {

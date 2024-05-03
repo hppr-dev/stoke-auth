@@ -17,7 +17,7 @@ func addPkeysEndpoint(spec *ogen.Spec) error {
 					SetType("object").
 					SetProperties(&ogen.Properties{
 						*ogen.NewProperty().
-							SetName("expires").
+							SetName("exp").
 							SetSchema(ogen.DateTime().
 								SetDescription("Next key expiring time, next time to pull public keys"),
 							),
@@ -51,7 +51,8 @@ func addPkeysEndpoint(spec *ogen.Spec) error {
 									}),
 								),
 							),
-						}),
+						}).
+						SetRequired([]string{"exp", "keys"}),
 					),
 				),
 			),

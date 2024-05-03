@@ -23,7 +23,7 @@ func main() {
 		)
 	} else {
 		fmt.Println("USING AUTH")
-		keyStore, err = stoke.NewWebCachePublicKeyStore("http://localhost:8080/api/pkeys", ctx)
+		keyStore, err = stoke.NewPerRequestPublicKeyStore("http://localhost:8080/api/pkeys", ctx)
 	}
 
 	if err != nil {
@@ -54,7 +54,7 @@ func main() {
 		),
 	)
 
-	if err := http.ListenAndServe(":5000", mux); err != nil {
+	if err := http.ListenAndServe(":4000", mux); err != nil {
 		log.Printf("Listening returned an error: %v", err)
 	}
 

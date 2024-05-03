@@ -31,7 +31,7 @@ func (k *ECDSAKeyPair) Generate() (KeyPair[*ecdsa.PrivateKey], error) {
 
 func (k *ECDSAKeyPair) PublicString() string {
 	s, _ := x509.MarshalPKIXPublicKey(&k.PrivateKey.PublicKey)
-	return base64.StdEncoding.EncodeToString(s)
+	return base64.URLEncoding.EncodeToString(s)
 }
 
 func (k *ECDSAKeyPair) PublicKey() crypto.PublicKey {
@@ -40,11 +40,11 @@ func (k *ECDSAKeyPair) PublicKey() crypto.PublicKey {
 
 func (k *ECDSAKeyPair) Encode() string {
 	s, _ := x509.MarshalECPrivateKey(k.PrivateKey)
-	return base64.StdEncoding.EncodeToString(s)
+	return base64.URLEncoding.EncodeToString(s)
 }
 
 func (k *ECDSAKeyPair) Decode(in string) error {
-	b, err := base64.StdEncoding.DecodeString(in)
+	b, err := base64.URLEncoding.DecodeString(in)
 	if err != nil {
 		k.Logger.Error().Err(err).Msg("Decoding base64 private key failed")
 		return err

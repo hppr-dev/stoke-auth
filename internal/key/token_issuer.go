@@ -53,14 +53,17 @@ func (a *AsymetricTokenIssuer[P]) IssueToken(claims *stoke.Claims, ctx context.C
 
 	a.ReadLock()
 	curr := a.CurrentKey()
+	currId := a.CurrentID()
 	priv := curr.Key()
 	a.ReadUnlock()
+
+	claims.StokeClaims["kid"] = fmt.Sprint(currId)
 
 	token, tok_err := jwt.NewWithClaims(curr.SigningMethod(), claims).SignedString(priv)
 
 	refresh, ref_err := curr.SigningMethod().Sign(token, priv)
 
-	return token, base64.StdEncoding.EncodeToString(refresh), errors.Join(tok_err, ref_err)
+	return token, base64.URLEncoding.EncodeToString(refresh), errors.Join(tok_err, ref_err)
 }
 
 func (a *AsymetricTokenIssuer[P]) RefreshToken(jwtToken *jwt.Token, refreshToken string, extendTime time.Duration, ctx context.Context) (string, string, error) {
@@ -68,7 +71,7 @@ func (a *AsymetricTokenIssuer[P]) RefreshToken(jwtToken *jwt.Token, refreshToken
 	ctx, span := tel.GetTracer().Start(ctx, "AsymetricTokenIssuer.RefreshToken")
 	defer span.End()
 
-	refreshBytes, err := base64.StdEncoding.DecodeString(refreshToken)
+	refreshBytes, err := base64.URLEncoding.DecodeString(refreshToken)
 	if err != nil {
 		logger.Error().
 			Func(otelzerolog.AddTracingContext(span)).

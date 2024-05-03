@@ -11,14 +11,16 @@ export const options = {
 // * client/examples/go/engine on 5000
 export default function() {
 	const services = [ 
-	"http://localhost:5000/speed", // requires role:eng
+	"http://localhost:4000/speed", // requires role:eng
+	"http://localhost:4001/fire",  // requires role:eng
 	// TODO add more 
 	]
+	const requests = [
+		JSON.stringify({ "username" : "leela", "password": "leela" }),
+		JSON.stringify({ "username" : "fry", "password": "fry" }),
+	]
   const stokeResp = http.post('http://localhost:8080/api/login',
-		JSON.stringify({
-			"username" : "leela",
-			"password" : "leela",
-		}),
+		requests[Math.floor(Math.random() * 2)],
 		{
 			headers: {
 				"Content-Type" : "application/json"

@@ -5,7 +5,6 @@ package ogent
 import (
 	"math/bits"
 	"strconv"
-	"time"
 
 	"github.com/go-faster/errors"
 	"github.com/go-faster/jx"
@@ -4434,41 +4433,6 @@ func (s *OptBool) UnmarshalJSON(data []byte) error {
 	return s.Decode(d)
 }
 
-// Encode encodes time.Time as json.
-func (o OptDateTime) Encode(e *jx.Encoder, format func(*jx.Encoder, time.Time)) {
-	if !o.Set {
-		return
-	}
-	format(e, o.Value)
-}
-
-// Decode decodes time.Time from json.
-func (o *OptDateTime) Decode(d *jx.Decoder, format func(*jx.Decoder) (time.Time, error)) error {
-	if o == nil {
-		return errors.New("invalid: unable to decode OptDateTime to nil")
-	}
-	o.Set = true
-	v, err := format(d)
-	if err != nil {
-		return err
-	}
-	o.Value = v
-	return nil
-}
-
-// MarshalJSON implements stdjson.Marshaler.
-func (s OptDateTime) MarshalJSON() ([]byte, error) {
-	e := jx.Encoder{}
-	s.Encode(&e, json.EncodeDateTime)
-	return e.Bytes(), nil
-}
-
-// UnmarshalJSON implements stdjson.Unmarshaler.
-func (s *OptDateTime) UnmarshalJSON(data []byte) error {
-	d := jx.DecodeBytes(data)
-	return s.Decode(d, json.DecodeDateTime)
-}
-
 // Encode encodes int as json.
 func (o OptInt) Encode(e *jx.Encoder) {
 	if !o.Set {
@@ -4615,25 +4579,21 @@ func (s *PkeysOK) Encode(e *jx.Encoder) {
 // encodeFields encodes fields.
 func (s *PkeysOK) encodeFields(e *jx.Encoder) {
 	{
-		if s.Expires.Set {
-			e.FieldStart("expires")
-			s.Expires.Encode(e, json.EncodeDateTime)
-		}
+		e.FieldStart("exp")
+		json.EncodeDateTime(e, s.Exp)
 	}
 	{
-		if s.Keys != nil {
-			e.FieldStart("keys")
-			e.ArrStart()
-			for _, elem := range s.Keys {
-				elem.Encode(e)
-			}
-			e.ArrEnd()
+		e.FieldStart("keys")
+		e.ArrStart()
+		for _, elem := range s.Keys {
+			elem.Encode(e)
 		}
+		e.ArrEnd()
 	}
 }
 
 var jsonFieldsNameOfPkeysOK = [2]string{
-	0: "expires",
+	0: "exp",
 	1: "keys",
 }
 
@@ -4642,20 +4602,24 @@ func (s *PkeysOK) Decode(d *jx.Decoder) error {
 	if s == nil {
 		return errors.New("invalid: unable to decode PkeysOK to nil")
 	}
+	var requiredBitSet [1]uint8
 
 	if err := d.ObjBytes(func(d *jx.Decoder, k []byte) error {
 		switch string(k) {
-		case "expires":
+		case "exp":
+			requiredBitSet[0] |= 1 << 0
 			if err := func() error {
-				s.Expires.Reset()
-				if err := s.Expires.Decode(d, json.DecodeDateTime); err != nil {
+				v, err := json.DecodeDateTime(d)
+				s.Exp = v
+				if err != nil {
 					return err
 				}
 				return nil
 			}(); err != nil {
-				return errors.Wrap(err, "decode field \"expires\"")
+				return errors.Wrap(err, "decode field \"exp\"")
 			}
 		case "keys":
+			requiredBitSet[0] |= 1 << 1
 			if err := func() error {
 				s.Keys = make([]PkeysOKKeysItem, 0)
 				if err := d.Arr(func(d *jx.Decoder) error {
@@ -4678,6 +4642,38 @@ func (s *PkeysOK) Decode(d *jx.Decoder) error {
 		return nil
 	}); err != nil {
 		return errors.Wrap(err, "decode PkeysOK")
+	}
+	// Validate required fields.
+	var failures []validate.FieldError
+	for i, mask := range [1]uint8{
+		0b00000011,
+	} {
+		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
+			// Mask only required fields and check equality to mask using XOR.
+			//
+			// If XOR result is not zero, result is not equal to expected, so some fields are missed.
+			// Bits of fields which would be set are actually bits of missed fields.
+			missed := bits.OnesCount8(result)
+			for bitN := 0; bitN < missed; bitN++ {
+				bitIdx := bits.TrailingZeros8(result)
+				fieldIdx := i*8 + bitIdx
+				var name string
+				if fieldIdx < len(jsonFieldsNameOfPkeysOK) {
+					name = jsonFieldsNameOfPkeysOK[fieldIdx]
+				} else {
+					name = strconv.Itoa(fieldIdx)
+				}
+				failures = append(failures, validate.FieldError{
+					Name:  name,
+					Error: validate.ErrFieldRequired,
+				})
+				// Reset bit.
+				result &^= 1 << bitIdx
+			}
+		}
+	}
+	if len(failures) > 0 {
+		return &validate.Error{Fields: failures}
 	}
 
 	return nil

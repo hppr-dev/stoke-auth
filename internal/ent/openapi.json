@@ -2015,7 +2015,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "expires": {
+                    "exp": {
                       "description": "Next key expiring time, next time to pull public keys",
                       "type": "string",
                       "format": "date-time"
@@ -2071,7 +2071,11 @@
                         }
                       }
                     }
-                  }
+                  },
+                  "required": [
+                    "exp",
+                    "keys"
+                  ]
                 }
               }
             }
