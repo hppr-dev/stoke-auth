@@ -137,7 +137,7 @@ func TestPrivateKeyCacheBootstrap(t *testing.T) {
 
 	if len(bsCache.KeyPairs) != 1 {
 		t.Logf("Do not have expected number of bootstrapped keys: %d", len(bsCache.KeyPairs))
-		t.Fail()
+		t.FailNow()
 	}
 
 	if !bsCache.KeyPairs[0].Key().Equal(edKey) {
@@ -165,7 +165,7 @@ func TestPrivateKeyCacheBootstrapCreatesNewKeyIfExpired(t *testing.T) {
 
 	if len(bsCache.KeyPairs) != 1 {
 		t.Logf("Do not have expected number of bootstrapped keys: %d", len(bsCache.KeyPairs))
-		t.Fail()
+		t.FailNow()
 	}
 
 	if bsCache.KeyPairs[0].Key().Equal(edKey) {
@@ -235,7 +235,7 @@ func TestPrivateKeyCacheClean(t *testing.T) {
 
 	if len(cache.KeyPairs) != 1 {
 		t.Log("Clean did not remove expired certificates")
-		t.Fail()
+		t.FailNow()
 	}
 
 	if cache.KeyPairs[0] != k2 {
@@ -247,7 +247,7 @@ func TestPrivateKeyCacheClean(t *testing.T) {
 
 	if len(dbKeys) != 1 {
 		t.Logf("Number of keys in the database did not match expeced value: expected:2, actual: %d", len(dbKeys))
-		t.Fail()
+		t.FailNow()
 	}
 
 	if !dbKeys[0].Expires.Equal(okTime) {
@@ -285,7 +285,7 @@ func TestPrivateKeyCacheCleanLogsErrorsIfDatabaseFailsDelete(t *testing.T) {
 
 	if len(cache.KeyPairs) != 1 {
 		t.Log("Clean did not remove expired certificates")
-		t.Fail()
+		t.FailNow()
 	}
 
 	if cache.KeyPairs[0] != k2 {

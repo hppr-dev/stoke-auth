@@ -71,9 +71,9 @@ func TestPublicStringHappy(t *testing.T) {
 	ec := &key.ECDSAKeyPair{ NumBits: 256, PrivateKey: buildECDSAKey() }
 	rs := &key.RSAKeyPair{ NumBits: 256, PrivateKey: buildRSAKey() }
 
-	expEd := "tftbPsVuL85T0jxjdzkxErXQSmlt0h4zERiS+a5OiAA="
-	expEc := "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEbJD2pRVSiKjnrnkEY+Cs+0n3RcJjfhO5hzz8H3ilMgvshY0xdkBEuEwIpIJFYXUCladiye+hmWOgFxOen8EoTw=="
-	expRs := "MCgCIQC+9cu5fmrUYhkbUNoEP5S+sUqv6KnaB32IBa3Y9HlsdQIDAQAB"
+	expEd := "tftbPsVuL85T0jxjdzkxErXQSmlt0h4zERiS-a5OiAA="
+	expEc := "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEbJD2pRVSiKjnrnkEY-Cs-0n3RcJjfhO5hzz8H3ilMgvshY0xdkBEuEwIpIJFYXUCladiye-hmWOgFxOen8EoTw=="
+	expRs := "MCgCIQC-9cu5fmrUYhkbUNoEP5S-sUqv6KnaB32IBa3Y9HlsdQIDAQAB"
 
 	if edStr := ed.PublicString(); edStr != expEd {
 		t.Fatalf("Failed to generate EdDSA public string: %s", edStr)
@@ -93,9 +93,9 @@ func TestEncode(t *testing.T) {
 	ec := &key.ECDSAKeyPair{ NumBits: 256, PrivateKey: buildECDSAKey() }
 	rs := &key.RSAKeyPair{ NumBits: 256, PrivateKey: buildRSAKey() }
 
-	expEd := "DHGQKw0oDDcMcZArDSgMNwxxkCsNKAw3DHGQKw0oDDe1+1s+xW4vzlPSPGN3OTEStdBKaW3SHjMRGJL5rk6IAA=="
-	expEc := "MHcCAQEEIPb5VRJEX5ZNB1kxPOHKMrVgC1LQ39HgUlwzhgjGWtQRoAoGCCqGSM49AwEHoUQDQgAEbJD2pRVSiKjnrnkEY+Cs+0n3RcJjfhO5hzz8H3ilMgvshY0xdkBEuEwIpIJFYXUCladiye+hmWOgFxOen8EoTw=="
-	expRs := "MIGsAgEAAiEAvvXLuX5q1GIZG1DaBD+UvrFKr+ip2gd9iAWt2PR5bHUCAwEAAQIhAIAeZTrkyEQKNRIQotVq2x4UX+WS2QnGukHhN4hbI/8BAhEA7XUgdS1JHhCoMflnQLyWlQIRAM3fKs4ZV2DxNVKPsnyxZmECEQDLCVxgdQFRAMMgP/XGh7plAhAZzXy59CcleVXrkSMXycxBAhEA2d7gYrSEfm4W8g99MQlmcg=="
+	expEd := "DHGQKw0oDDcMcZArDSgMNwxxkCsNKAw3DHGQKw0oDDe1-1s-xW4vzlPSPGN3OTEStdBKaW3SHjMRGJL5rk6IAA=="
+	expEc := "MHcCAQEEIPb5VRJEX5ZNB1kxPOHKMrVgC1LQ39HgUlwzhgjGWtQRoAoGCCqGSM49AwEHoUQDQgAEbJD2pRVSiKjnrnkEY-Cs-0n3RcJjfhO5hzz8H3ilMgvshY0xdkBEuEwIpIJFYXUCladiye-hmWOgFxOen8EoTw=="
+	expRs := "MIGsAgEAAiEAvvXLuX5q1GIZG1DaBD-UvrFKr-ip2gd9iAWt2PR5bHUCAwEAAQIhAIAeZTrkyEQKNRIQotVq2x4UX-WS2QnGukHhN4hbI_8BAhEA7XUgdS1JHhCoMflnQLyWlQIRAM3fKs4ZV2DxNVKPsnyxZmECEQDLCVxgdQFRAMMgP_XGh7plAhAZzXy59CcleVXrkSMXycxBAhEA2d7gYrSEfm4W8g99MQlmcg=="
 
 	if edStr := ed.Encode(); edStr != expEd {
 		t.Fatalf("Encoding EdDSA failed: %s", edStr)
@@ -115,9 +115,9 @@ func TestDecodeHappy(t *testing.T) {
 	ec := key.ECDSAKeyPair{}
 	rs := key.RSAKeyPair{}
 
-	edStr := "DHGQKw0oDDcMcZArDSgMNwxxkCsNKAw3DHGQKw0oDDe1+1s+xW4vzlPSPGN3OTEStdBKaW3SHjMRGJL5rk6IAA=="
-	ecStr := "MHcCAQEEIPb5VRJEX5ZNB1kxPOHKMrVgC1LQ39HgUlwzhgjGWtQRoAoGCCqGSM49AwEHoUQDQgAEbJD2pRVSiKjnrnkEY+Cs+0n3RcJjfhO5hzz8H3ilMgvshY0xdkBEuEwIpIJFYXUCladiye+hmWOgFxOen8EoTw=="
-	rsStr := "MIGsAgEAAiEAvvXLuX5q1GIZG1DaBD+UvrFKr+ip2gd9iAWt2PR5bHUCAwEAAQIhAIAeZTrkyEQKNRIQotVq2x4UX+WS2QnGukHhN4hbI/8BAhEA7XUgdS1JHhCoMflnQLyWlQIRAM3fKs4ZV2DxNVKPsnyxZmECEQDLCVxgdQFRAMMgP/XGh7plAhAZzXy59CcleVXrkSMXycxBAhEA2d7gYrSEfm4W8g99MQlmcg=="
+	edStr := "DHGQKw0oDDcMcZArDSgMNwxxkCsNKAw3DHGQKw0oDDe1-1s-xW4vzlPSPGN3OTEStdBKaW3SHjMRGJL5rk6IAA=="
+	ecStr := "MHcCAQEEIPb5VRJEX5ZNB1kxPOHKMrVgC1LQ39HgUlwzhgjGWtQRoAoGCCqGSM49AwEHoUQDQgAEbJD2pRVSiKjnrnkEY-Cs-0n3RcJjfhO5hzz8H3ilMgvshY0xdkBEuEwIpIJFYXUCladiye-hmWOgFxOen8EoTw=="
+	rsStr := "MIGsAgEAAiEAvvXLuX5q1GIZG1DaBD-UvrFKr-ip2gd9iAWt2PR5bHUCAwEAAQIhAIAeZTrkyEQKNRIQotVq2x4UX-WS2QnGukHhN4hbI_8BAhEA7XUgdS1JHhCoMflnQLyWlQIRAM3fKs4ZV2DxNVKPsnyxZmECEQDLCVxgdQFRAMMgP_XGh7plAhAZzXy59CcleVXrkSMXycxBAhEA2d7gYrSEfm4W8g99MQlmcg=="
 
 	if err := ed.Decode(edStr); err != nil || !ed.PrivateKey.Equal(buildEdDSAKey()) {
 		t.Fatalf("Failed to decode EdDSAKeyPair from string: %v.", err)

@@ -39,7 +39,7 @@ func KeyWithExpires(exp time.Time) DatabaseMutation {
 	return func(client *ent.Client) {
 		client.PrivateKey.Create().
 			SetExpires(exp).
-			SetText("DHGQKw0oDDcMcZArDSgMNwxxkCsNKAw3DHGQKw0oDDe1+1s+xW4vzlPSPGN3OTEStdBKaW3SHjMRGJL5rk6IAA==").
+			SetText("DHGQKw0oDDcMcZArDSgMNwxxkCsNKAw3DHGQKw0oDDe1-1s-xW4vzlPSPGN3OTEStdBKaW3SHjMRGJL5rk6IAA==").
 			SaveX(context.Background())
 	}
 }
