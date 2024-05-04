@@ -4,18 +4,24 @@ from flask import request
 from werkzeug.exceptions import Unauthorized
 
 from stoke.client import StokeClient
+from stoke.test_client import TestStokeClient
 
-def require_claims(client : StokeClient, claims : Dict[str, str], jwt_kwarg : str | None = None):
+def require_claims(client : StokeClient | TestStokeClient, claims : Dict[str, str], jwt_kwarg : str | None = None):
     def inner(func):
         @wraps(func)
         def wrap_require(*args, **kwargs):
-            if request.authorization is None:
-                raise Unauthorized(description="Missing Authorization Header")
+            token : str | None = None
+            if request.authorization is not None and request.authorization.type == "bearer":
+                token = request.authorization.token
 
-            if request.authorization.type != "bearer" or request.authorization.token is None:
+            if type(client) is TestStokeClient:
+                print("hello")
+                token = client.default_token
+
+            if token is None:
                 raise Unauthorized(description="Missing Authorization Token")
 
-            jwtDict = client.parse_token(request.authorization.token)
+            jwtDict = client.parse_token(token)
             if jwtDict is None:
                 raise Unauthorized(description="Invalid Token")
 
