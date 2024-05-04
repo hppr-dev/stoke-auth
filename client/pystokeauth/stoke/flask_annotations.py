@@ -15,7 +15,6 @@ def require_claims(client : StokeClient | TestStokeClient, claims : Dict[str, st
                 token = request.authorization.token
 
             if type(client) is TestStokeClient:
-                print("hello")
                 token = client.default_token
 
             if token is None:
