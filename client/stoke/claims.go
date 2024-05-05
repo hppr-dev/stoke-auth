@@ -14,7 +14,7 @@ type Claims struct {
 	StokeClaims map[string]string `json:"-"`
 	jwt.RegisteredClaims
 	requiredClaimPreds []claimPredicate
-	alternateClaims []Claims
+	alternateClaims []*Claims
 }
 
 // claimPredicates are custom functions to verify claims satisfy conditions
@@ -70,10 +70,10 @@ func (c *Claims) MarshalJSON() ([]byte, error) {
 	}
 
 	if c.RegisteredClaims.NotBefore != nil {
-		nbt := c.RegisteredClaims.NotBefore.Unix()
-		if nbt > 0 {
-			encoder.FieldStart("nbt")
-			encoder.Int64(nbt)
+		nbf := c.RegisteredClaims.NotBefore.Unix()
+		if nbf > 0 {
+			encoder.FieldStart("nbf")
+			encoder.Int64(nbf)
 		}
 	}
 

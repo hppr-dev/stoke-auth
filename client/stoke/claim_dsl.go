@@ -8,7 +8,9 @@ import (
 
 // Creates a token to require claims
 func RequireToken() *Claims {
-	return &Claims{}
+	return &Claims{
+		StokeClaims: make(map[string]string),
+	}
 }
 
 // Validates custom claim requirements.
@@ -16,6 +18,7 @@ func RequireToken() *Claims {
 func (c Claims) Validate() error {
 	// If any of the alternate claims successfully validate, this claim is valid as well
 	for _, other := range c.alternateClaims {
+		other.StokeClaims = c.StokeClaims
 		if err := other.Validate(); err == nil {
 			return nil
 		}
@@ -81,7 +84,7 @@ func (c *Claims) WithClaimListPart(key, item string) *Claims {
 }
 
 // Requires the current token claims or another token claims to validate
-func (c *Claims) Or(other Claims) *Claims {
+func (c *Claims) Or(other *Claims) *Claims {
 	c.alternateClaims = append(c.alternateClaims, other)
 	return c
 }
