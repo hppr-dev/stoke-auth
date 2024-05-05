@@ -1,33 +1,24 @@
-# Stoke Authentication Server
+# <div align="center"> <img src="./internal/admin/stoke-admin-ui/public/favicon.svg" width="33"/> Stoke </div>
+### <div align="center"> Lightweight Auth Server </div>
 
-A drop in solution for authentication.
 
-Stoke Authentication Server is a simple Json Web Token (JWT) authentication server.
-It is a lightweight way of bringing authentication to microservices.
+---
 
-Stoke aims to be:
-  * Lightweight
-  * Simple
-  * Secure
+A drop in solution for microservice auth:
+ * 🪶 Lightweight
+ * 💀 Simple
+ * 🔒 Secure
 
-Stoke Features:
-  * Simple deployment -- docker image and a config file
-  * HTTP client middleware for go and python (more to come)
-  * Automatic key rotation and distribution
-  * Configurable asymmetric key algorithm: ECDSA, EdDSA, or RSA 
-  * Refreshable Tokens
-  * Configurable credential sources -- LDAP and Local database
-  * Admin console
-    * Manage claims
-      * Create/Update/Delete claims
-      * Issue claims by group or user
+Features:
+  * 🚀 Simple deployment
+  * 🧰 HTTP client middleware for go and python *(more to come)*
+  * 🔑 Automatic key rotation and distribution
+  * 🔐 Configurable asymmetric key algorithm: ECDSA, EdDSA, or RSA 
+  * ♻️ Refreshable Tokens
+  * 🤹 Configurable credential sources
+  * 👮‍♀️ Admin console
 
-Non-goals:
-  * Support different authentication schemes
-  * Replace identity providers
-  * All encompassing SSO server
-
-## Quick Start
+# Quick Start
 
 1. Create a config file with the following:
 ```
@@ -77,30 +68,25 @@ docker run -v $(pwd)/config.yaml:/etc/stoke/config.yaml --rm -it hpprdev/stokeau
 
 # Concepts
 
-## Oauth 2.0
-
-The stoke auth server is a simple implementation of the OAuth 2.0 protocol.
+The stoke auth server is a simple implementation of the OAuth 2.0 protocol:
+``` mermaid
+sequenceDiagram
+    participant c as Client 
+    participant s as Resource Server
+    participant a as Authorization Server
+    participant o as Resource Owner
+    c->>o: Authorization Request
+    o-->>c: Authorization Grant (Credentials)
+    c->>a: Authorization Grant
+    a-->>c: Access Token (JWT)
+    c->>s: Access Token
+    s-->>c: Protected Resource
 ```
-     +--------+                            +---------------+
-     |        |--- Authorization Request ->|   Resource    |
-     |        |                            |     Owner     |
-     |        |<--- Authorization Grant ---|               |
-     |        |                            +---------------+
-     |        |
-     |        |                            +---------------+
-     |        |---- Authorization Grant -->| Authorization |
-     | Client |                            |     Server    |
-     |        |<------ Access Token -------|               |
-     |        |                            +---------------+
-     |        |
-     |        |                            +---------------+
-     |        |------- Access Token ------>|    Resource   |
-     |        |                            |     Server    |
-     |        |<---- Protected Resource ---|               |
-     +--------+                            +---------------+
-```
-OAuth Diagram from [RFC6749](https://www.rfc-editor.org/rfc/rfc6749.html#section-1.2)
+<div align="center">
+  <sub>Annotated OAuth 2.0 Diagram from <a href="https://www.rfc-editor.org/rfc/rfc6749.html#section-1.2">RFC6749</a> </sub>
+</div>
 
+<br/><br/>
 Stoke acts as a bridge between the authorization server and the resource owner.
 The resource owner in the our case is the adminstrator of the server and/or an LDAP server.
 The "Authorization Request" and "Authorization Grant" represent user credentials (username/password).
@@ -109,37 +95,91 @@ This access token is a signed JWT that represents a verifiable permission on the
 
 ## Json Web Token (JWT)
 
+A JWT is a base64 url encoded JSON string that represents permissions and information about a user.
 JWTs are broken up into 3 base64 url encoded stanzas seperated by ".": the header, the body and the signature.
-The header contains values that specify the algorithm and the type of the body.
-The body is a key-value map of claims that have been issued to the user.
-Claims represent any information about a user, i.e. username, full name, permissions, or group membership.
-The signature is a cryptographic signature that is specific to the issued JWT.
-By verifying the signature with the distributed public keys, applications can trust that the claims in the body were issued by the trusted source.
+
+<table>
+ <tr>
+  <td>Part</td>
+  <td>Description</td>
+  <td>Example JSON</td>
+  <td>Example URL Base64</td>
+ </tr>
+ <tr>
+  <td> Header </td>
+  <td> Specifies the algorithm and the type of the body. </td>
+  <td> 
+ 
+``` json 
+{
+  "alg": "PS256",
+  "typ": "JWT"
+}
+```
+
+  </td>
+  <td>
+   
+```
+   eyJhbGciOiJQUzI1NiIsInR5cCI6IkpXVCJ9
+```
+
+  </td>
+ </tr>
+ <tr>
+  <td> Body </td>
+  <td> Key value map of claims. Claims represent any information about a user, i.e. username, full name, permissions or group membership. </td>
+  <td> 
+ 
+``` json 
+{
+  "name": "John Doe",
+  "role": "adm"
+}
+```
+
+  </td>
+  <td>
+   
+```
+   eyJuYW1lIjoiSm9obiBEb2UiLCJyb2xlIjoiYWRtIn0
+```
+
+  </td>
+ </tr>
+  <tr>
+  <td> Signature </td>
+  <td> Cryptographic signature used to verify the token was isseed by trusted issuer </td>
+  <td> N/A </td>
+  <td>
+   
+```
+   BEmnoqsSLGQxla8GE27cQVTcaifV5AGpamXph6WxNVs
+```
+  </td>
+ </tr>
+</table>
 
 ## Claim Groups and Claims
 
 All user tokens include user information (username, email,etc.), timing information (expiration) and other custom claims.
-Stoke admins may give users custom claims by adding users to claim groups.
-Claim groups group claims so that they are easily assignable to users.
+Stoke admins give users custom claims by adding users to claim groups.
 Users may have many claim groups and claim groups may have many claims.
 If a user has a claim group assigned to them, all claims in that group will be included in tokens issued to that user.
 
-For example, the following user:
-
-``` txt
-    * Username : stoke
-    * First Name : Stephen
-    * Last Name : Toke
-    * Email: stoke@hppr.dev
-    * Groups:
-        * Admins
-            * Claims:
-                * Stoke Super User, srol=spr
-                * Ship Access, ship=acc
-        * Log Users
-            * Claims
-                * Log Reader/Writer, log=r,w
-```
+For example the following user:
+ * Username : stoke
+ * First Name : Stephen
+ * Last Name : Toke
+ * Email: stoke@hppr.dev
+ * Groups:
+   * Admins
+     * Claims:
+       * Stoke Super User, srol=spr
+       * Ship Access, ship=acc
+   * Log Users
+     * Claims
+       * Log Reader/Writer, log=r,w
 
 Would receive the following custom claims in their tokens:
 ``` json
@@ -150,9 +190,9 @@ Would receive the following custom claims in their tokens:
 }
 ```
 
-Groups may also be linked to outside sources (LDAP, etc) to allow claims to automatically be populated.
+Groups may also be linked to outside sources (LDAP, etc) to allow claims to automatically be populated by group membership.
 
-A single group and claim to manage access to the admin console will be created automatically if it does not exist when starting the server.
+A single group and claim to manage access to the admin console will be created automatically if it does not exist when server is started.
 The claim that grants administrative access to the admin console is "srol=spr".
 In other words, if a user has `"srol" : "spr"` in their token claims, they are able to access the admin pages.
 
@@ -168,12 +208,11 @@ Clients must keep an up to date list of public keys to be able to verify tokens 
 ## RFCs
 
 The following RFCs were used as reference:
-
-    * JWT : https://datatracker.ietf.org/doc/rfc7519/
-    * JWT Best Practices : https://datatracker.ietf.org/doc/rfc8725/
-        * More work is needed to ensure these are being used
-    * JWK : https://datatracker.ietf.org/doc/html/rfc7517
-    * OAUTH 2.0 : https://datatracker.ietf.org/doc/rfc6749/
+ * JWT : https://datatracker.ietf.org/doc/rfc7519/
+ * JWT Best Practices : https://datatracker.ietf.org/doc/rfc8725/
+ * More work is needed to ensure these are being used
+ * JWK : https://datatracker.ietf.org/doc/html/rfc7517
+ * OAUTH 2.0 : https://datatracker.ietf.org/doc/rfc6749/
 
 # Building From Source
 
@@ -183,16 +222,7 @@ To build from source
 3. Run `go mod tidy` to pull dependencies
 4. Run `go build -o stoke-server ./cmd/` to build the executable
 
-# Server Executable Reference
 
-```
-stoke-server [-config CONFIG_FILE] [-dbinit DBINIT_FILE] [SUBCOMMAND]
-where SUBCOMMAND can be:
-    - migrate       -- Migrate the configured database and exit
-    - validate      -- Validate and print configuration and exit
-    - hash-password -- Hash a password for use in a dbinit file
-If SUBCOMMAND is ommited, the database is migrated and the server is run
-```
 
 # Configuration
 
@@ -204,12 +234,12 @@ By default, the executable looks for a config file named `config.yaml` in the ru
 An example configuration file that has all of the available options is available in cmd/config.yaml.
 
 There are 6 config sections:
-    * server    -- web server options
-    * database  -- user/groups/claims database connection options
-    * logging   -- logging options
-    * tokens    -- token/key generation/rotation options
-    * telemetry -- where and how to send telemetry data
-    * users     -- user source configuration (LDAP for now)
+ * server    -- web server options
+ * database  -- user/groups/claims database connection options
+ * logging   -- logging options
+ * tokens    -- token/key generation/rotation options
+ * telemetry -- where and how to send telemetry data
+ * users     -- user source configuration (LDAP for now)
 
 ## Database Initialization file
 
@@ -218,20 +248,43 @@ The database initialization file may add users, groups and claims to the databas
 If you wish to only initialize the database without starting the server, run the executable with `migrate` subcommand.
 
 The initialization file has 3 sections:
-    * users
-    * groups
-    * claims
+ * users
+ * groups
+ * claims
+
+Note that all groups refrenced in the users and claims refrenced in groups must be created in this file to successfully initialize the database.
 
 An example initialization file is available in cmd/dbinit.yaml.
 It creates a super user named `stoke` with a password of `admin`.
-Note that all groups refrenced in the users and claims refrenced in groups must be created in this file to successfully initialize the database.
 
 If you wish to create a user with a specific password, use the `hash-password` subcommand that will ask for a password and hash.
 It will output values to copy and paste into a dbinit file that will set the user's password hash and salt such that it matches when trying to log in.
 
-# Token Verification Clients
+## Server Executable
+
+```
+stoke-server [-config CONFIG_FILE] [-dbinit DBINIT_FILE] [SUBCOMMAND]
+where SUBCOMMAND can be:
+    - migrate       -- Migrate the configured database and exit
+    - validate      -- Validate and print configuration and exit
+    - hash-password -- Hash a password for use in a dbinit file
+If SUBCOMMAND is ommited, the database is migrated and the server is run
+```
+
+# Clients
+
+In the context of stoke, there are two types of clients:
+
+ * Resource Server Clients
+   * Clients that verify tokens and use claims information
+ * End User Clients
+   * Clients that are issued tokens 
+
+## Resource Server Clients
 
 Clients who wish to use the the generated JWTs as authorization may use the clients supplied in this repository.
+This client code serves to cache public keys and verify tokens against them.
+More information is available in the individual resource client libraries.
 
 * golang
   * client source -- client/stoke
@@ -239,6 +292,16 @@ Clients who wish to use the the generated JWTs as authorization may use the clie
 * python
   * HTTP Source client/pystokeauth
   * http example -- client/examples/python/weapons
+
+## End User Clients
+
+End user clients are those that request and make use of tokens issued by stoke to access resource servers.
+
+End users are required to login with their registered username and password to receive a token.
+That token can then be used as Authorization for any of the resource servers that are subscribed to the stoke server public keys.
+For HTTP clients, Bearer Authorization is used and the Authorization header is set to `Bearer <TOKEN>`.
+
+An example end user javascript implementation is included in `client/enduser/js`.
 
 # HTTP Endpoints
 
@@ -256,36 +319,36 @@ A summary is as follows:
 # Performance/Load Benchmarks
 
 Tests were run with the following failure conditions:
-    * If more than 1% of requests fail, the tests stop
-    * If more than 1% of requests take more than 300 ms, the tests stop
+ * If more than 1% of requests fail, the tests stop
+ * If more than 1% of requests take more than 300 ms, the tests stop
 
 The server was configured as follows
-    * Log level Info
-    * Pretty logging disabled
-    * Log to stdout only
-    * Tracing enabled
-    * Local sqlite database
-    * ECDSA keys
-    * 1s request timeout
-    * Connected to a test LDAP container instance
-    * Token issued for a user with 3 groups and 30 seperate claims
-    * Aggressive key/token rotation:
-        * Key Duration: 5m
-        * Token duration 1m
+ * Log level Info
+ * Pretty logging disabled
+ * Log to stdout only
+ * Tracing enabled
+ * Local sqlite database
+ * ECDSA keys
+ * 1s request timeout
+ * Connected to a test LDAP container instance
+ * Token issued for a user with 3 groups and 30 seperate claims
+ * Aggressive key/token rotation:
+  * Key Duration: 5m
+  * Token duration 1m
 
 Default run environment:
-    * ~5 milliseconds / token in isolation
-    * Breakpoint: ~230 tokens / second
-    * High Load Test:        200 tokens / second for 10m with no loss
-    * Medium Load Test:      150 tokens / second for 20m with no loss
-    * Max Nominal Load Test: 100 tokens / second for 2h with no loss
-
+ * ~5 milliseconds / token in isolation
+ * Breakpoint: ~230 tokens / second
+ * High Load Test:        200 tokens / second for 10m with no loss
+ * Medium Load Test:      150 tokens / second for 20m with no loss
+ * Max Nominal Load Test: 100 tokens / second for 2h with no loss
+   
 GOMAXPROCS=1:
-    * ~20 milliseconds / token in isolation
-    * Breakpoint: ~58 tokens / second
-    * High Load Test:        50 tokens / second for 10m with no loss
-    * Medium Load Test:      25 tokens / second for 20m with no loss
-    * Max Nominal Load Test: 15 tokens / second for 2h with no loss
+ * ~20 milliseconds / token in isolation
+ * Breakpoint: ~58 tokens / second
+ * High Load Test:        50 tokens / second for 10m with no loss
+ * Medium Load Test:      25 tokens / second for 20m with no loss
+ * Max Nominal Load Test: 15 tokens / second for 2h with no loss
 
 In resource constrained environments with low traffic expectations,GOMAXPROCS=1 can be used to limit the memory/cpu footprint of the server.
 Otherwise it is recommended to run the server without modifying GOMAXPROCS.
