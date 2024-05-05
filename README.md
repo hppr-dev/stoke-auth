@@ -20,8 +20,8 @@ Features:
 
 # Quick Start
 
-1. Create a config file with the following:
-```
+1. Create a file named config.yaml with the following text:
+``` yaml
 ---
 server:
   port: 8080
