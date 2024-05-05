@@ -216,13 +216,12 @@ The following RFCs were used as reference:
 
 # Building From Source
 
-To build from source
-1. Install go 1.22.2
+To build from source:
+1. Install go 1.22
 2. Clone this repository
 3. Run `go mod tidy` to pull dependencies
-4. Run `go build -o stoke-server ./cmd/` to build the executable
-
-
+4. Build the UI by running `npm run install && npm run build --clearOutDir` in the internal/admin/stoke-admin-ui directory
+5. Build the server executable by running `go build -o stoke-server ./cmd/` in the root of the repository
 
 # Configuration
 
@@ -291,7 +290,7 @@ More information is available in the individual resource client libraries.
   * http example -- client/examples/go/engine
 * python
   * HTTP Source client/pystokeauth
-  * http example -- client/examples/python/weapons
+  * http (flask) example -- client/examples/python/weapons
 
 ## End User Clients
 
