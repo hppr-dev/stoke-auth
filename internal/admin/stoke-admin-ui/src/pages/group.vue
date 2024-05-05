@@ -27,8 +27,8 @@
   const store = useAppStore()
 
   async function setCurrentGroup(_ : PointerEvent, { item } : { item : Group } ) {
-    store.resetCurrentGroup()
     if ( store.currentGroup.id && store.currentGroup.id === item.id ) {
+      store.resetCurrentGroup()
       return
     }
     await store.fetchClaimsForGroup(item.id)

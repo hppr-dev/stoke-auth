@@ -57,8 +57,8 @@
   const store = useAppStore()
 
   async function setCurrentUser(_ : PointerEvent, { item } : { item : User }) {
-    store.resetCurrentUser()
     if ( store.currentUser.id && store.currentUser.id === item.id ) {
+      store.resetCurrentUser()
       return
     }
     await store.fetchGroupsForUser(item.id)

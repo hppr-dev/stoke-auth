@@ -217,10 +217,10 @@ The following RFCs were used as reference:
 # Building From Source
 
 To build from source:
-1. Install go 1.22
+1. Install go 1.22, nodejs and npm
 2. Clone this repository
 3. Run `go mod tidy` to pull dependencies
-4. Build the UI by running `npm run install && npm run build --clearOutDir` in the internal/admin/stoke-admin-ui directory
+4. Build the UI by running `npm install && npm run build --emptyOutDir` in the internal/admin/stoke-admin-ui directory
 5. Build the server executable by running `go build -o stoke-server ./cmd/` in the root of the repository
 
 # Configuration
