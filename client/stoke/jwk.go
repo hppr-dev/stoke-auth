@@ -121,7 +121,7 @@ func (j *JWK) ToECDSA() (*ecdsa.PublicKey, error) {
 
 // Fills a JWK with an EdDSA key
 func (j *JWK) FromEdDSA(key ed25519.PublicKey) *JWK {
-	j.KeyType = "EC"
+	j.KeyType = "OKP"
 	j.Use = "sig"
 	j.Curve = "ed25519"
 	j.X = base64.URLEncoding.EncodeToString(key)

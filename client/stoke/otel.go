@@ -47,7 +47,7 @@ func AddTokenToSpan(jwtToken *jwt.Token, span trace.Span) bool {
 	}
 
 	notbefore, err := jwtToken.Claims.GetNotBefore()
-	if err == nil  && issued != nil {
+	if err == nil  && notbefore != nil {
 		traceAttrs = append(traceAttrs, attribute.String("jwt-notbefore", notbefore.String()))
 	}
 

@@ -21,7 +21,7 @@ type BasePublicKeyStore struct {
 }
 
 // Parses Claims according to the configured required claims and parser options.
-// keyFuncs must manage locking and unlocking the keySetMutex while using the keySet.
+// keyFuncs must RUnlock before refreshPublicKeys
 func (s *BasePublicKeyStore) ParseClaims(ctx context.Context, token string, reqClaims *Claims, parserOpts ...jwt.ParserOption) (*jwt.Token, error) {
 	_, span := getTracer().Start(ctx, "ClientKeyStore.ParseClaims")
 	defer span.End()
