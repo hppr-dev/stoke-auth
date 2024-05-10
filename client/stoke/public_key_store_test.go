@@ -39,6 +39,20 @@ func (testServer) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	}`))
 }
 
+type testMalformedServer struct {}
+
+func (testMalformedServer) ServeHTTP(res http.ResponseWriter, req *http.Request) {
+	res.WriteHeader(404)
+	res.Write([]byte(`{ not valid json`))
+}
+
+type testBadKeyServer struct {}
+
+func (testBadKeyServer) ServeHTTP(res http.ResponseWriter, req *http.Request) {
+	res.WriteHeader(200)
+	res.Write([]byte(`{ "keys" : [{"kty": "bad"}] }`))
+}
+
 func TestPerRequestParseClaims(t *testing.T) {
 	server := httptest.NewServer(testServer{})
 	store, err := stoke.NewPerRequestPublicKeyStore(server.URL, context.Background())
@@ -56,7 +70,27 @@ func TestPerRequestParseClaims(t *testing.T) {
 	}
 }
 
-func TestWebRequestParseClaims(t *testing.T) {
+func TestNewPerRequestReturnsErrorWhenToParseFails(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	server := httptest.NewServer(testMalformedServer{})
+	if _, err := stoke.NewPerRequestPublicKeyStore(server.URL, ctx); err == nil {
+		t.Fatalf("Did not return error")
+	}
+}
+
+func TestNewPerRequestReturnsErrorWhenBadKeys(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	server := httptest.NewServer(testBadKeyServer{})
+	if _, err := stoke.NewPerRequestPublicKeyStore(server.URL, ctx); err == nil {
+		t.Fatalf("Did not return error")
+	}
+}
+
+func TestWebParseClaims(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -73,5 +107,14 @@ func TestWebRequestParseClaims(t *testing.T) {
 
 	if claims, ok := token.Claims.(*stoke.Claims); !ok || claims.StokeClaims["n"] != "Stoke Admin" || claims.StokeClaims["srol"] != "spr" || claims.StokeClaims["u"] != "sadmin" {
 		t.Fatalf("Claims did not match: %v", claims)
+	}
+}
+
+func TestNewWebReturnsErrorWhenUnableToReachServer(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	if _, err := stoke.NewWebCachePublicKeyStore("", ctx); err == nil {
+		t.Fatalf("Did not return error")
 	}
 }
