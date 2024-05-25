@@ -42,7 +42,7 @@ func (testServer) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 type testMalformedServer struct {}
 
 func (testMalformedServer) ServeHTTP(res http.ResponseWriter, req *http.Request) {
-	res.WriteHeader(404)
+	res.WriteHeader(200)
 	res.Write([]byte(`{ not valid json`))
 }
 
@@ -53,8 +53,16 @@ func (testBadKeyServer) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	res.Write([]byte(`{ "keys" : [{"kty": "bad"}] }`))
 }
 
+type test404Server struct {}
+
+func (test404Server) ServeHTTP(res http.ResponseWriter, req *http.Request) {
+	res.WriteHeader(404)
+}
+
 func TestPerRequestParseClaims(t *testing.T) {
 	server := httptest.NewServer(testServer{})
+	defer server.Close()
+
 	store, err := stoke.NewPerRequestPublicKeyStore(server.URL, context.Background())
 	if err != nil {
 		t.Fatalf("Could not create new store: %v", err)
@@ -75,6 +83,8 @@ func TestNewPerRequestReturnsErrorWhenToParseFails(t *testing.T) {
 	defer cancel()
 
 	server := httptest.NewServer(testMalformedServer{})
+	defer server.Close()
+
 	if _, err := stoke.NewPerRequestPublicKeyStore(server.URL, ctx); err == nil {
 		t.Fatalf("Did not return error")
 	}
@@ -85,6 +95,8 @@ func TestNewPerRequestReturnsErrorWhenBadKeys(t *testing.T) {
 	defer cancel()
 
 	server := httptest.NewServer(testBadKeyServer{})
+	defer server.Close()
+
 	if _, err := stoke.NewPerRequestPublicKeyStore(server.URL, ctx); err == nil {
 		t.Fatalf("Did not return error")
 	}
@@ -95,6 +107,8 @@ func TestWebParseClaims(t *testing.T) {
 	defer cancel()
 
 	server := httptest.NewServer(testServer{})
+	defer server.Close()
+
 	store, err := stoke.NewWebCachePublicKeyStore(server.URL, ctx)
 	if err != nil {
 		t.Fatalf("Could not create new store: %v", err)
@@ -114,7 +128,10 @@ func TestNewWebReturnsErrorWhenUnableToReachServer(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	if _, err := stoke.NewWebCachePublicKeyStore("", ctx); err == nil {
+	server := httptest.NewServer(test404Server{})
+	defer server.Close()
+
+	if _, err := stoke.NewWebCachePublicKeyStore(server.URL, ctx); err == nil {
 		t.Fatalf("Did not return error")
 	}
 }
