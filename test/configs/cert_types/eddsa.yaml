@@ -1,0 +1,29 @@
+---
+# Web Server configuration
+server:
+  address: ""
+  port: 8080
+  timeout: 1000
+
+# Local database configuration
+database:
+  type: sqlite
+
+  sqlite:
+    file: inmem
+    flags: "mode=memory&cache=shared&_fk=1"
+
+# Logging configuration
+logging:
+  level: info
+
+# Token generation and key rotation configuration
+tokens:
+  algorithm: EdDSA
+
+  key_duration: 5m
+  token_duration: 1m
+
+  user_info:
+    username: "u"
+    email: "e"

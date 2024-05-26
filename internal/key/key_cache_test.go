@@ -29,7 +29,7 @@ func TestPrivateKeyCachePublicKeys(t *testing.T) {
 		t.Fatalf("Error getting PrivateKeyCache public key json: %v", err)
 	}
 
-	expJWKStr := `{"exp":"0001-01-01T00:00:00.1Z","keys":[{"kty":"EC","use":"sig","kid":"p-0","crv":"ed25519","x":"tftbPsVuL85T0jxjdzkxErXQSmlt0h4zERiS-a5OiAA="}]}`
+	expJWKStr := `{"exp":"0001-01-01T00:00:00.1Z","keys":[{"kty":"OKP","use":"sig","kid":"p-0","crv":"ed25519","x":"tftbPsVuL85T0jxjdzkxErXQSmlt0h4zERiS-a5OiAA="}]}`
 
 	if string(publicJWKset) != expJWKStr {
 		t.Logf("Public keys does not match expected value: \n%s\n%s", string(publicJWKset), expJWKStr)

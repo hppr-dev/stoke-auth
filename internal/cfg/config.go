@@ -9,12 +9,12 @@ import (
 )
 
 type Config struct {
-	Server    Server    `json:"server"`
-	Database  Database  `json:"database"`
-	Logging   Logging   `json:"logging"`
-	Tokens    Tokens    `json:"tokens"`
-	Users     Users     `json:"users"`
-	Telemetry Telemetry `json:"telemetry"`
+	Server    Server    `json:"server,omitempty"`
+	Database  Database  `json:"database,omitempty"`
+	Logging   Logging   `json:"logging,omitempty"`
+	Tokens    Tokens    `json:"tokens,omitempty"`
+	Users     Users     `json:"users,omitempty"`
+	Telemetry Telemetry `json:"telemetry,omitempty"`
 }
 
 func FromFile(filename string) *Config {

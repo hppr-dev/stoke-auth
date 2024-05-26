@@ -1,0 +1,63 @@
+---
+# Web Server configuration
+server:
+  address: ""
+  port: 8080
+  timeout: 1000
+
+# Local database configuration
+database:
+  type: sqlite
+
+  sqlite:
+    file: load-testing.db
+    flags: "cache=shared&_fk=1"
+
+# Logging configuration
+logging:
+  level: info
+  write_to_stdout: true
+
+# Token generation and key rotation configuration
+tokens:
+  algorithm: ECDSA
+  num_bits: 256
+
+  persist_keys: true
+  key_duration: 5m
+  token_duration: 1m
+
+  user_info:
+    full_name: "n"
+    username: "u"
+    email: "e"
+
+# OpenTelemetry Configuration
+telemetry:
+  trace_provider: grpc
+  trace_export_url: https://localhost:4317
+  trace_insecure: true
+
+# User Provider configuration
+users:
+  enable_ldap: true
+  server_url: ldap://localhost:10389
+
+  bind_user_dn: "cn=admin,dc=planetexpress,dc=com"
+  bind_user_password: GoodNewsEveryone
+
+  group_search_root: "ou=people,dc=planetexpress,dc=com"
+  group_filter_template: "(&(objectClass=group)(member={{ .UserDN }}))"
+
+  user_search_root: "ou=people,dc=planetexpress,dc=com"
+  user_filter_template: "(&(objectClass=inetOrgPerson)(uid={{ .Username }}))"
+
+  ldap_group_name_field: "cn"
+  ldap_first_name_field: "givenName"
+  ldap_last_name_field:  "sn"
+  ldap_email_field: "mail"
+
+  search_timeout: 0
+  ldap_ca_cert: ""
+  skip_certificate_verification: true
+
