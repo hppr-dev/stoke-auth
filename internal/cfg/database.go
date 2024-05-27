@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"stoke/internal/ent"
 	"stoke/internal/tel"
+	"strings"
 
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
@@ -52,10 +53,17 @@ type Mysql struct {
 	Database 	string `json:"database"`
 	User     	string `json:"user"`
 	Password 	string `json:"password"`
-	Flags     string `json:"flag"`
+	Flags     string `json:"flags"`
 }
 
 func (m Mysql) ConnectionString() string {
+	if ! strings.Contains(m.Flags, "parseTime=true") {
+		if m.Flags == "" {
+			m.Flags = "parseTime=true"
+		} else {
+			m.Flags += "&parseTime=true"
+		}
+	}
 	return fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?%s", m.User, m.Password, m.Host, m.Port, m.Database, m.Flags)
 }
 

@@ -7,11 +7,15 @@ server:
 
 # Local database configuration
 database:
-  type: sqlite
+  type: postgres
 
-  sqlite:
-    file: immem
-    flags: "mode=memory&cache=shared&_fk=1"
+  postgres:
+    host: 172.17.0.1
+    port: 5432
+    database: "stoke"
+    user: "stoke_user"
+    password: "pass"
+    extra_args: "sslmode=disable"
 
 # Logging configuration
 logging:
@@ -23,9 +27,13 @@ tokens:
   algorithm: ECDSA
   num_bits: 256
 
+  persist_keys: true
   key_duration: 5m
   token_duration: 1m
 
+  issuer: "stk"
+
   user_info:
+    full_name: "n"
     username: "u"
     email: "e"

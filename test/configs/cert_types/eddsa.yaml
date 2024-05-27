@@ -16,6 +16,7 @@ database:
 # Logging configuration
 logging:
   level: info
+  write_to_stdout: true
 
 # Token generation and key rotation configuration
 tokens:

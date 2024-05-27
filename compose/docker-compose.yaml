@@ -1,26 +1,82 @@
 services:
   stoke_server:
     build: ../
+    profiles:
+      - dev
     volumes:
       - ./config.yaml:/etc/stoke/config.yaml
       - ./dbinit.yaml:/etc/stoke/dbinit.yaml
     ports:
       - 8080:8080
     command: ["-dbinit", "/etc/stoke/dbinit.yaml"]
+
   otlp_server:
     image: jaegertracing/all-in-one:1.56
+    profiles:
+      - dev
     environment:
       - METRICS_STORAGE_TYPE=prometheus
     ports:
       - 0.0.0.0:4317:4317
       - 0.0.0.0:8000:16686
       - 14269:14269
+
+  restfox:
+    image: flawiddsouza/restfox:0.10.1
+    profiles:
+      - dev
+    ports:
+      - 4004:4004
+
   ldap_server:
     image: ghcr.io/rroemhild/docker-test-openldap:master
+    profiles:
+      - integration
     ports:
       - 10389:10389
       - 10636:10636
-  restfox:
-    image: flawiddsouza/restfox:0.10.1
+
+  postgres:
+    image: postgres:15.7-alpine
+    profiles:
+      - integration
     ports:
-      - 4004:4004
+      - 5432:5432
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready", "-d", "{POSTGRES_DB}"]
+      interval: 30s
+      timeout: 60s
+      retries: 5
+      start_period: 80s
+    environment:
+      - POSTGRES_PASSWORD=pass
+      - POSTGRES_USER=stoke_user
+      - POSTGRES_DB=stoke
+
+  mysql:
+    image: mysql:8
+    profiles:
+      - integration
+    ports:
+      - 3306:3306
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+    environment:
+      - MYSQL_ROOT_PASSWORD=secret
+      - MYSQL_PASSWORD=pass
+      - MYSQL_USER=stoke_user
+      - MYSQL_DATABASE=stoke
+
+  dummy-wait:
+    image: golang:1.22.2-alpine3.19
+    profiles:
+      - integration
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+    command: echo Databases started
+

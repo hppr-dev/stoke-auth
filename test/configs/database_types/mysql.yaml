@@ -1,17 +1,19 @@
 ---
 # Web Server configuration
 server:
-  address: ""
   port: 8080
   timeout: 1000
 
 # Local database configuration
 database:
-  type: sqlite
+  type: mysql
 
-  sqlite:
-    file: immem
-    flags: "mode=memory&cache=shared&_fk=1"
+  mysql:
+    host: 172.17.0.1
+    port: 3306
+    database: "stoke"
+    user: "stoke_user"
+    password: "pass"
 
 # Logging configuration
 logging:
@@ -23,9 +25,12 @@ tokens:
   algorithm: ECDSA
   num_bits: 256
 
-  key_duration: 5m
-  token_duration: 1m
+  persist_keys: true
+  key_duration: 3h
+  token_duration: 30m
+
+  issuer: "stk"
 
   user_info:
+    full_name: "n"
     username: "u"
-    email: "e"

@@ -10,8 +10,8 @@ database:
   type: sqlite
 
   sqlite:
-    file: immem
-    flags: "mode=memory&cache=shared&_fk=1"
+    file: /etc/stoke/stoke-db-test.db
+    flags: "cache=shared&_fk=1"
 
 # Logging configuration
 logging:
@@ -23,9 +23,12 @@ tokens:
   algorithm: ECDSA
   num_bits: 256
 
-  key_duration: 5m
-  token_duration: 1m
+  persist_keys: true
+  key_duration: 3h
+  token_duration: 30m
+
+  issuer: "stk"
 
   user_info:
+    full_name: "n"
     username: "u"
-    email: "e"

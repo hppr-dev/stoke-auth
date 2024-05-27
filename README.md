@@ -18,6 +18,10 @@ Features:
   * 🤹 Configurable credential sources
   * 👮‍♀️ Admin console
 
+In simple single application environments, Stoke can be used as a drop in solution for authentication and authorization.
+In more complex envrionments, Stoke can be used as the "last leg" of authentication to simplify a local authentication implementation.
+For example in an Active Directory environment LDAP can be used as a user provider and Stoke can provide the access tokens to a set of services.
+
 # Quick Start
 
 1. Create a file named config.yaml with the following text:
@@ -47,7 +51,7 @@ tokens:
   key_duration: 3h
   token_duration: 30m
 
-  issuer: "stk"
+  issuer: "stoke-1"
 
   user_info:
     full_name: "n"
@@ -56,7 +60,7 @@ tokens:
 
 2. Start the docker file with the config file mounted:
 ```
-docker run -v $(pwd)/config.yaml:/etc/stoke/config.yaml --rm -it hpprdev/stokeauth:v0.1.0
+docker run -v $(pwd)/config.yaml:/etc/stoke/config.yaml --rm -it hpprdev/stoke-auth:v0.1.0
 ```
 
 3. The server will start and create a default admin user named `sadmin`. Find the line in the log with the password, it will look like:
@@ -65,6 +69,57 @@ docker run -v $(pwd)/config.yaml:/etc/stoke/config.yaml --rm -it hpprdev/stokeau
 ```
 
 4. Open a browser to http://localhost:8080/admin and log in as `sadmin` with the password that was generated in the log
+
+# Clients
+
+In the context of stoke, there are two types of clients:
+
+ * Resource Server Clients
+   * Clients that verify tokens and use claims information
+ * End User Clients
+   * Clients that are issued tokens 
+
+``` mermaid
+sequenceDiagram
+    participant e as End User Client
+    participant s as Stoke Server
+    participant r as Resource Server Client
+    participant rs as Resource Server
+
+    e->>s: Request Token
+    s-->>e: Issue Token
+    e->>r: Request Resource With Token
+    r-->>e: Invalid Token
+    r->>rs: Valid Token
+    rs-->>e: Resource Access
+    r->>s: Update Signing Keys
+```
+<div align="center">
+  <sub>Stoke Client Operation</sub>
+</div>
+
+## Resource Server Clients
+
+Clients who wish to use the the generated JWTs as authorization may use the clients supplied in this repository.
+This client code serves to cache public keys and verify tokens against them.
+More information is available in the individual resource client libraries.
+
+* golang
+  * client source -- client/stoke
+  * http example -- client/examples/go/engine
+* python
+  * HTTP Source client/pystokeauth
+  * http (flask) example -- client/examples/python/weapons
+
+## End User Clients
+
+End user clients are those that request and make use of tokens issued by stoke to access resource servers.
+
+End users are required to login with their registered username and password to receive a token.
+That token can then be used as Authorization for any of the resource servers that are subscribed to the stoke server public keys.
+For HTTP clients, Bearer Authorization is used and the Authorization header is set to `Bearer <TOKEN>`.
+
+An example end user javascript implementation is included in `client/enduser/js`.
 
 # Concepts
 
@@ -270,37 +325,6 @@ where SUBCOMMAND can be:
 If SUBCOMMAND is ommited, the database is migrated and the server is run
 ```
 
-# Clients
-
-In the context of stoke, there are two types of clients:
-
- * Resource Server Clients
-   * Clients that verify tokens and use claims information
- * End User Clients
-   * Clients that are issued tokens 
-
-## Resource Server Clients
-
-Clients who wish to use the the generated JWTs as authorization may use the clients supplied in this repository.
-This client code serves to cache public keys and verify tokens against them.
-More information is available in the individual resource client libraries.
-
-* golang
-  * client source -- client/stoke
-  * http example -- client/examples/go/engine
-* python
-  * HTTP Source client/pystokeauth
-  * http (flask) example -- client/examples/python/weapons
-
-## End User Clients
-
-End user clients are those that request and make use of tokens issued by stoke to access resource servers.
-
-End users are required to login with their registered username and password to receive a token.
-That token can then be used as Authorization for any of the resource servers that are subscribed to the stoke server public keys.
-For HTTP clients, Bearer Authorization is used and the Authorization header is set to `Bearer <TOKEN>`.
-
-An example end user javascript implementation is included in `client/enduser/js`.
 
 # HTTP Endpoints
 
@@ -315,44 +339,10 @@ A summary is as follows:
   - /api/renew -- renew a given JWT
   - /api/admin -- endpoints used from the admin console
 
-# Performance/Load Benchmarks
+# Road Map
 
-Tests were run with the following failure conditions:
- * If more than 1% of requests fail, the tests stop
- * If more than 1% of requests take more than 300 ms, the tests stop
-
-The server was configured as follows
- * Log level Info
- * Pretty logging disabled
- * Log to stdout only
- * Tracing enabled
- * Local sqlite database
- * ECDSA keys
- * 1s request timeout
- * Connected to a test LDAP container instance
- * Token issued for a user with 3 groups and 30 seperate claims
- * Aggressive key/token rotation:
-  * Key Duration: 5m
-  * Token duration 1m
-
-Default run environment:
- * ~5 milliseconds / token in isolation
- * Breakpoint: ~230 tokens / second
- * High Load Test:        200 tokens / second for 10m with no loss
- * Medium Load Test:      150 tokens / second for 20m with no loss
- * Max Nominal Load Test: 100 tokens / second for 2h with no loss
-   
-GOMAXPROCS=1:
- * ~20 milliseconds / token in isolation
- * Breakpoint: ~58 tokens / second
- * High Load Test:        50 tokens / second for 10m with no loss
- * Medium Load Test:      25 tokens / second for 20m with no loss
- * Max Nominal Load Test: 15 tokens / second for 2h with no loss
-
-In resource constrained environments with low traffic expectations,GOMAXPROCS=1 can be used to limit the memory/cpu footprint of the server.
-Otherwise it is recommended to run the server without modifying GOMAXPROCS.
-
-# High Availablility
-
-TODO
-Load balancing and high availability are features that are planned for the future.
+    * High availablity
+    * OpenID Connect User Provider
+      * Stoke does not aim to become an OIDC Provider, but an OIDC Client.
+      * The idea is to use OIDC much like LDAP, in that it will get the claim/auth data from a compliant OIDC server and use the data to do environment level auth.
+    * Clients for additional languages/protocols
