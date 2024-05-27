@@ -60,7 +60,7 @@ tokens:
 
 2. Start the docker file with the config file mounted:
 ```
-docker run -v $(pwd)/config.yaml:/etc/stoke/config.yaml --rm -it hpprdev/stoke-auth:v0.1.0
+docker run -v $(pwd)/config.yaml:/etc/stoke/config.yaml --rm -it hpprdev/stoke-auth:0.1.0
 ```
 
 3. The server will start and create a default admin user named `sadmin`. Find the line in the log with the password, it will look like:
@@ -69,6 +69,21 @@ docker run -v $(pwd)/config.yaml:/etc/stoke/config.yaml --rm -it hpprdev/stoke-a
 ```
 
 4. Open a browser to http://localhost:8080/admin and log in as `sadmin` with the password that was generated in the log
+
+# Releases
+
+Releases are tagged commits in this repo and include versioned assets available on github and dockerhub.
+
+Assets uploaded to github are limited to include the following for intel 64-bit processors:
+  * A stoke-RELEASE-VER.tar.gz file with:
+    * server executable file
+    * A reference configuration file
+    * Copy of the license file
+  * md5sum of the tar.gz file
+
+Docker images are uploaded to docker hub with a versioned tag i.e. 0.1.0.
+
+Depending on the language, clients may have releases as well, but the source will be available on the tagged commit in the client directory.
 
 # Clients
 
