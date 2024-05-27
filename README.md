@@ -74,7 +74,7 @@ docker run -v $(pwd)/config.yaml:/etc/stoke/config.yaml --rm -it hpprdev/stoke-a
 
 Releases are tagged commits in this repo and include versioned assets available on github and dockerhub.
 
-Assets uploaded to github are limited to include the following for intel 64-bit processors:
+Assets uploaded to github include the following for intel 64-bit processors:
   * A stoke-RELEASE-VER.tar.gz file with:
     * server executable file
     * A reference configuration file
