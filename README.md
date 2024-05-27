@@ -97,17 +97,28 @@ In the context of stoke, there are two types of clients:
 ``` mermaid
 sequenceDiagram
     participant e as End User Client
-    participant s as Stoke Server
     participant r as Resource Server Client
     participant rs as Resource Server
+    participant s as Stoke Server
+
+    r--)s: Refresh Expired Keys
+    activate r
+    activate s
+    s-->>r: Update Signing Keys
+    deactivate r
+    deactivate s
 
     e->>s: Request Token
     s-->>e: Issue Token
     e->>r: Request Resource With Token
-    r-->>e: Invalid Token
-    r->>rs: Valid Token
+
+
+
+    r--xe: Token Signature Invalid?
+    r->>rs: Token Signature Valid?
     rs-->>e: Resource Access
-    r->>s: Update Signing Keys
+
+
 ```
 <div align="center">
   <sub>Stoke Client Operation</sub>
