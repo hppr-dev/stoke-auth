@@ -142,7 +142,7 @@ func (l LDAPUserProvider) GetUserClaims(username, password string, _ bool, ctx c
 			return nil, nil, AuthenticationError
 		}
 	} else if err != nil {
-		logger.Error().
+		logger.Debug().
 			Func(otelzerolog.AddTracingContext(span)).
 			Err(err).
 			Msg("Could not get or create user")
@@ -243,7 +243,7 @@ func (l LDAPUserProvider) getOrCreateUser(username, password string, conn ldap.C
 	}
 
 	if len(groupLinks) == 0 {
-		logger.Error().
+		logger.Warn().
 			Err(err).
 			Str("userDN", userEntry.DN).
 			Msg("User has no linked groups")

@@ -3,16 +3,18 @@ import { badLogin, okLogin } from './common.js'
 export const options = {
 	scenarios: {
 		issued: {
-			executor: "constant-vus",
+			executor: "constant-arrival-rate",
 			exec: "issued",
-			vus: 5,
-			duration: '10s',
+			duration: '30m',
+			rate: 50,
+			preallocatedVUs: 25,
 		},
 		rejected: {
-			executor: "constant-vus",
+			executor: "constant-arrival-rate",
 			exec: "rejected",
-			vus: 5,
-			duration: '10s',
+			duration: '30m',
+			rate: 50,
+			preallocatedVUs: 25,
 		},
 	}
 };

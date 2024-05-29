@@ -2,7 +2,7 @@ arguments_test() {
 	DESCRIPTION="Run tests"
 	SUBCOMMANDS="int|unit|client|clean"
 	INT_DESCRIPTION="Run integration tests"
-	INT_OPTIONS="image:i:str build:b:str case:C:str log:l:bool progress:P:bool all:a:bool cert:c:bool db:d:bool race:r:bool provider:p:bool env:e:bool"
+	INT_OPTIONS="image:i:str rimage:R:str build:b:str case:C:str log:l:bool logfile:L:bool progress:P:bool all:a:bool cert:c:bool db:d:bool race:r:bool provider:p:bool env:e:bool"
 	UNIT_DESCRIPTION="Run unit tests"
 	UNIT_OPTIONS="cover:c:bool html:h:bool func:f:bool name:n:str"
 }
@@ -14,21 +14,32 @@ task_test() {
 		if [[ -z "$ARG_IMAGE" ]]
 		then
 			ARG_IMAGE=$( docker image ls | grep stoke-inttest | head -n 1 | awk '{print $1}' )
-			echo Running with most found image: $ARG_IMAGE
+			echo Running with recent found image: $ARG_IMAGE
+		fi
+
+		if [[ -z "$ARG_RIMAGE" ]]
+		then
+			ARG_RIMAGE=$( docker image ls | grep stoke-race | head -n 1 | awk '{print $1}' )
+			echo Running with recent found race image: $ARG_RIMAGE
 		fi
 
 		if [[ -n "$ARG_BUILD" ]] || [[ -z "$ARG_IMAGE" ]]
 		then
 			ARG_IMAGE=stoke-inttest-$(date +%Y%m%d%H%M)
 			echo Building new image $ARG_IMAGE...
-			docker build -t $ARG_IMAGE .
+			docker build -t $ARG_IMAGE $TASK_DIR
+		fi
+
+		if [[ -n "$ARG_BUILD" ]] || [[ -z "$ARG_RIMAGE" ]]
+		then
+			ARG_IMAGE=stoke-race-$(date +%Y%m%d%H%M)
+			echo Building new image $ARG_IMAGE...
+			docker build --build-arg EXTRA_BUILD_ARGS=-race -t $ARG_IMAGE $TASK_DIR
 		fi
 
 		echo Starting supplemental containers...
-		cd $TASK_DIR/compose
-		docker compose --profile integration up -d
-
 		cd $TASK_DIR/test
+		docker compose up -d
 
 		if [[ -z "$ARG_CERT$ARG_DB$ARG_RACE$ARG_PROVIDER$ARG_ENV" ]]
 		then
@@ -37,43 +48,33 @@ task_test() {
 
 		if [[ -n "$ARG_CERT$ARG_ALL" ]]
 		then
-			echo ====================================================== Running cert smoke tests...
-			for config in ./configs/cert_types/*
-			do
-				_run_k6_test $config smoke_test.yaml smoke.js
-			done
+			# _run_all_configs description config_dir dbinit k6file docker_image
+			_run_all_configs "cert smoke" cert_type smoke_test.yaml smoke.js $ARG_IMAGE
 		fi
 
 
 		if [[ -n "$ARG_DB$ARG_ALL" ]]
 		then
-			echo ====================================================== Running database smoke tests...
-			for config in ./configs/database_types/*
-			do
-				_run_k6_test $config smoke_test.yaml smoke.js
-			done
-		fi
-
-		if [[ -n "$ARG_RACE$ARG_ALL" ]]
-		then
-			echo Running data race tests...
-			echo TODO TODO TODO
+			_run_all_configs "database smoke" database_type smoke_test.yaml smoke.js $ARG_IMAGE
 		fi
 
 		if [[ -n "$ARG_PROVIDER$ARG_ALL" ]]
 		then
-			echo Running provider tests...
-			echo TODO TODO TODO
+			docker compose exec -it postgres psql -U stoke_user -d stoke -c "drop schema public; create schema public;"
+			_run_all_configs "provider smoke" provider_type provider_test.yaml provider_test.js $ARG_IMAGE
 		fi
 
 		if [[ -n "$ARG_ENV$ARG_ALL" ]]
 		then
-			echo Running client environment tests...
-			echo TODO TODO TODO
+			_run_all_configs "client/server integration" client_integration client_integration.yaml client_integration.js $ARG_IMAGE
 		fi
 
-		cd $TASK_DIR/compose
-		docker compose --profile=integration down
+		if [[ -n "$ARG_RACE$ARG_ALL" ]]
+		then
+			_run_all_configs "race tests" data_race data_race.yaml data_race.js $ARG_RIMAGE
+		fi
+
+		docker compose down
 
 	elif [[ "$TASK_SUBCOMMAND" == "unit" ]]
 	then
@@ -103,12 +104,14 @@ task_test() {
 		fi
 	elif [[ "$TASK_SUBCOMMAND" == "clean" ]]
 	then
-		cd compose
-		docker compose --profile integration down 
+		cd $TASK_DIR/test
 
-		docker stop stoke-test
-		docker rm stoke-test
+		echo Cleaning docker environment...
+		docker compose down 
+		docker stop stoke-test > /dev/null
+		docker rm stoke-test > /dev/null
 
+		echo Removing coverage files...
 		if [[ -f "$TASK_DIR/cover.html" ]]
 		then
 			rm "$TASK_DIR/cover.html"
@@ -118,6 +121,9 @@ task_test() {
 		then
 			rm "$TASK_DIR/cover.out"
 		fi
+
+		echo Cleaning test logs file...
+		rm -rf $TASK_DIR/test/logs/*
 	fi
 }
 
@@ -149,14 +155,25 @@ task_build() {
 	fi
 }
 
+_run_all_configs() { # desc config_dir dbinit k6file docker_image
+	echo ====================================================== Running $1 tests...
+	for config in ./configs/$2/*
+	do
+		_run_k6_test $config $3 $4 $5
+	done
 
-_run_k6_test() { # config dbinit k6file
+
+}
+
+_run_k6_test() { # config dbinit k6file docker_image
 	# Config file relative to CWD
 	config=$1
 	# dbinit file relative to CWD/configs/dbinit/
 	dbinit=$2
 	# k6 file relative to CWD/k6/
 	k6file=$3
+	# docker image
+	docker_image=$4
 
 	if [[ -n "$ARG_CASE" ]] && ! [[ $config =~ "$ARG_CASE" ]]
 	then
@@ -168,14 +185,15 @@ _run_k6_test() { # config dbinit k6file
 		-v $(pwd)/$config:/etc/stoke/config.yaml \
 		-v $(pwd)/configs/dbinit/$dbinit:/etc/stoke/dbinit.yaml \
 		-p 8080:8080 \
-		$ARG_IMAGE -dbinit /etc/stoke/dbinit.yaml"
-	docker run --rm -d $docker_args > /dev/null
+		$docker_image -dbinit /etc/stoke/dbinit.yaml"
+	docker run -d $docker_args > /dev/null
 	sleep 1
 
 	if ! docker ps | grep stoke-test > /dev/null
 	then
-		echo Could not start container with $config. Running again to show output.
-		docker run $docker_args
+		echo Could not start container with $config. 
+		docker logs stoke-test
+		docker rm stoke-test
 		exit
 	fi
 
@@ -192,6 +210,19 @@ _run_k6_test() { # config dbinit k6file
 	fi
 
 	echo ============================== $config =======================================
-	k6 run $k6_args k6/$k6file
+	if ! k6 run $k6_args k6/$k6file
+	then
+		echo "***************************** FAILED ******************************"
+	fi
+
+	if [[ -n "$ARG_LOGFILE" ]]
+	then
+		mkdir -p $TASK_DIR/test/logs
+		log_file=$TASK_DIR/test/logs/$(basename $config).json
+		echo Copying /etc/stoke/stoke.log file to $log_file
+		docker cp stoke-test:/etc/stoke/stoke.log $log_file
+	fi
+
 	docker stop stoke-test > /dev/null
+	docker rm stoke-test > /dev/null
 }

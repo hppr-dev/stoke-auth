@@ -17,11 +17,11 @@ database:
 logging:
   level: info
   write_to_stdout: true
+  log_file: /etc/stoke/stoke.log
 
 # Token generation and key rotation configuration
 tokens:
-  algorithm: RSA
-  num_bits: 256
+  algorithm: EdDSA
 
   key_duration: 5m
   token_duration: 1m

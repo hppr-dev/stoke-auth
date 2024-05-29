@@ -1,0 +1,28 @@
+users:
+  - username: tester
+    first_name: Travis
+    last_name: Ester
+    email: tester@hppr.dev
+    password_hash: +OnrEsjkbdXdXugEKwDLGdqlDnMNV9+WyZ6T9wAtSMzp3jKYY+7pLYxoBlMlmWBOXlC9bviWtS9mw0fa4B6gkA==
+    password_salt: H3UP6GzWV3UISU7HJN/sVT6YjTYcmOPdJwiFcdXMVyQ=
+    groups:
+      - Testing group
+
+groups:
+  - name: Testing group
+    description: Group of testsers
+    claims:
+      - Testing Environment Access
+      - User Access
+
+claims:
+  - name: Testing Environment Access
+    description:  Grants access to the testing environment
+    short_name: test
+    value: acc
+
+  - name: User Access
+    description: Grants standard user access
+    short_name: user
+    value: acc
+

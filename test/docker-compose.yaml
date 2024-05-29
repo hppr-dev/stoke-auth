@@ -1,0 +1,45 @@
+services:
+  ldap_server:
+    image: ghcr.io/rroemhild/docker-test-openldap:master
+    ports:
+      - 10389:10389
+      - 10636:10636
+
+  postgres:
+    image: postgres:15.7-alpine
+    ports:
+      - 5432:5432
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready", "-d", "{POSTGRES_DB}"]
+      interval: 30s
+      timeout: 60s
+      retries: 5
+      start_period: 80s
+    environment:
+      - POSTGRES_PASSWORD=pass
+      - POSTGRES_USER=stoke_user
+      - POSTGRES_DB=stoke
+
+  mysql:
+    image: mysql:8
+    ports:
+      - 3306:3306
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+    environment:
+      - MYSQL_ROOT_PASSWORD=secret
+      - MYSQL_PASSWORD=pass
+      - MYSQL_USER=stoke_user
+      - MYSQL_DATABASE=stoke
+
+  dummy-wait:
+    image: golang:1.22.2-alpine3.19
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+    command: echo Databases started
+

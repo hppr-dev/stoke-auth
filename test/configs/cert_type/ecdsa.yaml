@@ -10,17 +10,19 @@ database:
   type: sqlite
 
   sqlite:
-    file: inmem
+    file: immem
     flags: "mode=memory&cache=shared&_fk=1"
 
 # Logging configuration
 logging:
   level: info
   write_to_stdout: true
+  log_file: /etc/stoke/stoke.log
 
 # Token generation and key rotation configuration
 tokens:
-  algorithm: EdDSA
+  algorithm: ECDSA
+  num_bits: 256
 
   key_duration: 5m
   token_duration: 1m

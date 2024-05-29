@@ -1,11 +1,11 @@
+import { check, sleep } from 'k6'
 import http from 'k6/http'
-import { check } from 'k6'
 
-export const okLogin = function() {
+export const okLogin = function(user, pass, sleepTime) {
   const resp = http.post('http://localhost:8080/api/login',
 		JSON.stringify({
-			"username" : "tester",
-			"password" : "tester",
+			"username" : user,
+			"password" : pass,
 		}),
 		{
 			headers: {
@@ -23,14 +23,16 @@ export const okLogin = function() {
 		"response contained token": (token) => token.token && token.refresh,
 	})
 
+	sleep(sleepTime)
+
 	return resp
 }
 
-export const badLogin = function() {
+export const badLogin = function(user, pass, sleepTime) {
   const resp = http.post('http://localhost:8080/api/login',
 		JSON.stringify({
-			"username" : "tester",
-			"password" : "badpass",
+			"username" : user,
+			"password" : pass,
 		}),
 		{
 			headers: {
@@ -47,6 +49,8 @@ export const badLogin = function() {
 	check(token, {
 		"response did not contain a token": (token) => token.token === undefined && token.refresh === undefined,
 	})
+
+	sleep(sleepTime)
 
 	return resp
 }

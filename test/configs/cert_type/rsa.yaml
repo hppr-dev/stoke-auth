@@ -1,36 +1,32 @@
 ---
 # Web Server configuration
 server:
+  address: ""
   port: 8080
   timeout: 1000
 
 # Local database configuration
 database:
-  type: mysql
+  type: sqlite
 
-  mysql:
-    host: 172.17.0.1
-    port: 3306
-    database: "stoke"
-    user: "stoke_user"
-    password: "pass"
+  sqlite:
+    file: inmem
+    flags: "mode=memory&cache=shared&_fk=1"
 
 # Logging configuration
 logging:
   level: info
   write_to_stdout: true
+  log_file: /etc/stoke/stoke.log
 
 # Token generation and key rotation configuration
 tokens:
-  algorithm: ECDSA
+  algorithm: RSA
   num_bits: 256
 
-  persist_keys: true
-  key_duration: 3h
-  token_duration: 30m
-
-  issuer: "stk"
+  key_duration: 5m
+  token_duration: 1m
 
   user_info:
-    full_name: "n"
     username: "u"
+    email: "e"
