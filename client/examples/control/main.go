@@ -1,9 +1,10 @@
 package main
 
 import (
-	"context"
+	"os"
 	"fmt"
 	"log"
+	"context"
 	"net/http"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -13,7 +14,7 @@ import (
 func main() {
 	ctx := context.Background()
 	var err error
-	isTest := true
+	isTest := os.Getenv("STOKE_TEST") == "yes"
 
 	var keyStore stoke.PublicKeyStore
 

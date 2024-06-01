@@ -35,6 +35,24 @@ export const options = {
 	}
 };
 
+export function setup() {
+	const requests = [
+		JSON.stringify({ "username" : "leela", "password": "leela" }),
+		JSON.stringify({ "username" : "fry", "password": "fry" }),
+		JSON.stringify({ "username" : "hermes", "password": "hermes" }),
+	]
+
+	// Make request for users to create them in the database
+	requests.forEach((rq) => http.post('http://localhost:8080/api/login',
+		rq,
+		{
+			headers: {
+				"Content-Type" : "application/json"
+			}
+		}
+	)
+}
+
 export const providerIssuedAdmin = () => okLogin("fry", "fry", 0.01);
 
 export const providerIssuedUser = () => okLogin("hermes", "hermes", 0.01);

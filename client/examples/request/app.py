@@ -12,7 +12,7 @@ if "STOKE_TEST" in environ:
 else:
     client = StokeClient("http://172.17.0.1:8080/api/pkeys")
 
-@app.route("/shipment-request")
+@app.route("/shipment")
 @require_claims(client, { "req" : "acc" }, jwt_kwarg="token")
 def request_item(token=dict()):
     return "Shipment requested"

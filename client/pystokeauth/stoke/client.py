@@ -26,7 +26,7 @@ class StokeClient(PyJWKClient):
 
     def fetch_data(self) -> Any:
         data = super().fetch_data()
-        self.next_update = datetime.fromisoformat(data["exp"])
+        self.next_update = datetime.strptime(data["exp"], "%Y-%m-%dT%H:%M:%S%z")
         return data
 
     def parse_token(self, token : str) -> Optional[Dict[str, Any]]:

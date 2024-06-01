@@ -66,7 +66,9 @@ task_test() {
 
 		if [[ -n "$ARG_ENV$ARG_ALL" ]]
 		then
-			_run_all_configs "client/server integration" client_integration client_integration.yaml client_integration.js $ARG_IMAGE
+			
+			_run_all_configs "client/server integration" client_integration client_integration.yaml client_integration.js $ARG_IMAGE "docker compose -f $TASK_DIR/client/client-test-compose.yaml up --build -d"
+			docker compose -f $TASK_DIR/client/client-test-compose.yaml down
 		fi
 
 		if [[ -n "$ARG_RACE$ARG_ALL" ]]
@@ -108,8 +110,9 @@ task_test() {
 
 		echo Cleaning docker environment...
 		docker compose down 
-		docker stop stoke-test > /dev/null
-		docker rm stoke-test > /dev/null
+		docker stop stoke-test
+		docker rm stoke-test
+		docker compose -f $TASK_DIR/client/client-test-compose.yaml down
 
 		echo Removing coverage files...
 		if [[ -f "$TASK_DIR/cover.html" ]]
@@ -155,17 +158,17 @@ task_build() {
 	fi
 }
 
-_run_all_configs() { # desc config_dir dbinit k6file docker_image
+_run_all_configs() { # desc config_dir dbinit k6file docker_image post_server_command
 	echo ====================================================== Running $1 tests...
 	for config in ./configs/$2/*
 	do
-		_run_k6_test $config $3 $4 $5
+		_run_k6_test $config $3 $4 $5 "$6"
 	done
 
 
 }
 
-_run_k6_test() { # config dbinit k6file docker_image
+_run_k6_test() { # config dbinit k6file docker_image post_server_command
 	# Config file relative to CWD
 	config=$1
 	# dbinit file relative to CWD/configs/dbinit/
@@ -174,6 +177,8 @@ _run_k6_test() { # config dbinit k6file docker_image
 	k6file=$3
 	# docker image
 	docker_image=$4
+	# command to run after starting the server
+	post_server_command="$5"
 
 	if [[ -n "$ARG_CASE" ]] && ! [[ $config =~ "$ARG_CASE" ]]
 	then
@@ -187,7 +192,12 @@ _run_k6_test() { # config dbinit k6file docker_image
 		-p 8080:8080 \
 		$docker_image -dbinit /etc/stoke/dbinit.yaml"
 	docker run -d $docker_args > /dev/null
+	if [[ -n "$post_server_command" ]]
+	then
+		$post_server_command
+	fi
 	sleep 1
+
 
 	if ! docker ps | grep stoke-test > /dev/null
 	then

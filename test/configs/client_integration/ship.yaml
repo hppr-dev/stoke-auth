@@ -7,15 +7,11 @@ server:
 
 # Local database configuration
 database:
-  type: postgres
+  type: sqlite
 
-  postgres:
-    host: 172.17.0.1
-    port: 5432
-    database: "stoke"
-    user: "stoke_user"
-    password: "pass"
-    extra_args: "sslmode=disable"
+  sqlite:
+    file: inmem
+    flags: "mode=memory&cache=shared&_fk=1"
 
 # Logging configuration
 logging:
