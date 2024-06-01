@@ -8,11 +8,11 @@ export const options = {
 
 // Setup:
 // * stoke server on 8080 with ldap integration
-// * client/examples/go/engine on 5000
+// * docker compose file client/client-test-compose.yaml running
 export default function() {
 	const services = [ 
-	"http://localhost:4000/speed", // requires role:eng
-	"http://localhost:4001/fire",  // requires role:eng
+	"http://localhost:5000/location",          // requires ctl:nav
+	"http://localhost:5001/shipment-request",  // requires req:acc
 	// TODO add more 
 	]
 	const requests = [

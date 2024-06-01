@@ -1,0 +1,33 @@
+services:
+  ui:
+    image: nginx:1.27.0-alpine-otel
+    volumes:
+      - ./examples/ui:/usr/share/nginx/html:ro
+      - ./examples/nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - 8888:80
+
+#  cargo:
+#    image: stoke-ex/python-grpc
+#    build: ./examples/cargo/
+
+  control:
+    image: stoke-ex/go-rest
+    build:
+      context: .
+      dockerfile: ./examples/control/Dockerfile
+
+#  engine:
+#    image: stoke-ex/go-grpc
+#    build: ./examples/engine/
+
+#  inventory:
+#    image: stoke-ex/python-django
+#    build: ./examples/inventory/
+
+  request:
+    image: stoke-ex/python-flask
+    build:
+      context: .
+      dockerfile: ./examples/request/Dockerfile
+

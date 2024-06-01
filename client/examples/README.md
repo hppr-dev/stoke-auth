@@ -11,8 +11,8 @@ C4Component
     Component(userUI, "User UI", "Javascript", "Interface into the system")
 
     Boundary(clientsBoundary, "Example Client Services") {
-      Component(companyInventory, "Company Inventory", "Python (django)", "Keeps track of what items the company can deliver")
       Component(deliveryRequest, "Delivery Request", "Python (flask)", "Keeps track of what deliveries have been requested")
+      Component(companyInventory, "Company Inventory", "Python (django)", "Keeps track of what items the company can deliver")
       Component(shipControl, "Ship Control", "Go (REST)", "Company Inventory")
       Component(cargoHold, "Cargo Hold", "Python (GRPC)", "Hold shipments while in transit")
       Component(engineRoom, "Engine Room", "Go (GRPC)", "Controls engine thrust")
@@ -21,7 +21,6 @@ C4Component
     Boundary(extServices, "External Services") {
       System_Ext(stokeServer, "Stoke Server", "Stoke server for requesting/validating user tokens")
       System_Ext(ldap, "LDAP Server", "Holds authentication credentials and external org roles")
-      System_Ext(engine, "Engine", "Makes ship go")
 
       Rel(stokeServer, ldap, "Authenticates against")
       UpdateRelStyle(stokeServer, ldap, $textColor="grey", $offsetX="-40")
@@ -44,9 +43,6 @@ C4Component
 
     Rel(shipControl, engineRoom, "Commands")
     UpdateRelStyle(shipControl, engineRoom, $textColor="grey", $offsetX="-40", $offsetY="10")
-
-    Rel(engineRoom, engine, "Controls")
-    UpdateRelStyle(engineRoom, engine, $textColor="grey", $offsetX="80", $offsetY="-10")
 
     Rel(shipControl, cargoHold, "Inspects/Commands")
     UpdateRelStyle(shipControl, cargoHold, $textColor="grey", $offsetX="-40", $offsetY="-5")

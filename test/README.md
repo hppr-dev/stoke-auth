@@ -19,7 +19,26 @@ Integration tests have been written to verify the functionality of the server:
  * Language Client Integration
  * Race Condition Checking
 
-To run all of the integration test cases run `task test int`.
+To run all of the integration test cases run `task test int -a`.
+
+## Integration Test Configurations
+
+Tests run with `task test int` will run a test per config in the configs/ directory following these steps:
+    1. Start a stoke server with the config with an accompanying dbinit file
+    2. Run tests with k6
+    3. Stop the stoke server
+
+| Config dir (configs/) | k6 test file (k6/) | dbinit file (configs/dbinit/) | test description |
+| --------------------- | ------------------ | ----------------------------- | ---------------- |
+| cert_type          | smoke.js              | smoke_test.yaml         | Tests issuing tokens with all supported certificate types. |
+| database_type      | smoke.js              | smoke_test.yaml         | Tests issuing tokens with all supported datbase types |
+| data_race          | data_race.js          | data_race.yaml          | Uses the go race detector to detect data races |
+| provider_type      | provider_test.js      | provider_test.yaml      | Tests user providers can issue tokens for users |
+| client_integration | client_integration.js | client_integration.yaml | Tests client libraries can communicate with stoke server |
+
+See `task help test` for flags to include test types.
+
+Client integration tests use the examples included in the ./client/examples directory.
 
 ## Running Unit Tests
 
