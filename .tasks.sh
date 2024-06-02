@@ -60,7 +60,7 @@ task_test() {
 
 		if [[ -n "$ARG_PROVIDER$ARG_ALL" ]]
 		then
-			docker compose exec -it postgres psql -U stoke_user -d stoke -c "drop schema public; create schema public;"
+			docker compose exec -it postgres psql -U stoke_user -d stoke -c "drop schema public cascade; create schema public;"
 			_run_all_configs "provider smoke" provider_type provider_test.yaml provider_test.js $ARG_IMAGE
 		fi
 

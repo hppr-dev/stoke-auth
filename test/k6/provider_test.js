@@ -1,3 +1,4 @@
+import http from 'k6/http'
 import { badLogin, okLogin } from './common.js'
 
 export const options = {
@@ -44,12 +45,13 @@ export function setup() {
 
 	// Make request for users to create them in the database
 	requests.forEach((rq) => http.post('http://localhost:8080/api/login',
-		rq,
-		{
-			headers: {
-				"Content-Type" : "application/json"
+			rq,
+			{
+				headers: {
+					"Content-Type" : "application/json"
+				}
 			}
-		}
+		)
 	)
 }
 
