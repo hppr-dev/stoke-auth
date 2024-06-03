@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+option go_package = "engine/proto";
+
+package engine;
+
+service EngineRoom {
+  rpc StatusStream (StatusSettings) returns (stream StatusReply) {}
+	rpc SpeedCommand (SpeedRequest) returns (SpeedReply) {}
+}
+
+message StatusSettings {
+  bool all = 1;
+  bool rpm = 2;
+  bool speed = 3;
+  bool temperature = 4;
+  bool fuel = 5;
+}
+
+enum StatusType {
+	RPM = 0;
+	SPEED = 1;
+	TEMPERATURE = 2;
+	FUEL = 3;
+}
+
+message StatusReply {
+	StatusType status_type = 1;
+	float level = 2;
+}
+
+enum SpeedCommandDirection {
+	UP = 0;
+	DOWN = 1;
+}
+
+message SpeedRequest {
+	SpeedCommandDirection direction = 1;
+	uint32 increment = 2;
+}
+
+message SpeedReply {
+	string response = 1;
+}

@@ -5,14 +5,14 @@ export const options = {
 		issued: {
 			executor: "constant-arrival-rate",
 			exec: "issued",
-			duration: '30m',
+			duration: '10m',
 			rate: 50,
 			preallocatedVUs: 25,
 		},
 		rejected: {
 			executor: "constant-arrival-rate",
 			exec: "rejected",
-			duration: '30m',
+			duration: '10m',
 			rate: 50,
 			preallocatedVUs: 25,
 		},

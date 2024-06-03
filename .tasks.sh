@@ -48,7 +48,7 @@ task_test() {
 
 		if [[ -n "$ARG_CERT$ARG_ALL" ]]
 		then
-			# _run_all_configs description config_dir dbinit k6file docker_image
+			# _run_all_configs description config_dir dbinit k6file docker_image pre_start_command
 			_run_all_configs "cert smoke" cert_type smoke_test.yaml smoke.js $ARG_IMAGE
 		fi
 
@@ -60,14 +60,14 @@ task_test() {
 
 		if [[ -n "$ARG_PROVIDER$ARG_ALL" ]]
 		then
-			docker compose exec -it postgres psql -U stoke_user -d stoke -c "drop schema public cascade; create schema public;"
-			_run_all_configs "provider smoke" provider_type provider_test.yaml provider_test.js $ARG_IMAGE
+			_recreate_postgres_schema
+			_run_all_configs "provider smoke" provider_type provider_test.yaml provider_test.js $ARG_IMAGE 
 		fi
 
 		if [[ -n "$ARG_ENV$ARG_ALL" ]]
 		then
 			
-			_run_all_configs "client/server integration" client_integration client_integration.yaml client_integration.js $ARG_IMAGE "docker compose -f $TASK_DIR/client/client-test-compose.yaml up --build -d"
+			_run_all_configs "client/server integration" client_integration client_integration.yaml client_integration.js $ARG_IMAGE _start_client_env
 			docker compose -f $TASK_DIR/client/client-test-compose.yaml down
 		fi
 
@@ -235,4 +235,17 @@ _run_k6_test() { # config dbinit k6file docker_image post_server_command
 
 	docker stop stoke-test > /dev/null
 	docker rm stoke-test > /dev/null
+}
+
+_recreate_postgres_schema() {
+	docker compose exec -it postgres psql -U stoke_user -d stoke -c "drop schema public cascade; create schema public;"
+}
+
+_start_client_env() {
+	docker compose -f $TASK_DIR/client/client-test-compose.yaml down
+	if [[ -n "$ARG_BUILD" ]]
+	then
+		extra_args="--build"
+	fi
+	docker compose -f $TASK_DIR/client/client-test-compose.yaml up -d $extra_args
 }

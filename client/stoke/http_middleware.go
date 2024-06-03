@@ -19,8 +19,7 @@ import (
 //	func (myHandler) ServeHTTP(rs http.ResponseWriter, rq *http.Request) {rs.Write([]byte(fmt.Sprintf("I got token: %s", stoke.Token(rq.Context()).Raw)))}
 //
 //	func ConfigureHttp() {
-//		publicKeyStore := stoke.DefaultPublicKeyStore()
-//		publicKeyStore.Init(context.Background)
+//		publicKeyStore := stoke.NewPerRequestPublicKeyStore()
 //		http.Handle(
 //			"/my-token",
 //			stoke.Auth(myHandler{}, publicKeyStore, stoke.RequireToken()),
@@ -42,8 +41,7 @@ func Auth(handler http.Handler, store PublicKeyStore, claims *Claims, parserOpts
 // Example Usage:
 //
 //	func ConfigureHttp() {
-//		publicKeyStore := stoke.DefaultPublicKeyStore()
-//		publicKeyStore.Init(context.Background)
+//		publicKeyStore := stoke.NewPerRequestPublicKeyStore()
 //		http.Handle(
 //			"/my-token",
 //			stoke.AuthFunc(
