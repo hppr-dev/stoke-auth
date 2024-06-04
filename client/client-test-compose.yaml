@@ -19,10 +19,14 @@ services:
     build:
       context: .
       dockerfile: ./examples/control/Dockerfile
+    environment:
+      - ENGINE_URL=engine:6060
 
-#  engine:
-#    image: stoke-ex/go-grpc
-#    build: ./examples/engine/
+  engine:
+    image: stoke-ex/go-grpc
+    build:
+      context: .
+      dockerfile: ./examples/engine/Dockerfile
 
 #  inventory:
 #    image: stoke-ex/python-django

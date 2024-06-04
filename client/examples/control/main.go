@@ -1,13 +1,17 @@
 package main
 
 import (
-	"os"
+	"context"
 	"fmt"
 	"log"
-	"context"
 	"net/http"
+	"os"
+
+	"engine/proto"
 
 	"github.com/golang-jwt/jwt/v5"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"hppr.dev/stoke"
 )
 
@@ -15,6 +19,7 @@ func main() {
 	ctx := context.Background()
 	var err error
 	isTest := os.Getenv("STOKE_TEST") == "yes"
+	engineURL := os.Getenv("ENGINE_URL")
 
 	var keyStore stoke.PublicKeyStore
 
@@ -48,9 +53,32 @@ func main() {
 	mux.Handle("/speed",
 		stoke.AuthFunc(
 			func (res http.ResponseWriter, req *http.Request) {
-				// TODO connect this to engine
+				ctx := req.Context()
+				// Forward received token to grpc
+				client, err := grpc.NewClient(engineURL,
+					grpc.WithTransportCredentials(insecure.NewCredentials()),
+				)
+				if err != nil {
+					log.Printf("An error occurred creating engine grpc client: %v", err)
+					res.WriteHeader(http.StatusServiceUnavailable)
+					return
+				}
+				engineRoom := proto.NewEngineRoomClient(client)
+				reply, err := engineRoom.SpeedCommand(ctx,
+					&proto.SpeedRequest{
+						Direction: proto.SpeedCommandDirection_UP,
+						Increment: 10,
+					},
+					stoke.Credentials().Token(stoke.Token(ctx).Raw).DisableSecurity().CallOption(),
+				)
+				if err != nil {
+					log.Printf("An error occurred calling engine grpc: %v", err)
+					res.WriteHeader(http.StatusInternalServerError)
+					return
+				}
+
 				res.WriteHeader(http.StatusOK)
-				res.Write([]byte(`{speed: "Warp 9"}`))
+				res.Write([]byte(fmt.Sprintf(`{message: "%s"}`, reply.Response)))
 			},
 			keyStore,
 			stoke.RequireToken().WithClaimListPart("ctl", "sp"),

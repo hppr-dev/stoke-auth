@@ -19,7 +19,7 @@ import (
 //
 // Examples:
 //    // Already have a token to use
-//    client := grpc.NewClient(Credentials().Token(myToken).Opt())
+//    client := grpc.NewClient(Credentials().Token(myToken).DialOption())
 //
 //    // Already have a token and refresh token to use (Will only refresh if it is used after expiry)
 //    client := grpc.NewClient(
@@ -27,7 +27,7 @@ import (
 //      Token(myToken).
 //      ExpiresAt(expiry). // Must come before EnableRefresh to take effect
 //      EnableRefresh(myRefresh, "http://mystoke/api/refresh").
-//      Opt()
+//      DialOption()
 //    )
 //
 //    // Login as a user and let the token expire if requests are not made withing expiring time
@@ -35,7 +35,7 @@ import (
 //    if err := creds.Login("myuser", "mypass", "http://mystoke", true); err != nil {
 //      log.Fatalf("Could not login: %v", err)
 //    }
-//    client := grpc.NewClient(creds.Opt())
+//    client := grpc.NewClient(creds.DialOption())
 //
 //    // Login as a user and keep the token up to date with a goroutine
 //    ctx, cancel := context.WithCancel(context.Background())
@@ -46,7 +46,7 @@ import (
 //    creds.StartRefresh(ctx)
 //    defer cancel() // this will cancel the refresh goroutine
 //
-//    client := grpc.NewClient(creds.Opt())
+//    client := grpc.NewClient(creds.DialOPtion())
 func Credentials() *stokeCredentials {
 	return &stokeCredentials{}
 }
@@ -138,9 +138,14 @@ func (c *stokeCredentials) DisableSecurity() *stokeCredentials {
 	return c
 }
 
-// Convert credentials into a grpc PerRPCCredentials option
-func (c *stokeCredentials) Opt() grpc.CallOption {
+// Convert credentials into a grpc PerRPCCredentials Call Option
+func (c *stokeCredentials) CallOption() grpc.CallOption {
 	return grpc.PerRPCCredentials(c)
+}
+
+// Convert credentials into a grpc PerRPCCredentials Call Option
+func (c *stokeCredentials) DialOption() grpc.DialOption {
+	return grpc.WithPerRPCCredentials(c)
 }
 
 // Private credentials struct. Use Credentials() to create.
@@ -163,7 +168,7 @@ type tokenResponse struct {
 // GetRequestMetadata implements credentials.PerRPCCredentials.
 func (c *stokeCredentials) GetRequestMetadata(ctx context.Context, uri ...string) (map[string]string, error) {
 	return map[string]string{
-		"Authorization": "Bearer " + c.token,
+		"authorization": "Bearer " + c.token,
 	}, nil
 }
 

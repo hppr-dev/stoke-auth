@@ -11,7 +11,7 @@ RUN go mod tidy && go build -o ./engine-room .
 
 FROM alpine:3.19
 
-COPY --from=go-builder /build/examples/control/engine-room /usr/bin/engine-room
+COPY --from=go-builder /build/examples/engine/engine-room /usr/bin/engine-room
 
 EXPOSE 6060
 
