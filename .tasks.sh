@@ -2,7 +2,7 @@ arguments_test() {
 	DESCRIPTION="Run tests"
 	SUBCOMMANDS="int|unit|client|clean"
 	INT_DESCRIPTION="Run integration tests"
-	INT_OPTIONS="image:i:str rimage:R:str build:b:str case:C:str log:l:bool logfile:L:bool progress:P:bool all:a:bool cert:c:bool db:d:bool race:r:bool provider:p:bool env:e:bool"
+	INT_OPTIONS="image:i:str rimage:R:str build:b:str buildclient:B:str case:C:str log:l:bool logfile:L:bool progress:P:bool all:a:bool cert:c:bool db:d:bool race:r:bool provider:p:bool env:e:bool"
 	UNIT_DESCRIPTION="Run unit tests"
 	UNIT_OPTIONS="cover:c:bool html:h:bool func:f:bool name:n:str"
 }
@@ -243,7 +243,7 @@ _recreate_postgres_schema() {
 
 _start_client_env() {
 	docker compose -f $TASK_DIR/client/client-test-compose.yaml down
-	if [[ -n "$ARG_BUILD" ]]
+	if [[ -n "$ARG_BUILDCLIENT" ]]
 	then
 		extra_args="--build"
 	fi

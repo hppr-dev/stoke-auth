@@ -44,10 +44,7 @@ C4Component
     Rel(shipControl, engineRoom, "Commands")
     UpdateRelStyle(shipControl, engineRoom, $textColor="grey", $offsetX="-40", $offsetY="10")
 
-    Rel(shipControl, cargoHold, "Inspects/Commands")
-    UpdateRelStyle(shipControl, cargoHold, $textColor="grey", $offsetX="-40", $offsetY="-5")
-
-    Rel(companyInventory, shipControl, "Places cargo")
+    Rel(companyInventory, cargoHold, "Inspects/Places cargo")
     UpdateRelStyle(companyInventory, shipControl, $textColor="grey", $offsetX="-40", $offsetY="5")
     
   }

@@ -31,6 +31,7 @@ groups:
       - Ship Access
       - Requester
       - Navigator
+      - Speed Control
 
   - name: Ship Admin Staff
     description: Ship Administrive staff
@@ -61,4 +62,8 @@ claims:
     short_name: ctl
     value: nav
 
+  - name: Speed Control
+    description: Grants ability change speed
+    short_name: ctl
+    value: sp
 

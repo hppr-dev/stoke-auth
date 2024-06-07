@@ -1,4 +1,5 @@
 import http from 'k6/http'
+import ws from 'k6/ws'
 import { check, sleep } from 'k6'
 
 export const options = {
@@ -28,17 +29,22 @@ export function setup() {
 // * stoke server on 8080 with ldap integration
 // * docker compose file client/client-test-compose.yaml running
 export default function() {
+	// http services
 	const services = [ 
-	"http://localhost:8888/control/location",  // requires ctl:nav
-	"http://localhost:8888/request/shipment",  // requires req:acc
-	// TODO add more 
+		"http://localhost:8888/control/location",  // requires ctl:nav -- go rest
+		"http://localhost:8888/control/speed",     // requires ctl:sp  -- go rest/ unary grpc
+		"http://localhost:8888/request/shipment",  // requires req:acc -- python rest flask
 	]
-	const requests = [
+	//ws services. Tokens are sent as url parameters
+	const ws_services = [
+		{ url: "ws://localhost:8888/control/foobar", request: "foo", response: "bar", times: 3 },    // requires ctl:acc  -- go rest/stream grpc
+	]
+	const user_logins = [
 		JSON.stringify({ "username" : "leela", "password": "leela" }),
 		JSON.stringify({ "username" : "fry", "password": "fry" }),
 	]
   const stokeResp = http.post('http://localhost:8080/api/login',
-		requests[Math.floor(Math.random() * 2)],
+		user_logins[Math.floor(Math.random() * 2)],
 		{
 			headers: {
 				"Content-Type" : "application/json"
@@ -65,6 +71,28 @@ export default function() {
 		})
 		check(resp, checks)
 		sleep(Math.random() * 4)
+	})
+
+	ws_services.forEach((service) => {
+		let checks = {}
+		checks[`${service.url} send ${service.request} -> recv ${service.response}`] = (data) => data == service.response
+		const res = ws.connect(service.url + "?token=" + stokeBody.token, {}, function (socket) {
+			let times = 0
+			socket.on('open', () => {
+				socket.send(service.request)
+				times += 1
+			});
+			socket.on('message', (data) => {
+				check(data, checks)
+				socket.send(service.request)
+				times += 1
+				if (service.times == times) {
+					socket.close()
+				}
+			});
+		});
+
+		check(res, { 'ws response is 101': (r) => r && r.status === 101 });
 	})
 
 	return stokeResp

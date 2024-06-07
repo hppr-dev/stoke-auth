@@ -7,6 +7,7 @@ package engine;
 service EngineRoom {
   rpc StatusStream (StatusSettings) returns (stream StatusReply) {}
 	rpc SpeedCommand (SpeedRequest) returns (SpeedReply) {}
+	rpc FooBarTest (stream SimpleMessage) returns (stream SimpleMessage) {}
 }
 
 message StatusSettings {
@@ -41,4 +42,8 @@ message SpeedRequest {
 
 message SpeedReply {
 	string response = 1;
+}
+
+message SimpleMessage {
+	string message = 1;
 }

@@ -26,7 +26,8 @@ func (k *RSAKeyPair) Generate() (KeyPair[*rsa.PrivateKey], error) {
 		k.NumBits = 256
 	}
 
-	priv, err := rsa.GenerateKey(rand.Reader, k.NumBits)
+	// TODO: Differentiate between hash function bits and number of key bits
+	priv, err := rsa.GenerateKey(rand.Reader, 2048)
 	return &RSAKeyPair{
 		NumBits: k.NumBits,
 		PrivateKey: priv,

@@ -19,6 +19,8 @@ services:
     build:
       context: .
       dockerfile: ./examples/control/Dockerfile
+    depends_on:
+      - engine
     environment:
       - ENGINE_URL=engine:6060
 

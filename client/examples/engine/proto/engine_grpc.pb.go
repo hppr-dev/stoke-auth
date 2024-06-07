@@ -24,6 +24,7 @@ const _ = grpc.SupportPackageIsVersion7
 type EngineRoomClient interface {
 	StatusStream(ctx context.Context, in *StatusSettings, opts ...grpc.CallOption) (EngineRoom_StatusStreamClient, error)
 	SpeedCommand(ctx context.Context, in *SpeedRequest, opts ...grpc.CallOption) (*SpeedReply, error)
+	FooBarTest(ctx context.Context, opts ...grpc.CallOption) (EngineRoom_FooBarTestClient, error)
 }
 
 type engineRoomClient struct {
@@ -75,12 +76,44 @@ func (c *engineRoomClient) SpeedCommand(ctx context.Context, in *SpeedRequest, o
 	return out, nil
 }
 
+func (c *engineRoomClient) FooBarTest(ctx context.Context, opts ...grpc.CallOption) (EngineRoom_FooBarTestClient, error) {
+	stream, err := c.cc.NewStream(ctx, &EngineRoom_ServiceDesc.Streams[1], "/engine.EngineRoom/FooBarTest", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &engineRoomFooBarTestClient{stream}
+	return x, nil
+}
+
+type EngineRoom_FooBarTestClient interface {
+	Send(*SimpleMessage) error
+	Recv() (*SimpleMessage, error)
+	grpc.ClientStream
+}
+
+type engineRoomFooBarTestClient struct {
+	grpc.ClientStream
+}
+
+func (x *engineRoomFooBarTestClient) Send(m *SimpleMessage) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *engineRoomFooBarTestClient) Recv() (*SimpleMessage, error) {
+	m := new(SimpleMessage)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // EngineRoomServer is the server API for EngineRoom service.
 // All implementations must embed UnimplementedEngineRoomServer
 // for forward compatibility
 type EngineRoomServer interface {
 	StatusStream(*StatusSettings, EngineRoom_StatusStreamServer) error
 	SpeedCommand(context.Context, *SpeedRequest) (*SpeedReply, error)
+	FooBarTest(EngineRoom_FooBarTestServer) error
 	mustEmbedUnimplementedEngineRoomServer()
 }
 
@@ -93,6 +126,9 @@ func (UnimplementedEngineRoomServer) StatusStream(*StatusSettings, EngineRoom_St
 }
 func (UnimplementedEngineRoomServer) SpeedCommand(context.Context, *SpeedRequest) (*SpeedReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SpeedCommand not implemented")
+}
+func (UnimplementedEngineRoomServer) FooBarTest(EngineRoom_FooBarTestServer) error {
+	return status.Errorf(codes.Unimplemented, "method FooBarTest not implemented")
 }
 func (UnimplementedEngineRoomServer) mustEmbedUnimplementedEngineRoomServer() {}
 
@@ -146,6 +182,32 @@ func _EngineRoom_SpeedCommand_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _EngineRoom_FooBarTest_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(EngineRoomServer).FooBarTest(&engineRoomFooBarTestServer{stream})
+}
+
+type EngineRoom_FooBarTestServer interface {
+	Send(*SimpleMessage) error
+	Recv() (*SimpleMessage, error)
+	grpc.ServerStream
+}
+
+type engineRoomFooBarTestServer struct {
+	grpc.ServerStream
+}
+
+func (x *engineRoomFooBarTestServer) Send(m *SimpleMessage) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *engineRoomFooBarTestServer) Recv() (*SimpleMessage, error) {
+	m := new(SimpleMessage)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // EngineRoom_ServiceDesc is the grpc.ServiceDesc for EngineRoom service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -163,6 +225,12 @@ var EngineRoom_ServiceDesc = grpc.ServiceDesc{
 			StreamName:    "StatusStream",
 			Handler:       _EngineRoom_StatusStream_Handler,
 			ServerStreams: true,
+		},
+		{
+			StreamName:    "FooBarTest",
+			Handler:       _EngineRoom_FooBarTest_Handler,
+			ServerStreams: true,
+			ClientStreams: true,
 		},
 	},
 	Metadata: "engine.proto",
