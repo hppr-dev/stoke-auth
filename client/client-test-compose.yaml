@@ -12,7 +12,9 @@ services:
 
 #  cargo:
 #    image: stoke-ex/python-grpc
-#    build: ./examples/cargo/
+#    build:
+#      context: .
+#      dockerfile: ./examples/cargo/Dockerfile
 
   control:
     image: stoke-ex/go-rest
@@ -30,9 +32,11 @@ services:
       context: .
       dockerfile: ./examples/engine/Dockerfile
 
-#  inventory:
-#    image: stoke-ex/python-django
-#    build: ./examples/inventory/
+  inventory:
+    image: stoke-ex/python-django
+    build:
+      context: .
+      dockerfile: ./examples/inventory/Dockerfile
 
   request:
     image: stoke-ex/python-flask

@@ -33,6 +33,7 @@ setup(
     install_requires=["pyjwt[crypto]"],
     extras_require={
         "flask": ["flask"],
+        "django": ["django"],
     },
     project_urls={  # Optional
         "Bug Reports": "https://github.com/hppr-dev/stoke-auth/issues",

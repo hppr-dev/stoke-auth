@@ -11,7 +11,7 @@ from cryptography.hazmat.primitives.asymmetric.rsa import RSAPublicNumbers
 class StokeClient(PyJWKClient):
     def __init__(self, url: str, headers : Optional[Dict[str, Any]] = None, ssl_context : Optional[SSLContext] = None):
         super().__init__(
-            uri = url,
+            uri = f"{url}/api/pkeys",
             cache_keys = True,
             max_cached_keys = 2,
             cache_jwk_set = True,
@@ -19,6 +19,7 @@ class StokeClient(PyJWKClient):
             timeout = 30,
             ssl_context = ssl_context
         )
+        self.url = url
         self.next_update : datetime = datetime.now(timezone.utc)
 
     def get_jwk_set(self, refresh: bool = False) -> PyJWKSet:
