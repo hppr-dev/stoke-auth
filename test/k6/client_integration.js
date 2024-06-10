@@ -32,8 +32,9 @@ export default function() {
 	// http services
 	const services = [ 
 		"http://localhost:8888/control/location",  // requires ctl:nav -- go rest
-		"http://localhost:8888/control/speed",     // requires ctl:sp  -- go rest/ unary grpc
+		"http://localhost:8888/control/speed",     // requires ctl:sp  -- go rest/unary grpc
 		"http://localhost:8888/request/shipment",  // requires req:acc -- python rest flask
+		"http://localhost:8888/inventory/test/",    // requires inv:acc -- python rest django
 	]
 	//ws services. Tokens are sent as url parameters
 	const ws_services = [
@@ -70,6 +71,9 @@ export default function() {
 			}
 		})
 		check(resp, checks)
+		if (resp.status != 200) {
+			console.log("Request failed!",service, resp)
+		}
 		sleep(Math.random() * 4)
 	})
 

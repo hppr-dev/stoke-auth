@@ -10,7 +10,7 @@ app = Flask(__name__)
 if "STOKE_TEST" in environ:
     client = TestStokeClient(default_dict={"req": "acc"})
 else:
-    client = StokeClient("http://172.17.0.1:8080/api/pkeys")
+    client = StokeClient("http://172.17.0.1:8080")
 
 @app.route("/shipment")
 @require_claims(client, { "req" : "acc" }, jwt_kwarg="token")

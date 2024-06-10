@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 from stoke.client import StokeClient
+from stoke.test_client import TestStokeClient
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -49,6 +50,7 @@ ALLOWED_HOSTS = ["*"]
 
 STOKE_AUTH_CONFIG = {
     'CLIENT' : StokeClient("http://172.17.0.1:8080"),
+#   'CLIENT' : TestStokeClient(),
 #    'BASE_CLAIMS': { "inv" : "acc" },
     'USERNAME' : 'u',
     'EMAIL': 'e',

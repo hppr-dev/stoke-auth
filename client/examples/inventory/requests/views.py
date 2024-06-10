@@ -1,10 +1,14 @@
 from django.http import HttpResponse
+from django.views.decorators.csrf import csrf_exempt
 from stoke.django_annotations import require_token
 
-@require_token(claims={"inv" : "acc"}, start_session=True)
 def index(request):
+    if request.user.is_anonymous:
+        return HttpResponse(f"Hello unknown user!".encode())
     return HttpResponse(f"Hello {request.user}".encode())
 
-@require_token(claims={"inv" : "acc"}, start_session=True)
+@csrf_exempt
+@require_token(claims={"inv" : "acc"})
 def test(request):
-    return HttpResponse(f"Hello {request.user}".encode())
+    return HttpResponse(b'{ "hello": "world", "foo" : "bar" }', status=200, content_type="application/json")
+

@@ -73,7 +73,6 @@ class StokeAuthBackend(ModelBackend):
 
         try:
             user = User.objects.get(username=jwtDict[conf["USERNAME"]])
-            print("Got user")
         except User.DoesNotExist:
             fname = "" if "FIRST_NAME" not in conf else jwtDict[conf["FIRST_NAME"]]
             lname = "" if "LAST_NAME" not in conf else jwtDict[conf["LAST_NAME"]]
@@ -84,10 +83,9 @@ class StokeAuthBackend(ModelBackend):
                 last_name = lname,
                 email = email,
             )
-            user.is_superuser = "SUPERUSER" in conf and jwtDict[conf["SUPERUSER"][0]] == conf["SUPERUSER"][1] 
-            user.is_staff = "STAFF" in conf and jwtDict[conf["STAFF"][0]] == conf["STAFF"][1]
+            user.is_superuser = "SUPERUSER" in conf and  jwtDict.get(conf["SUPERUSER"][0]) == conf["SUPERUSER"][1] 
+            user.is_staff = "STAFF" in conf and jwtDict.get(conf["STAFF"][0]) == conf["STAFF"][1]
             user.save()
-            print("Created user")
         return user
 
     def _request_token(self, client : StokeClient | TestStokeClient, username : str, password : str) -> str:

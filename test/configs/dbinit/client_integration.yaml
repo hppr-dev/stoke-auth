@@ -32,6 +32,7 @@ groups:
       - Requester
       - Navigator
       - Speed Control
+      - Inventory Access
 
   - name: Ship Admin Staff
     description: Ship Administrive staff
@@ -66,4 +67,9 @@ claims:
     description: Grants ability change speed
     short_name: ctl
     value: sp
+
+  - name: Inventory Access
+    description: Grants access to inventory
+    short_name: inv
+    value: acc
 
