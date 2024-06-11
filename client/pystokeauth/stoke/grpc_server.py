@@ -1,4 +1,4 @@
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Dict, Optional, List
 from grpc import HandlerCallDetails, RpcMethodHandler, ServerInterceptor, StatusCode, stream_stream_rpc_method_handler, stream_unary_rpc_method_handler, unary_stream_rpc_method_handler, unary_unary_rpc_method_handler
 from stoke.client import StokeClient
 
@@ -46,3 +46,6 @@ class ServerTokenInterceptor(ServerInterceptor):
             return stream_stream_rpc_method_handler(reject)
 
         return unary_unary_rpc_method_handler(reject)
+
+def intercept_all(stoke_client : StokeClient, required_claims : Dict[str, str] = {}) -> List[ServerTokenInterceptor]:
+    return [ ServerTokenInterceptor(stoke_client, required_claims, et) for et in [UNARY_UNARY, UNARY_STREAM, STREAM_UNARY, STREAM_STREAM] ]

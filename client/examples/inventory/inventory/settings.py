@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
+from os import environ
 from pathlib import Path
 from stoke.client import StokeClient
 from stoke.test_client import TestStokeClient
@@ -27,6 +28,20 @@ SECRET_KEY = 'django-insecure-r+768kjtwy-gy2opfv^-sm*67n($d7ijx1pn%)jw%&!oz6c3-1
 DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
+
+all_claims = {
+    "u"   : "user",
+    "e"   : "user@localhost",
+    "inv" : "acc",
+    "car" : "acc",
+    "exp" : 5694231377,
+}
+if environ.get("STOKE_ENV", default="local") == "local":
+    CARGO_GRPC_ADDRESS = "localhost:6060"
+    stoke_client = TestStokeClient(default_dict=all_claims, default_token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1Njk0MjMxMzc3fQ.4-XqLr3oyS8TUAKpxGC-QjBK8dbRPV4_FVq4U5jy_dI")
+else:
+    CARGO_GRPC_ADDRESS = "cargo:6060"
+    stoke_client =  StokeClient("http://172.17.0.1:8080")
 
 # Stoke Configuration
 """
@@ -49,8 +64,7 @@ ALLOWED_HOSTS = ["*"]
 """
 
 STOKE_AUTH_CONFIG = {
-    'CLIENT' : StokeClient("http://172.17.0.1:8080"),
-#   'CLIENT' : TestStokeClient(),
+    'CLIENT' : stoke_client,
 #    'BASE_CLAIMS': { "inv" : "acc" },
     'USERNAME' : 'u',
     'EMAIL': 'e',

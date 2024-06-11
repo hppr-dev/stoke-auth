@@ -36,7 +36,9 @@ class StokeAuthBackend(ModelBackend):
         if request.user is not None and not request.user.is_anonymous:
             return request.user
 
-        if "HTTP_AUTHORIZATION" in request.META and request.META["HTTP_AUTHORIZATION"].startswith("Bearer "):
+        if type(client) is TestStokeClient:
+            token = client.default_token
+        elif "HTTP_AUTHORIZATION" in request.META and request.META["HTTP_AUTHORIZATION"].startswith("Bearer "):
             token = request.META["HTTP_AUTHORIZATION"].removeprefix("Bearer ")
         elif username is not None and password is not None:
             # If username and password are supplied, we need to check the token.
@@ -55,8 +57,6 @@ class StokeAuthBackend(ModelBackend):
             else:
                 claims = conf["BASE_CLAIMS"]
 
-        if type(client) is TestStokeClient:
-            token = client.default_token
 
         if token is None:
             raise PermissionDenied()
@@ -70,6 +70,7 @@ class StokeAuthBackend(ModelBackend):
                 raise PermissionDenied()
 
         request.META["STOKE_AUTH_CLAIMS"] = jwtDict
+        request.META["STOKE_AUTH_TOKEN"] = token
 
         try:
             user = User.objects.get(username=jwtDict[conf["USERNAME"]])

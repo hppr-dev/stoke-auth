@@ -5,6 +5,7 @@ WORKDIR /app
 
 COPY . ./
 RUN pip install -e ./pystokeauth
+RUN pip install -e ./examples/cargo
 
 WORKDIR /app/examples/inventory
 RUN pip install -r requirements.txt

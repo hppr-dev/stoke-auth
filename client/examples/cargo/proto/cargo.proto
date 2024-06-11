@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package cargo;
+
+service CargoHold {
+  rpc GetContents (ContentRequest) returns (ContentReply) {}
+	rpc LoadItems (stream LoadItemRequest) returns (stream LoadItemReply) {}
+}
+
+message Item {
+	string name = 1;
+	string id = 2;
+	int32 width = 3;
+	int32 height = 4;
+	int32 depth = 5;
+}
+
+message ContentRequest {
+	string content_filter = 1;
+}
+
+message ContentReply {
+	bool filter_matched = 1;
+	repeated Item items = 2;
+}
+
+message LoadItemRequest {
+	int32 num_items = 1;
+	Item item = 2;
+}
+
+message LoadItemReply {
+	bool loaded = 1;
+	string message = 2;
+}

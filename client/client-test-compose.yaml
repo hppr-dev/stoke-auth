@@ -37,6 +37,8 @@ services:
     build:
       context: .
       dockerfile: ./examples/inventory/Dockerfile
+    environment:
+      - STOKE_ENV=docker
 
   request:
     image: stoke-ex/python-flask

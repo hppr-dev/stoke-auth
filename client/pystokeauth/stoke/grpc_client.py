@@ -21,7 +21,6 @@ class GRPCClientCredentials:
             self._request_token_update(refresh_token(self.refresh_url, self.token, self.refresh))
         return access_token_call_credentials(self.token)
 
-
     def _request_token_update(self, jsonRes : Dict[Any, Any]):
         self.token = jsonRes["token"]
         self.refresh = jsonRes["refresh"]
