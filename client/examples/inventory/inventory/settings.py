@@ -43,6 +43,25 @@ else:
     CARGO_GRPC_ADDRESS = "cargo:6060"
     stoke_client =  StokeClient("http://172.17.0.1:8080")
 
+ca_file = environ.get("CA_FILE")
+key_file = environ.get("KEY_FILE")
+cert_file = environ.get("CERT_FILE")
+
+CA_FILE_DATA=b""
+KEY_FILE_DATA=b""
+CERT_FILE_DATA=b""
+
+def read_file(filename):
+    with open(filename, "rb") as f:
+        return f.read()
+
+if ca_file is not None and key_file is not None and cert_file is not None:
+    CA_FILE_DATA=read_file(ca_file)
+    KEY_FILE_DATA=read_file(key_file)
+    CERT_FILE_DATA=read_file(cert_file)
+else:
+    print("Could not read ca data: one of CA_FILE, KEY_FILE, CERT_FILE not set. GRPC connections will not work.")
+
 # Stoke Configuration
 """
     Auth backend to use a stoke server to authenticate

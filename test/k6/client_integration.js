@@ -31,10 +31,11 @@ export function setup() {
 export default function() {
 	// http services
 	const services = [ 
-		"http://localhost:8888/control/location",  // requires ctl:nav -- go rest
-		"http://localhost:8888/control/speed",     // requires ctl:sp  -- go rest/unary grpc
-		"http://localhost:8888/request/shipment",  // requires req:acc -- python rest flask
-		"http://localhost:8888/inventory/test/",    // requires inv:acc -- python rest django
+		"http://localhost:8888/control/location",            // requires ctl:nav -- go rest
+		"http://localhost:8888/control/speed",               // requires ctl:sp  -- go rest/unary grpc
+		"http://localhost:8888/request/shipment",            // requires req:acc -- python rest flask
+		"http://localhost:8888/inventory/test/",             // requires inv:acc -- python rest django
+		"http://localhost:8888/inventory/cargo_contents/",   // requires car:acc -- python rest django/unary grpc
 	]
 	//ws services. Tokens are sent as url parameters
 	const ws_services = [

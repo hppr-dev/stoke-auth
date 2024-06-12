@@ -6,4 +6,3 @@ grpcio-tools==1.64.1
 protobuf==5.27.1
 pycparser==2.22
 PyJWT==2.8.0
--e git+ssh://git@github.com/hppr-dev/stoke-auth.git@d0dc5363d119736cdfed79950a086a901ee92952#egg=pystokeauth&subdirectory=client/pystokeauth

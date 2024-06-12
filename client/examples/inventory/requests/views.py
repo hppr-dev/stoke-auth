@@ -1,4 +1,4 @@
-from grpc import insecure_channel
+from grpc import secure_channel, ssl_channel_credentials
 from json import dumps
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -22,11 +22,16 @@ def test(request):
 @csrf_exempt
 @require_token(claims={"inv" : "acc"})
 def cargo_contents(request):
-    creds = GRPCClientCredentials(token=request.META["STOKE_AUTH_TOKEN"])
+    call_creds = GRPCClientCredentials(token=request.META["STOKE_AUTH_TOKEN"]).call_credentials()
+    chan_creds = ssl_channel_credentials(
+        root_certificates=settings.CA_FILE_DATA,
+        private_key=settings.KEY_FILE_DATA,
+        certificate_chain=settings.CERT_FILE_DATA,
+    )
     # TODO Must be over secure channel: https://github.com/grpc/grpc/issues/33618
-    with insecure_channel(settings.CARGO_GRPC_ADDRESS) as channel:
+    with secure_channel(settings.CARGO_GRPC_ADDRESS, chan_creds) as channel:
         stub = CargoHoldStub(channel) 
-        reply : ContentReply = stub.GetContents(ContentRequest(), credentials=creds.call_credentials())
+        reply : ContentReply = stub.GetContents(ContentRequest(), credentials=call_creds)
         return HttpResponse(('{ "contents" : ' + dumps([item.name for item in reply.items]) + '}').encode(), status=200, content_type="application/json")
 
 

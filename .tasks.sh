@@ -158,6 +158,44 @@ task_build() {
 	fi
 }
 
+arguments_certs() {
+	DESCRIPTION="Manage certificates required for running the example clients"
+	SUBCOMMANDS="clean|gen|verify"
+}
+
+task_certs() {
+	cd $TASK_DIR/client/examples/certs
+
+	if [[ "$TASK_SUBCOMMAND" == "clean" ]]
+	then
+		echo Removing all client example certificates...
+		rm ./*.crt ./*.key
+	elif [[ "$TASK_SUBCOMMAND" == "gen" ]]
+	then
+		for conf in config/*.conf
+		do
+			cert_name=$(basename ${conf/.conf}).crt
+			if [[ ! -f "$cert_name" ]]
+			then
+				echo Generating $cert_name...
+				if [[ "$cert_name" == "ca.crt" ]]
+				then
+					openssl req -new -x509 -newkey rsa:2048 -config $conf -out $cert_name -days 3650 -extensions v3_req
+				else
+					openssl req -new -x509 -newkey rsa:2048 -config $conf -out $cert_name -CA ca.crt -CAkey ca.key -days 3650 -extensions v3_req
+				fi
+			else
+				echo Found $cert_name, skipping...
+			fi
+		done
+
+	elif [[ "$TASK_SUBCOMMAND" == "verify" ]]
+	then
+		openssl verify -CAfile ca.crt *.crt 
+	fi
+
+}
+
 _run_all_configs() { # desc config_dir dbinit k6file docker_image post_server_command
 	echo ====================================================== Running $1 tests...
 	for config in ./configs/$2/*

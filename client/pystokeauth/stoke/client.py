@@ -4,6 +4,7 @@ from ssl import SSLContext
 
 from base64 import urlsafe_b64decode
 from jwt import PyJWK, PyJWKClient, PyJWKSet, decode
+from jwt.exceptions import DecodeError
 from jwt.types import JWKDict
 
 from cryptography.hazmat.primitives.asymmetric.rsa import RSAPublicNumbers
@@ -16,7 +17,7 @@ class StokeClient(PyJWKClient):
             max_cached_keys = 2,
             cache_jwk_set = True,
             headers = headers,
-            timeout = 30,
+            timeout = 1,
             ssl_context = ssl_context
         )
         self.url = url
@@ -36,8 +37,12 @@ class StokeClient(PyJWKClient):
             try:
                 decoded = decode(token, key.key, algorithms=[self.__get_algo_str(key)])
                 return decoded
+            except DecodeError:
+                # Token was not signed by key or token was invalid
+                pass
             except Exception as e:
-                print(e)
+                print("Unexpected error while decoding jwt:", type(e), e)
+                pass
         return None
 
     def __get_algo_str(self, data: PyJWK) -> str :

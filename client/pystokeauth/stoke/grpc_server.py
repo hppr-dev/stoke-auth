@@ -26,7 +26,7 @@ class ServerTokenInterceptor(ServerInterceptor):
         return continuation(handler_call_details)
 
     def _verify_details(self, handler_call_details : HandlerCallDetails) -> Optional[Dict[str, Any]]:
-        metadata = handler_call_details.invocation_metadata
+        metadata = dict(handler_call_details.invocation_metadata)
         if "authorization" not in metadata:
             return None
 

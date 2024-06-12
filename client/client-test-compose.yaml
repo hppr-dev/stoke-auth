@@ -10,11 +10,11 @@ services:
     ports:
       - 8888:80
 
-#  cargo:
-#    image: stoke-ex/python-grpc
-#    build:
-#      context: .
-#      dockerfile: ./examples/cargo/Dockerfile
+  cargo:
+    image: stoke-ex/python-grpc
+    build:
+      context: .
+      dockerfile: ./examples/cargo/Dockerfile
 
   control:
     image: stoke-ex/go-rest
@@ -37,8 +37,6 @@ services:
     build:
       context: .
       dockerfile: ./examples/inventory/Dockerfile
-    environment:
-      - STOKE_ENV=docker
 
   request:
     image: stoke-ex/python-flask

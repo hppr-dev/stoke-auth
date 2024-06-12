@@ -33,6 +33,7 @@ groups:
       - Navigator
       - Speed Control
       - Inventory Access
+      - Cargo Access
 
   - name: Ship Admin Staff
     description: Ship Administrive staff
@@ -71,5 +72,10 @@ claims:
   - name: Inventory Access
     description: Grants access to inventory
     short_name: inv
+    value: acc
+
+  - name: Cargo Access
+    description: Grants access to cargo
+    short_name: car
     value: acc
 
