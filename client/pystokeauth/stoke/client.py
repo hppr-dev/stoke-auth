@@ -3,7 +3,7 @@ from typing import Dict, Optional, Any
 from ssl import SSLContext
 
 from base64 import urlsafe_b64decode
-from jwt import PyJWK, PyJWKClient, PyJWKSet, decode
+from jwt import ExpiredSignatureError, PyJWK, PyJWKClient, PyJWKSet, decode
 from jwt.exceptions import DecodeError
 from jwt.types import JWKDict
 
@@ -37,8 +37,8 @@ class StokeClient(PyJWKClient):
             try:
                 decoded = decode(token, key.key, algorithms=[self.__get_algo_str(key)])
                 return decoded
-            except DecodeError:
-                # Token was not signed by key or token was invalid
+            except (DecodeError, ExpiredSignatureError):
+                # Token was invalid
                 pass
             except Exception as e:
                 print("Unexpected error while decoding jwt:", type(e), e)

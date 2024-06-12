@@ -27,6 +27,8 @@ SECRET_KEY = 'django-insecure-r+768kjtwy-gy2opfv^-sm*67n($d7ijx1pn%)jw%&!oz6c3-1
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+ASGI_APPLICATION="inventory.asgi.application"
+
 ALLOWED_HOSTS = ["*"]
 
 all_claims = {
@@ -100,6 +102,7 @@ AUTHENTICATION_BACKENDS = [
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

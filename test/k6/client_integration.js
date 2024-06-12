@@ -37,10 +37,6 @@ export default function() {
 		"http://localhost:8888/inventory/test/",             // requires inv:acc -- python rest django
 		"http://localhost:8888/inventory/cargo_contents/",   // requires car:acc -- python rest django/unary grpc
 	]
-	//ws services. Tokens are sent as url parameters
-	const ws_services = [
-		{ url: "ws://localhost:8888/control/foobar", request: "foo", response: "bar", times: 3 },    // requires ctl:acc  -- go rest/stream grpc
-	]
 	const user_logins = [
 		JSON.stringify({ "username" : "leela", "password": "leela" }),
 		JSON.stringify({ "username" : "fry", "password": "fry" }),
@@ -73,11 +69,16 @@ export default function() {
 		})
 		check(resp, checks)
 		if (resp.status != 200) {
-			console.log("Request failed!",service, resp)
+			console.log("Request failed!")
 		}
 		sleep(Math.random() * 4)
 	})
 
+	//ws services. Tokens are sent as url parameters
+	const ws_services = [
+		{ url: "ws://localhost:8888/control/foobar", request: "foo", response: "bar", times: 3 },    // requires ctl:acc  -- go rest/stream grpc
+		{ url: "ws://localhost:8888/inventory/load_cargo/", request: `{"num":1,"name":"hello","id":"foobar"}`, response: `{"loaded": true, "message": ""}`, times: 3 } // requires car:acc -- python django/stream grpc
+	]
 	ws_services.forEach((service) => {
 		let checks = {}
 		checks[`${service.url} send ${service.request} -> recv ${service.response}`] = (data) => data == service.response
@@ -89,6 +90,9 @@ export default function() {
 			});
 			socket.on('message', (data) => {
 				check(data, checks)
+				if (data != service.response) {
+					console.log("WS Bad response:", data)
+				}
 				socket.send(service.request)
 				times += 1
 				if (service.times == times) {

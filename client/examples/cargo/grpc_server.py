@@ -4,7 +4,7 @@ from grpc import server as new_server, ssl_server_credentials
 from grpc_reflection.v1alpha import reflection
 from stoke.client import StokeClient
 from stoke.grpc_server import intercept_all
-from proto.cargo_pb2 import ContentReply, ContentRequest, LoadItemReply, LoadItemRequest, DESCRIPTOR as CARGO_DESCRIPTOR
+from proto.cargo_pb2 import ContentReply, ContentRequest, Item, LoadItemReply, LoadItemRequest, DESCRIPTOR as CARGO_DESCRIPTOR
 from proto.cargo_pb2_grpc import CargoHoldServicer, add_CargoHoldServicer_to_server
 
 class CargoHoldServer(CargoHoldServicer):
@@ -24,10 +24,13 @@ class CargoHoldServer(CargoHoldServicer):
         print("Loading items...")
         for req in request_iterator:
             yield self._load(req)
+            if not context.is_active:
+                break
         print("Done loading items.")
 
     def _load(self, req : LoadItemRequest) -> LoadItemReply:
-        self.contents.append(req)
+        for i in range(req.num_items):
+            self.contents.append(req.item)
         return LoadItemReply(loaded=True)
 
 def read_file(filename : str) -> bytes :

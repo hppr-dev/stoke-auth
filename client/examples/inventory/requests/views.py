@@ -28,7 +28,7 @@ def cargo_contents(request):
         private_key=settings.KEY_FILE_DATA,
         certificate_chain=settings.CERT_FILE_DATA,
     )
-    # TODO Must be over secure channel: https://github.com/grpc/grpc/issues/33618
+    # Must be over secure channel: https://github.com/grpc/grpc/issues/33618
     with secure_channel(settings.CARGO_GRPC_ADDRESS, chan_creds) as channel:
         stub = CargoHoldStub(channel) 
         reply : ContentReply = stub.GetContents(ContentRequest(), credentials=call_creds)
