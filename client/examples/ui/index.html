@@ -1,3 +1,56 @@
+<header>
+	<script type="text/javascript" src="login.js"> </script>
+	<script type="text/javascript">
+		var tokenManager = new StokeTokenManager();
+		async function submit_login(e) {
+			let login_form = document.getElementById("login");
+			let shipiface = document.getElementById("shipiface");
+			let username = document.getElementById("username").value;
+			let password = document.getElementById("password").value;
+
+			e.preventDefault();
+			await tokenManager.login(username, password, []);
+			login_form.style.display = "none";
+			shipiface.style.display = "block";
+
+			return false;
+		}
+	</script>
+</header>
+
 <html>
-	<p> hello world </p>
+	<form id="login" onsubmit="return submit_login(event)">
+		<label for="username">Username</label>
+		<input id="username" type="text"/>
+		<label for="password">Password</label>
+		<input id="password" type="password"/>
+		<input type="submit"/>
+	</form>
+	<div id="shipiface" style="display:none">
+		<ul>
+			<li>
+				"http://localhost:8888/control/location",            // requires ctl:nav -- go rest
+			</li>
+			<li>
+				"http://localhost:8888/control/speed",               // requires ctl:sp  -- go rest/unary grpc
+			</li>
+			<li>
+				"http://localhost:8888/request/shipment",            // requires req:acc -- python rest flask
+			</li>
+			<li>
+				"http://localhost:8888/inventory/test/",             // requires inv:acc -- python rest django
+			</li>
+			<li>
+				"http://localhost:8888/inventory/cargo_contents/",   // requires car:acc -- python rest django/unary grpc
+			</li>
+		</ul>
+		<ul>
+			<li>
+				{ url: "ws://localhost:8888/control/foobar", request: "foo", response: "bar", times: 3 },    // requires ctl:acc  -- go rest/stream grpc
+			</li>
+			<li>
+				{ url: "ws://localhost:8888/inventory/load_cargo/", request: `{"num":1,"name":"hello","id":"foobar"}`, response: `{"loaded": true, "message": ""}`, times: 3 } // requires car:acc -- python django/stream grpc
+			</li>
+		</ul>
+	</div>
 </html>
