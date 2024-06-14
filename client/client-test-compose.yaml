@@ -7,6 +7,9 @@ services:
     depends_on:
       - control
       - request
+      - cargo
+      - engine
+      - inventory
     ports:
       - 8888:80
 

@@ -36,18 +36,31 @@ func (h *entityHandler) Login(ctx context.Context, req *ogent.LoginReq) (ogent.L
 	}
 	
 	claimMap := make(map[string]string)
-
-	for _, claim := range claims {
-		claimMap[claim.ShortName] = claim.Value
-	}
+	reqMet := make(map[string]bool)
+	reqClaims := make(map[string]string)
 
 	for _, claimReq := range req.RequiredClaims {
-		userValue, ok := claimMap[claimReq.Name]
-		if !ok || userValue != claimReq.Value {
+		reqMet[claimReq.Name] = false
+		reqClaims[claimReq.Name] = claimReq.Value
+	}
+
+	for _, claim := range claims {
+		if reqValue, exists := reqClaims[claim.ShortName]; exists && !reqMet[claim.ShortName] {
+			reqMet[claim.ShortName] = reqValue == claim.Value
+		}
+
+		if value, exists := claimMap[claim.ShortName]; exists {
+			claimMap[claim.ShortName] = value + "," + claim.Value
+		} else {
+			claimMap[claim.ShortName] = claim.Value
+		}
+	}
+
+	for reqName, valueMatched := range reqMet {
+		if !valueMatched {
 			logger.Debug().
-				Str("claimShortName", claimReq.Name).
-				Str("requiredValue", claimReq.Value).
-				Str("actualValue", userValue).
+				Str("claimShortName", reqName).
+				Str("requiredValue", reqClaims[reqName]).
 				Msg("User did not have required claims.")
 			return &ogent.LoginUnauthorized{}, nil
 		}

@@ -20,11 +20,13 @@ type Claims struct {
 // claimPredicates are custom functions to verify claims satisfy conditions
 type claimPredicate func(c Claims) bool
 
-// Creates an claim object with the same RegisteredClaims and an empty StokeClaims map.
+// Creates an claim object with the same RegisteredClaims and required claims.
 func (c *Claims) New() *Claims {
 	return &Claims{
 		RegisteredClaims: c.RegisteredClaims,
 		StokeClaims: make(map[string]string),
+		requiredClaimPreds: c.requiredClaimPreds,
+		alternateClaims: c.alternateClaims,
 	}
 }
 

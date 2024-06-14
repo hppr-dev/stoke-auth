@@ -2,18 +2,99 @@
 	<script type="text/javascript" src="login.js"> </script>
 	<script type="text/javascript">
 		var tokenManager = new StokeTokenManager();
-		async function submit_login(e) {
+		addEventListener("load", () => {
+			const username = sessionStorage.getItem("username")
+			const token = sessionStorage.getItem("token")
+			const refresh = sessionStorage.getItem("refresh")
+			if ( token !== null && refresh !== null && username !== null) {
+				tokenManager.token = token
+				tokenManager.refreshToken = refresh
+				tokenManager.claims = tokenManager.parseClaims()
+				tokenManager.tokenExpiration = new Date(tokenManager.claims.exp * 1000)
+				tokenManager.on_refresh = () => set_user_info(username)
+				tokenManager.scheduleRefresh()
+
+				set_user_info(username)
+				hide_login()
+			}
+		})
+
+		function set_user_info(username) {
+			let user_dis = document.getElementById("user_display")
+			let claims_dis = document.getElementById("claims_display")
+			let next_dis = document.getElementById("next_display")
+
+			user_dis.textContent = username
+			claims_dis.textContent = JSON.stringify(tokenManager.claims, null, 2)
+			next_dis.textContent = tokenManager.tokenExpiration
+		}
+
+		function hide_login() {
 			let login_form = document.getElementById("login");
 			let shipiface = document.getElementById("shipiface");
-			let username = document.getElementById("username").value;
-			let password = document.getElementById("password").value;
+			let claim_info = document.getElementById("claim_info");
 
-			e.preventDefault();
-			await tokenManager.login(username, password, []);
-			login_form.style.display = "none";
-			shipiface.style.display = "block";
+			login_form.style.display = "none"
+			shipiface.style.display = "block"
+			claim_info.style.display = "block"
+		}
 
-			return false;
+		function show_login() {
+			let login_form = document.getElementById("login")
+			let shipiface = document.getElementById("shipiface")
+			let claim_info = document.getElementById("claim_info")
+
+			login_form.style.display = "block"
+			shipiface.style.display = "none"
+			claim_info.style.display = "none"
+		}
+
+		async function submit_login(e) {
+			let username = document.getElementById("username").value
+			let password = document.getElementById("password").value
+
+			e.preventDefault()
+			await tokenManager.login(username, password, [], () => set_user_info(username))
+
+			hide_login()
+
+			return false
+		}
+
+		function logout() {
+			tokenManager.logout()
+			show_login()
+		}
+
+		async function get_location() {
+			let result = document.getElementById("location_result");
+			const response = await tokenManager.makeRequest("/control/location", "GET", {})
+			const text = await response.text()
+			result.textContent = `${response.status}:${response.statusText} -- ${text}`
+		}
+		async function get_speed() {
+			let result = document.getElementById("speed_result");
+			const response = await tokenManager.makeRequest("/control/speed", "GET", {})
+			const text = await response.text()
+			result.textContent = `${response.status}:${response.statusText} -- ${text}`
+		}
+		async function request_shipment() {
+			let result = document.getElementById("request_result");
+			const response = await tokenManager.makeRequest("/request/shipment", "GET", {})
+			const text = await response.text()
+			result.textContent = `${response.status}:${response.statusText} -- ${text}`
+		}
+		async function test_inventory() {
+			let result = document.getElementById("inventory_result");
+			const response = await tokenManager.makeRequest("/inventory/test/", "GET", {})
+			const text = await response.text()
+			result.textContent = `${response.status}:${response.statusText} -- ${text}`
+		}
+		async function get_cargo() {
+			let result = document.getElementById("cargo_content_result");
+			const response = await tokenManager.makeRequest("/inventory/cargo_contents/", "GET", {})
+			const text = await response.text()
+			result.textContent = `${response.status}:${response.statusText} -- ${text}`
 		}
 	</script>
 </header>
@@ -26,24 +107,62 @@
 		<input id="password" type="password"/>
 		<input type="submit"/>
 	</form>
+	<div id="claim_info" style="display:none">
+		<h5>Username: <span id="user_display"></span></h5>
+		<h5>Claims: <span id="claims_display"></span></h5>
+		<h5>Next Refresh: <span id="next_display"></span></h5>
+		<button onclick="logout()">Logout</button>
+	</div>
 	<div id="shipiface" style="display:none">
+		<h2> REST Requests </h2>
 		<ul>
 			<li>
-				"http://localhost:8888/control/location",            // requires ctl:nav -- go rest
+				/control/location (Go REST) -- requires ctl:nav
+				<p>
+					<button onclick="get_location()">Get Location</button>
+				</p>
+				<p>
+					<span id="location_result"></span>
+				</p>
 			</li>
 			<li>
-				"http://localhost:8888/control/speed",               // requires ctl:sp  -- go rest/unary grpc
+				/control/speed (Go REST -> Unary:Unary GRPC) -- requires ctl:sp
+				<p>
+					<button onclick="get_speed()">Get Speed</button>
+				</p>
+				<p>
+					<span id="speed_result"></span>
+				</p>
 			</li>
 			<li>
-				"http://localhost:8888/request/shipment",            // requires req:acc -- python rest flask
+				/request/shipment (Python REST[flask]) -- requires req:acc
+				<p>
+					<button onclick="request_shipment()">Request Shipment</button>
+				</p>
+				<p>
+					<span id="request_result"></span>
+				</p>
 			</li>
 			<li>
-				"http://localhost:8888/inventory/test/",             // requires inv:acc -- python rest django
+				/inventory/test/ (Python REST[Django]) -- requires inv:acc
+				<p>
+					<button onclick="test_inventory()">Test Inventory</button>
+				</p>
+				<p>
+					<span id="inventory_result"></span>
+				</p>
 			</li>
 			<li>
-				"http://localhost:8888/inventory/cargo_contents/",   // requires car:acc -- python rest django/unary grpc
+				/inventory/cargo_contents/ (Python REST[Django] -> Unary:Unary GRPC) -- requires car:acc
+				<p>
+					<button onclick="get_cargo()">Get Cargo Contents</button>
+				</p>
+				<p>
+					<span id="cargo_content_result"></span>
+				</p>
 			</li>
 		</ul>
+		<h2> Websocket Requests </h2>
 		<ul>
 			<li>
 				{ url: "ws://localhost:8888/control/foobar", request: "foo", response: "bar", times: 3 },    // requires ctl:acc  -- go rest/stream grpc

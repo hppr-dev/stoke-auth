@@ -196,6 +196,55 @@ task_certs() {
 
 }
 
+arguments_clients() {
+	DESCRIPTION="Manage test/example client docker containers"
+	SUBCOMMANDS="up|down|logs"
+	CLIENTS_OPTIONS="build:b:bool detach:d:bool"
+}
+
+task_clients() {
+	if [[ "$TASK_SUBCOMMAND" == "up" ]] && ! docker ps | grep stoke_server > /dev/null
+	then
+		echo Could not find running stoke_server. Please run task compose up first
+		exit 1
+	fi
+	_compose_task "$TASK_DIR/client/client-test-compose.yaml"
+}
+
+arguments_compose() {
+	DESCRIPTION="Manage docker compose containers"
+	SUBCOMMANDS="up|down|logs"
+	COMPOSE_OPTIONS="build:b:bool detach:d:bool"
+}
+
+task_compose() {
+	_compose_task "$TASK_DIR/compose/docker-compose.yaml"
+}
+
+_compose_task() { #compose_file
+	compose_file=$1
+	if [[ "$TASK_SUBCOMMAND" == "up" ]]
+	then
+		if [[ -n "$ARG_BUILD" ]]
+		then
+			extra="--build"
+		fi
+		if [[ -n "$ARG_DETACH" ]]
+		then
+			extra="$extra -d"
+		fi
+		docker compose -f $compose_file up $extra
+
+	elif [[ "$TASK_SUBCOMMAND" == "down" ]]
+	then
+		docker compose -f $compose_file down
+
+	elif [[ "$TASK_SUBCOMMAND" == "logs" ]]
+	then
+		docker compose -f $compose_file logs -f
+	fi
+}
+
 _run_all_configs() { # desc config_dir dbinit k6file docker_image post_server_command
 	echo ====================================================== Running $1 tests...
 	for config in ./configs/$2/*
