@@ -34,52 +34,34 @@ func (c Claims) Validate() error {
 	return nil
 }
 
-// Requires that a token has a claim key that refers to a value that is equal to value
-func (c *Claims) WithClaim(key, value string) *Claims {
+// Requires that a token has a claim key
+func (c *Claims) WithClaim(shortName, value string) *Claims {
 	c.requiredClaimPreds = append(c.requiredClaimPreds,
-		func(inner Claims) bool {
-			val, ok := inner.StokeClaims[key]
-			return ok && val == value
-		})
+		testClaim(shortName, func(claimValue string) bool {
+			return claimValue == value
+		}),
+	)
 	return c
 }
 
 // Requires that a token has a claim key that refers to a value that matches a regex
-func (c *Claims) WithClaimMatch(key, regex string) *Claims {
+func (c *Claims) WithClaimMatch(shortName, regex string) *Claims {
 	compiledRegex, _ := regexp.Compile(regex)
 	c.requiredClaimPreds = append(c.requiredClaimPreds,
-		func(inner Claims) bool {
-			val, ok := inner.StokeClaims[key]
-			return ok && compiledRegex.MatchString(val)
-		})
+		testClaim(shortName, func(claimValue string) bool {
+			return compiledRegex.MatchString(claimValue)
+		}),
+	)
 	return c
 }
 
 // Requires that a token has a claim key that refers to a value that contains a substring
-func (c *Claims) WithClaimContains(key, substring string) *Claims {
+func (c *Claims) WithClaimContains(shortName, substring string) *Claims {
 	c.requiredClaimPreds = append(c.requiredClaimPreds,
-		func(inner Claims) bool {
-			val, ok := inner.StokeClaims[key]
-			return ok && strings.Contains(val, substring)
-		})
-	return c
-}
-
-// Requires that a token has a claim key that refers to a comma seperated list with an item
-func (c *Claims) WithClaimListPart(key, item string) *Claims {
-	c.requiredClaimPreds = append(c.requiredClaimPreds,
-		func(inner Claims) bool {
-			val, ok := inner.StokeClaims[key]
-			if !ok {
-				return false
-			}
-			for _, p := range strings.Split(val, ",") {
-				if p == item {
-					return true
-				}
-			}
-			return false
-		})
+		testClaim(shortName, func(claimValue string) bool {
+			return strings.Contains(claimValue, substring)
+		}),
+	)
 	return c
 }
 
@@ -87,4 +69,25 @@ func (c *Claims) WithClaimListPart(key, item string) *Claims {
 func (c *Claims) Or(other *Claims) *Claims {
 	c.alternateClaims = append(c.alternateClaims, other)
 	return c
+}
+
+// check if a claim exists and returns whether any of the comma separated keys pass a test
+func testClaim(key string, test func(string) bool) func(Claims) bool {
+	return func( inner Claims ) bool {
+		val, ok := inner.StokeClaims[key]
+		if !ok {
+			return false
+		}
+		return mapOr(val, test)
+	}
+}
+
+// splits a string by "," and tests that at least one predicate is true
+func mapOr(s string, test func(string) bool) bool {
+	for _, p := range strings.Split(s, ",") {
+		if test(p) {
+			return true
+		}
+	}
+	return false
 }

@@ -239,7 +239,7 @@ func TestClaimsWithClaimContains(t *testing.T) {
 }
 
 func TestClaimsWithClaimListPart(t *testing.T) {
-	c := stoke.RequireToken().WithClaimListPart("listed", "one")
+	c := stoke.RequireToken().WithClaim("listed", "one")
 
 	if err := c.Validate(); err == nil {
 		t.Logf("Missing claim did not produced validation error")

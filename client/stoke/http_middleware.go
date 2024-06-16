@@ -58,6 +58,46 @@ func AuthFunc(handler http.HandlerFunc, store PublicKeyStore, claims *Claims, pa
 	}
 }
 
+// Requires authentication for subpaths of a handler.
+// Wraps the given http.Handler to:
+//	* Verify token signature (rejects request if it doesn't match)
+//	* Verify required claims by urls in a map[string]*stoke.Claims
+//	* Inject token into the request context
+//
+// Uses a ServeMux internally to associate route handlers with claims, i.e. map keys are in [net/http.ServeMux] route form.
+// The next handler will only be served if the route matches and the required claims are the expected value
+// Set a route to nil to skip token auth for the given route
+//
+// Example Usage:
+//
+//	func ConfigureHttp() {
+//		publicKeyStore := stoke.NewPerRequestPublicKeyStore()
+//		http.Handle("/api/birds/", &BirdsHandler{}) // handle requests without worrying about auth
+// 		...
+//		rootHandler := stoke.AuthMap(http.DefaultServeMux, publicKeyStore,
+//      map[string]*stoke.Claims{
+//	      "/api/birds/": stoke.RequireToken().WithClaim("bird", "r"), // /api/birds/ requires bird:r
+//	      "/api/bugs/":  stoke.RequireToken(),                        // /api/bugs/  requires any valid token
+//	      "/api/bees/":  nil,                                         // /api/bees/  does not require a token at all
+//			},
+//    )
+//	}
+//
+func AuthMap(next http.Handler, store PublicKeyStore, route2Claims map[string]*Claims, parserOpts ...jwt.ParserOption) http.Handler {
+	mux := http.NewServeMux()
+	for route, claims := range route2Claims {
+		if claims == nil {
+			mux.Handle(route, next)
+		} else{
+			mux.Handle(route, authWrapper{
+				inner:      next.ServeHTTP,
+				TokenHandler: NewTokenHandler(store, claims, parserOpts...),
+			})
+		}
+	}
+	return http.HandlerFunc(mux.ServeHTTP)
+}
+
 // Authentication wrapper that is used to require authentication
 type authWrapper struct {
 	inner http.HandlerFunc
