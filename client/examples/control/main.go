@@ -59,7 +59,7 @@ func main() {
 				res.Write([]byte(`{location: "Alpha Quadrant"}`))
 			},
 			keyStore,
-			stoke.RequireToken().WithClaimListPart("ctl", "nav"),
+			stoke.RequireToken().WithClaim("ctl", "nav"),
 		),
 	)
 	mux.Handle("/speed",
@@ -87,7 +87,7 @@ func main() {
 				res.Write([]byte(fmt.Sprintf(`{message: "%s"}`, reply.Response)))
 			},
 			keyStore,
-			stoke.RequireToken().WithClaimListPart("ctl", "sp"),
+			stoke.RequireToken().WithClaim("ctl", "sp"),
 		),
 	)
 	mux.HandleFunc("/foobar", func(w http.ResponseWriter, req *http.Request) {
@@ -121,7 +121,7 @@ func grpcFoobarWebsocket(keyStore stoke.PublicKeyStore, grpcConn *grpc.ClientCon
 		ctx := req.Context()
 
 		rawToken := req.URL.Query().Get("token")
-		_, err := keyStore.ParseClaims(ctx, rawToken, stoke.RequireToken().WithClaimListPart("ctl", "acc"))
+		_, err := keyStore.ParseClaims(ctx, rawToken, stoke.RequireToken().WithClaim("ctl", "acc"))
 		if err != nil {
 			log.Printf("ws token invalid or not found: %s", err)
 			return

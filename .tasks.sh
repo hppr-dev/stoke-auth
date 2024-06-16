@@ -73,7 +73,7 @@ task_test() {
 
 		if [[ -n "$ARG_RACE$ARG_ALL" ]]
 		then
-			_run_all_configs "race tests" data_race data_race.yaml data_race.js $ARG_RIMAGE
+			_run_all_configs "race" data_race data_race.yaml data_race.js $ARG_RIMAGE
 		fi
 
 		docker compose down
