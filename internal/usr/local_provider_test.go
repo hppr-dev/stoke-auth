@@ -275,7 +275,7 @@ func TestLocalCheckCreateForSuperUserHappy(t *testing.T) {
 		t.Fail()
 	}
 
-	if claim.ShortName != "srol" || claim.Value != "spr" {
+	if claim.ShortName != "stk" || claim.Value != "S" {
 		t.Logf("Claim short name and value did not match: %v", claim)
 		t.Fail()
 	}

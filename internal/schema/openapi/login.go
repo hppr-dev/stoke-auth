@@ -7,6 +7,9 @@ import (
 )
 
 func addLoginEndpoint(spec *ogen.Spec) error {
+	mapObjectSchema := ogen.NewSchema().SetType("object")
+	mapObjectSchema.AdditionalProperties = &ogen.AdditionalProperties{ Schema : *ogen.String() }
+
 	pathItem := ogen.NewPathItem().
 		SetDescription("User login and token generation endpoint").
 		SetPost(ogen.NewOperation().
@@ -33,14 +36,16 @@ func addLoginEndpoint(spec *ogen.Spec) error {
 							SetName("required_claims").
 							SetSchema(ogen.NewSchema().
 								SetType("array").
-								SetDescription("Claims required to receive a token").
-								SetItems(ogen.NewSchema().
-									SetProperties(&ogen.Properties{
-										*ogen.NewProperty().SetName("name").SetSchema(ogen.String().SetDescription("Required claim name")),
-										*ogen.NewProperty().SetName("value").SetSchema(ogen.String().SetDescription("Required claim value")),
-									}).
-									SetRequired([]string{"name", "value"}),
+								SetDescription("Claims required to receive a token. A token is issued if a user matches all given claims of one entry in the list.").
+								SetItems(mapObjectSchema.SetDescription("An object that specifies what claims must be present. Set a key value to \"\" to require a key with any value"),
 								),
+							),
+						*ogen.NewProperty().
+							SetName("filter_claims").
+							SetSchema(ogen.NewSchema().
+								SetType("array").
+								SetDescription("Claims to include in the created token. All given claims are returned by default").
+								SetItems(ogen.String()),
 							),
 					}),
 				),

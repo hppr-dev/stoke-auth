@@ -81,7 +81,8 @@ telemetry:
 
 # User Provider configuration
 users:
-  enable_ldap: true                         # Whether to  use LDAP
+  create_stoke_claims: true                 # Whether to create stoke administration claims for reading/writing claims/groups/users. Checked every start up.
+  enable_ldap: true                         # Whether to use LDAP
   server_url: ldap://localhost:10389        # LDAP Server URL. Must begin with ldap://, ldaps:// or ldapi://
 
   bind_user_dn: "cn=admin,dc=planetexpress,dc=com" # Bind user distinguished name. Should only have read permissions

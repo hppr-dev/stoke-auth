@@ -24,10 +24,8 @@ func (c Claims) Validate() error {
 		}
 	}
 
-	validated := true
 	for _, pred := range c.requiredClaimPreds {
-		validated = pred(c) && validated
-		if !validated {
+		if !pred(c) {
 			return errors.New("Claims do not conform to claim requirements")
 		}
 	}

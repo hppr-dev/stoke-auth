@@ -133,8 +133,8 @@ func (l LocalProvider) getOrCreateSuperGroup(ctx context.Context) (*ent.ClaimGro
 		Where(
 			claimgroup.HasClaimsWith(
 				claim.And(
-					claim.ShortNameEQ("srol"),
-					claim.ValueEQ("spr"),
+					claim.ShortNameEQ("stk"),
+					claim.ValueEQ("S"),
 				),
 			),
 		).
@@ -148,8 +148,8 @@ func (l LocalProvider) getOrCreateSuperGroup(ctx context.Context) (*ent.ClaimGro
 		superClaim, err := client.Claim.Create().
 			SetName("Stoke Super User").
 			SetDescription("Grants superuser management access to the stoke server").
-			SetShortName("srol").
-			SetValue("spr").
+			SetShortName("stk").
+			SetValue("S").
 			Save(ctx)
 		if err != nil {
 			return nil, err
@@ -216,4 +216,55 @@ func (l LocalProvider) UpdateUserPassword(username, oldPassword, newPassword str
 		SetPassword(HashPass(newPassword, newSalt)).
 		Save(ctx)
 	return err
+}
+
+func (l LocalProvider) CheckCreateForStokeClaims(ctx context.Context) error {
+	logger := zerolog.Ctx(ctx)
+	if err := l.checkCreateClaim("Read Claims", "Grants read access to claims", "c", ctx); err != nil {
+		logger.Warn().Err(err).Msg("Could not create read claims claim")
+	}
+	if err := l.checkCreateClaim("Write Claims", "Grants read/write access to claims", "C", ctx); err != nil {
+		logger.Warn().Err(err).Msg("Could not create read/write claims claim")
+	}
+	if err := l.checkCreateClaim("Read Users", "Grants read access to users", "u", ctx); err != nil {
+		logger.Warn().Err(err).Msg("Could not create read users claim")
+	}
+	if err := l.checkCreateClaim("Write Users", "Grants read/write access to users", "U", ctx); err != nil {
+		logger.Warn().Err(err).Msg("Could not create read/write users claim")
+	}
+	if err := l.checkCreateClaim("Read Groups", "Grants read access to groups", "g", ctx); err != nil {
+		logger.Warn().Err(err).Msg("Could not create read groups claim")
+	}
+	if err := l.checkCreateClaim("Write Groups", "Grants read/write access to groups", "G", ctx); err != nil {
+		logger.Warn().Err(err).Msg("Could not create read/write groups claim")
+	}
+	if err := l.checkCreateClaim("Super Read", "Grants read access to all stoke admin", "s", ctx); err != nil {
+		logger.Warn().Err(err).Msg("Could not create super read claim")
+	}
+	if err := l.checkCreateClaim("Monitoring Access", "Grants read access to stoke monitoring", "m", ctx); err != nil {
+		logger.Warn().Err(err).Msg("Could not create monitoring claim")
+	}
+	return nil
+}
+
+func (l LocalProvider) checkCreateClaim(name, desc, value string, ctx context.Context) error {
+	client := ent.FromContext(ctx)
+
+	_, err := client.Claim.Query().
+		Where(
+			claim.And(
+				claim.ShortNameEQ("stk"),
+				claim.ValueEQ(value),
+			),
+		).FirstID(ctx)
+		if ent.IsNotFound(err) {
+			_, err := client.Claim.Create().
+				SetName(name).
+				SetDescription(desc).
+				SetShortName("stk").
+				SetValue(value).
+				Save(ctx)
+			return err
+		}
+		return nil
 }

@@ -20,11 +20,9 @@ func NewEntityAPIHandler(prefix string, ctx context.Context) http.Handler {
 
 	eHandler := newEntityHandler(ctx)
 
+
 	sHandler := &secHandler{
-		TokenHandler: stoke.NewTokenHandler(
-			key.IssuerFromCtx(ctx),
-			stoke.RequireToken().WithClaim("srol", "spr"),
-		),
+		PublicKeyStore : key.IssuerFromCtx(ctx),
 	}
 
 	hdlr, err := ogent.NewServer(
@@ -42,12 +40,44 @@ func NewEntityAPIHandler(prefix string, ctx context.Context) http.Handler {
 }
 
 type secHandler struct {
-	*stoke.TokenHandler
+	stoke.PublicKeyStore
 }
 
 // HandleToken implements ogent.SecurityHandler.
 func (s *secHandler) HandleToken(ctx context.Context, operationName string, t ogent.Token) (context.Context, error) {
-	return s.TokenHandler.InjectToken(t.GetToken(), ctx)
+	claims := stoke.RequireToken().WithClaim("stk", "S")
+	switch operationName {
+	case "ReadClaimGroup", "ReadGroupLink", "ReadGroupLinkClaimGroup", "ListClaimGroup", "ListClaimGroupClaims", "ListClaimGroupGroupLinks", "ListClaimGroupUsers", "ListGroupLink":
+		claims.Or(stoke.RequireToken().WithClaimMatch("stk", "^[sgGU]$"))
+
+	case "CreateClaimGroup", "DeleteClaimGroup", "UpdateClaimGroup", "CreateGroupLink", "DeleteGroupLink", "UpdateGroupLink":
+		claims.Or(stoke.RequireToken().WithClaim("stk", "G"))
+
+	case "ReadClaim", "ListClaim", "ListClaimClaimGroups" :
+		claims.Or(stoke.RequireToken().WithClaimMatch("stk", "^[scCGU]$"))
+
+	case "CreateClaim", "DeleteClaim", "UpdateClaim":
+		claims.Or(stoke.RequireToken().WithClaim("stk", "C"))
+
+	case "ReadUser", "ListUser", "ListUserClaimGroups":
+		claims.Or(stoke.RequireToken().WithClaimMatch("stk", "^[suU]$"))
+
+	case "DeleteUser", "UpdateUser", "CreateLocalUser", "UpdateLocalUserPassword":
+		claims.Or(stoke.RequireToken().WithClaim("stk", "U"))
+
+	case "Capabilities", "Totals":
+		claims.Or(stoke.RequireToken().WithClaimMatch("stk", "^[sSuUgGcC]$"))
+
+	//case "listPrivateKey", "readPrivateKey":
+	// TODO either remove or incorperate
+	}
+
+	zerolog.Ctx(ctx).Debug().
+		Str("operationName", operationName).
+		Str("token", t.Token).
+		Interface("reqClaims", claims).
+		Msg("Checking token for operation")
+	return stoke.NewTokenHandler(s.PublicKeyStore, claims).InjectToken(t.GetToken(), ctx)
 }
 
 type entityHandler struct {

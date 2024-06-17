@@ -9,9 +9,10 @@ export const appActions = {
         body: JSON.stringify({
           username: username,
           password: password,
-          required_claims: [
-            { name: "srol", value: "spr" },
-          ],
+          // Match any stk claim
+          required_claims: [ { "stk": "" } ],
+          // Only return stk claims
+          filter_claims: [ "stk" ],
         }),
       })
 

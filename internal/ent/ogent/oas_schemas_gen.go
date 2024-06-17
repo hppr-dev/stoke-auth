@@ -1188,8 +1188,11 @@ type LoginReq struct {
 	Username string `json:"username"`
 	// User's password.
 	Password string `json:"password"`
-	// Claims required to receive a token.
+	// Claims required to receive a token. A token is issued if a user matches all given claims of one
+	// entry in the list.
 	RequiredClaims []LoginReqRequiredClaimsItem `json:"required_claims"`
+	// Claims to include in the created token. All given claims are returned by default.
+	FilterClaims []string `json:"filter_claims"`
 }
 
 // GetUsername returns the value of Username.
@@ -1207,6 +1210,11 @@ func (s *LoginReq) GetRequiredClaims() []LoginReqRequiredClaimsItem {
 	return s.RequiredClaims
 }
 
+// GetFilterClaims returns the value of FilterClaims.
+func (s *LoginReq) GetFilterClaims() []string {
+	return s.FilterClaims
+}
+
 // SetUsername sets the value of Username.
 func (s *LoginReq) SetUsername(val string) {
 	s.Username = val
@@ -1222,31 +1230,22 @@ func (s *LoginReq) SetRequiredClaims(val []LoginReqRequiredClaimsItem) {
 	s.RequiredClaims = val
 }
 
-type LoginReqRequiredClaimsItem struct {
-	// Required claim name.
-	Name string `json:"name"`
-	// Required claim value.
-	Value string `json:"value"`
+// SetFilterClaims sets the value of FilterClaims.
+func (s *LoginReq) SetFilterClaims(val []string) {
+	s.FilterClaims = val
 }
 
-// GetName returns the value of Name.
-func (s *LoginReqRequiredClaimsItem) GetName() string {
-	return s.Name
-}
+// An object that specifies what claims must be present. Set a key value to "" to require a key with
+// any value.
+type LoginReqRequiredClaimsItem map[string]string
 
-// GetValue returns the value of Value.
-func (s *LoginReqRequiredClaimsItem) GetValue() string {
-	return s.Value
-}
-
-// SetName sets the value of Name.
-func (s *LoginReqRequiredClaimsItem) SetName(val string) {
-	s.Name = val
-}
-
-// SetValue sets the value of Value.
-func (s *LoginReqRequiredClaimsItem) SetValue(val string) {
-	s.Value = val
+func (s *LoginReqRequiredClaimsItem) init() LoginReqRequiredClaimsItem {
+	m := *s
+	if m == nil {
+		m = map[string]string{}
+		*s = m
+	}
+	return m
 }
 
 type LoginUnauthorized struct {

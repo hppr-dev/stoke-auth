@@ -247,6 +247,7 @@ All user tokens include user information (username, email,etc.), timing informat
 Stoke admins give users custom claims by adding users to claim groups.
 Users may have many claim groups and claim groups may have many claims.
 If a user has a claim group assigned to them, all claims in that group will be included in tokens issued to that user.
+If multiple claims with the same key are assigned they are joined using a comma.
 
 For example the following user:
  * Username : stoke
@@ -256,16 +257,17 @@ For example the following user:
  * Groups:
    * Admins
      * Claims:
-       * Stoke Super User, srol=spr
+       * Stoke Super User, stk=S
        * Ship Access, ship=acc
    * Log Users
      * Claims
-       * Log Reader/Writer, log=r,w
+       * Log Reader, log=r
+       * Log Writer, log=w
 
 Would receive the following custom claims in their tokens:
 ``` json
 {
-    "srol" : "spr",
+    "stk" : "S",
     "ship" : "acc",
     "log"  : "r,w"
 }
@@ -274,8 +276,18 @@ Would receive the following custom claims in their tokens:
 Groups may also be linked to outside sources (LDAP, etc) to allow claims to automatically be populated by group membership.
 
 A single group and claim to manage access to the admin console will be created automatically if it does not exist when server is started.
-The claim that grants administrative access to the admin console is "srol=spr".
-In other words, if a user has `"srol" : "spr"` in their token claims, they are able to access the admin pages.
+The claim that grants administrative access to the admin console is "stk=S".
+In other words, if a user has `"stk" : "S"` in their token claims, they are able to access all admin pages.
+
+The following claims are used for admin console access:
+    * Monitoring access       - stk = m
+    * Read all (no write)     - stk = s
+    * Read stoke users        - stk = u
+    * Read/Write stoke users  - stk = U
+    * Read stoke groups       - stk = g
+    * Read/Write stoke groups - stk = G
+    * Read stoke claims       - stk = c
+    * Read/Write stoke claims - stk = C
 
 ## Keys
 

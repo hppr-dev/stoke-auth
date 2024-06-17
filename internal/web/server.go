@@ -120,7 +120,11 @@ func NewServer(ctx context.Context) *http.Server {
 					stoke.Auth(
 						promhttp.Handler(),
 						issuer,
-						stoke.RequireToken().WithClaim("srol", "spr"),
+						stoke.RequireToken().WithClaim("stk", "m").Or(
+							stoke.RequireToken().WithClaim("stk", "s"),
+						).Or(
+							stoke.RequireToken().WithClaim("stk", "S"),
+						),
 					),
 				),
 			)
@@ -132,7 +136,11 @@ func NewServer(ctx context.Context) *http.Server {
 					stoke.AuthFunc(
 						logsHandler,
 						issuer,
-						stoke.RequireToken().WithClaim("srol", "spr"),
+						stoke.RequireToken().WithClaim("stk", "m").Or(
+							stoke.RequireToken().WithClaim("stk", "s"),
+						).Or(
+							stoke.RequireToken().WithClaim("stk", "S"),
+						),
 					),
 				),
 			)

@@ -15,8 +15,10 @@ import (
 )
 
 type Users struct {
+	// Enable checking/creating stoke admin per-operation claims
+	CreateStokeClaims     bool   `json:"create_stoke_claims"`
 	// Enable authenticating with an LDAP server
-	EnableLDAP            bool `json:"enable_ldap"`
+	EnableLDAP            bool   `json:"enable_ldap"`
 	// URL (starting with ldap:// or ldaps://) of the ldap server
 	ServerURL             string `json:"server_url"`
 	// Readonly bind user distinguished name used to look up users in ldap
@@ -127,6 +129,10 @@ func (u Users) withContext(ctx context.Context) context.Context {
 		)
 	} else {
 		provider = usr.LocalProvider{}
+	}
+
+	if u.CreateStokeClaims {
+		provider.CheckCreateForStokeClaims(ctx)
 	}
 
 	return provider.WithContext(ctx)

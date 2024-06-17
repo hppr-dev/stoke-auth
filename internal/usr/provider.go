@@ -10,5 +10,6 @@ type Provider interface {
   AddUser(fname, lname, email, username, password string, superuser bool, ctx context.Context) error
   UpdateUserPassword(username, oldPassword, newPassword string, force bool, ctx context.Context) error
 	CheckCreateForSuperUser(ctx context.Context) error
+	CheckCreateForStokeClaims(ctx context.Context) error
 	WithContext(context.Context) context.Context
 }

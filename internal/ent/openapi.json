@@ -1914,24 +1914,21 @@
                     "type": "string"
                   },
                   "required_claims": {
-                    "description": "Claims required to receive a token",
+                    "description": "Claims required to receive a token. A token is issued if a user matches all given claims of one entry in the list.",
                     "type": "array",
                     "items": {
+                      "description": "An object that specifies what claims must be present. Set a key value to \"\" to require a key with any value",
                       "type": "object",
-                      "properties": {
-                        "name": {
-                          "description": "Required claim name",
-                          "type": "string"
-                        },
-                        "value": {
-                          "description": "Required claim value",
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "name",
-                        "value"
-                      ]
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "filter_claims": {
+                    "description": "Claims to include in the created token. All given claims are returned by default",
+                    "type": "array",
+                    "items": {
+                      "type": "string"
                     }
                   }
                 },

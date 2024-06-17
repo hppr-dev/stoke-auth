@@ -3,6 +3,7 @@ package web
 import (
 	"context"
 	"fmt"
+	"slices"
 	"stoke/internal/cfg"
 	"stoke/internal/ent"
 	"stoke/internal/ent/ogent"
@@ -11,22 +12,26 @@ import (
 	"stoke/internal/usr"
 	"time"
 
-	"hppr.dev/stoke"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/rs/zerolog"
 	"github.com/vincentfree/opentelemetry/otelzerolog"
+	"hppr.dev/stoke"
 )
 
 type LoginApiHandler struct {}
 
-// Login implements ogent.Handler.
+//   1. Retrieves claims from user provider using username and password
+//   2. Verifies required user claims match the requested values. If a the required value is "", the key is required but no further verification is needed.
+//   3. Removes any claims that do not match the claim_filter, if given
+//   3. Issues a token
+// Schema definition in internal/schema/openapi/login.go and internal/ent/openapi.json (operation id login)
 func (h *entityHandler) Login(ctx context.Context, req *ogent.LoginReq) (ogent.LoginRes, error) {
 	logger := zerolog.Ctx(ctx)
 
 	ctx, span := tel.GetTracer().Start(ctx, "LoginHandler")
 	defer span.End()
 
-	user, claims, err := usr.ProviderFromCtx(ctx).GetUserClaims(req.Username, req.Password, true, ctx)
+	user, pvClaims, err := usr.ProviderFromCtx(ctx).GetUserClaims(req.Username, req.Password, true, ctx)
 	if err != nil {
 		logger.Debug().
 			Func(otelzerolog.AddTracingContext(span)).
@@ -35,41 +40,59 @@ func (h *entityHandler) Login(ctx context.Context, req *ogent.LoginReq) (ogent.L
 		return &ogent.LoginUnauthorized{}, nil
 	}
 	
-	claimMap := make(map[string]string)
-	reqMet := make(map[string]bool)
-	reqClaims := make(map[string]string)
+	tokenMap := make(map[string]string)
 
-	for _, claimReq := range req.RequiredClaims {
-		reqMet[claimReq.Name] = false
-		reqClaims[claimReq.Name] = claimReq.Value
+	// Represents whether a given requirement has been met
+	metReq := make([]map[string]bool, len(req.RequiredClaims))
+	for i := range metReq {
+		metReq[i] = make(map[string]bool)
 	}
 
-	for _, claim := range claims {
-		if reqValue, exists := reqClaims[claim.ShortName]; exists && !reqMet[claim.ShortName] {
-			reqMet[claim.ShortName] = reqValue == claim.Value
+	for _, pvClaim := range pvClaims {
+		for i, claimReq := range req.RequiredClaims {
+			if value, exist := claimReq[pvClaim.ShortName]; exist  {
+				metReq[i][value] = value == "" || pvClaim.Value == value
+			}
 		}
 
-		if value, exists := claimMap[claim.ShortName]; exists {
-			claimMap[claim.ShortName] = value + "," + claim.Value
-		} else {
-			claimMap[claim.ShortName] = claim.Value
-		}
-	}
-
-	for reqName, valueMatched := range reqMet {
-		if !valueMatched {
-			logger.Debug().
-				Str("claimShortName", reqName).
-				Str("requiredValue", reqClaims[reqName]).
-				Msg("User did not have required claims.")
-			return &ogent.LoginUnauthorized{}, nil
+		if len(req.FilterClaims) == 0 || slices.Contains(req.FilterClaims, pvClaim.ShortName) {
+			if value, exists := tokenMap[pvClaim.ShortName]; exists {
+				tokenMap[pvClaim.ShortName] = value + "," + pvClaim.Value
+			} else {
+				tokenMap[pvClaim.ShortName] = pvClaim.Value
+			}
 		}
 	}
 
-	populateUserInfo(cfg.Ctx(ctx), user, claimMap)
+	// TODO do this not tired. We want to make sure that we match at least one of the requirements
+	// Maybe put the logic in the pvClaims loop?
+	matchedOne := false
+	for _, mapMatches := range metReq {
+		matched := true
+		for _, value := range mapMatches {
+			if !value {
+				matched = false
+				break
+			}
+		}
+		if matched {
+			matchedOne = true
+			break
+		}
+	}
+
+	if !matchedOne {
+		logger.Debug().
+			Interface("provider_claims", pvClaims).
+			Interface("required_claimes", req.RequiredClaims).
+			Msg("User did not have a required claimset.")
+		return &ogent.LoginUnauthorized{}, nil
+	}
+
+	populateUserInfo(cfg.Ctx(ctx), user, tokenMap)
 
 	token, refresh, err := key.IssuerFromCtx(ctx).IssueToken(&stoke.Claims{
-		StokeClaims : claimMap,
+		StokeClaims : tokenMap,
 		RegisteredClaims: createRegisteredClaims(cfg.Ctx(ctx).Tokens),
 	}, ctx)
 	if err != nil {
