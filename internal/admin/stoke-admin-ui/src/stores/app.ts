@@ -71,10 +71,51 @@ export const useAppStore = defineStore('app', {
     authenticated: function() {
       return this.token !== ""
     },
-    tokenExpiration: function() {
+    tokenClaims: function() {
       const b64 = this.token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')
-      const claims = JSON.parse(decodeURIComponent(atob(b64)))
-      return new Date(claims.exp * 1000)
+      return JSON.parse(decodeURIComponent(atob(b64)))
+    },
+    stokeClaim: function() : string[] {
+      return this.tokenClaims.stk.split(",")
+    },
+    tokenExpiration: function() {
+      return new Date(this.tokenClaims.exp * 1000)
+    },
+    superRead: function() : boolean {
+      return this.stokeClaim.includes("s")
+    },
+    superUser: function() : boolean {
+      return this.stokeClaim.includes("S")
+    },
+    monitoringAccess: function() : boolean {
+      return this.capabilities.includes('monitoring') && (this.superUser() || this.superRead())
+    },
+    userAccess: function() : string {
+      const stk = this.stokeClaim
+      if ( this.superRead || stk.includes("u") ){
+        return "read"
+      } else if ( this.superUser || stk.includes("U") ) {
+        return "write"
+      }
+      return ""
+    },
+    claimsAccess: function() : string {
+      const stk = this.stokeClaim
+      if ( this.superRead || stk.includes("c") ){
+        return "read"
+      } else if ( this.superUser || stk.includes("C") ) {
+        return "write"
+      }
+      return ""
+    },
+    groupAccess: function() : string {
+      const stk = this.stokeClaim
+      if ( this.superRead || stk.includes("g") ){
+        return "read"
+      } else if ( this.superUser || stk.includes("G") ) {
+        return "write"
+      }
+      return ""
     },
     trackedMetrics: function() {
       return Object.keys(this.chartDatam)

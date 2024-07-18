@@ -19,10 +19,10 @@
     <v-divider></v-divider>
 
     <v-list>
-      <v-list-item link title="Users" @click="go('/user')" :prepend-icon="icons.USER"></v-list-item>
-      <v-list-item link title="Groups" @click="go('/group')" :prepend-icon="icons.GROUP"></v-list-item>
-      <v-list-item link title="Claims" @click="go('/claim')" :prepend-icon="icons.CLAIM"></v-list-item>
-      <v-list-item link title="Monitor" v-if="store.capabilities.includes('monitoring')" @click="go('/monitor')" :prepend-icon="icons.MONITOR"></v-list-item>
+      <v-list-item v-if="store.userAccess !== '' " link title="Users" @click="go('/user')" :prepend-icon="icons.USER"></v-list-item>
+      <v-list-item v-if="store.groupAccess !== '' " link title="Groups" @click="go('/group')" :prepend-icon="icons.GROUP"></v-list-item>
+      <v-list-item v-if="store.claimsAccess !== '' " link title="Claims" @click="go('/claim')" :prepend-icon="icons.CLAIM"></v-list-item>
+      <v-list-item v-if="store.monitorAccess" link title="Monitor" @click="go('/monitor')" :prepend-icon="icons.MONITOR"></v-list-item>
     </v-list>
 
     <template #append>
