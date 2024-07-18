@@ -47,8 +47,8 @@ groups:
 claims:
   - name: Stoke Super User
     description: Grants stoke admin super user priviledges
-    short_name: srol
-    value: spr
+    short_name: stk
+    value: S
 
   - name: Testing Environment Access
     description:  Grants access to the testing environment

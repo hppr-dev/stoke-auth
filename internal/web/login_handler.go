@@ -47,7 +47,7 @@ func (h *entityHandler) Login(ctx context.Context, req *ogent.LoginReq) (ogent.L
 	
 	tokenMap := make(map[string]string)
 
-	matchedOne := false
+	matchedOne := len(req.RequiredClaims) == 0
 	for _, pvClaim := range pvClaims {
 		if !matchedOne {
 			for _, claimReq := range req.RequiredClaims {
