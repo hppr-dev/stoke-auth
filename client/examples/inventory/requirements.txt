@@ -9,7 +9,7 @@ click==8.1.7
 constantly==23.10.4
 cryptography==42.0.5
 daphne==4.1.2
-Django==5.0.6
+Django==5.0.7
 grpcio==1.64.1
 grpcio-tools==1.64.1
 hyperlink==21.0.0

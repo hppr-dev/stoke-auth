@@ -5,7 +5,7 @@ go 1.22.1
 replace hppr.dev/stoke v0.0.0 => ../../stoke
 
 require (
-	google.golang.org/grpc v1.64.0
+	google.golang.org/grpc v1.64.1
 	google.golang.org/protobuf v1.34.1
 	hppr.dev/stoke v0.0.0
 )
