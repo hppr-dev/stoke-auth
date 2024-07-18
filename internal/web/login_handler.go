@@ -26,7 +26,12 @@ type LoginApiHandler struct {}
 //   3. Issues a token
 // Schema definition in internal/schema/openapi/login.go and internal/ent/openapi.json (operation id login)
 func (h *entityHandler) Login(ctx context.Context, req *ogent.LoginReq) (ogent.LoginRes, error) {
-	logger := zerolog.Ctx(ctx)
+	logger := zerolog.Ctx(ctx).With().
+		Str("component", "Login").
+		Str("username", req.Username).
+		Strs("filter_claims", req.FilterClaims).
+		Logger()
+
 
 	ctx, span := tel.GetTracer().Start(ctx, "LoginHandler")
 	defer span.End()
@@ -42,16 +47,13 @@ func (h *entityHandler) Login(ctx context.Context, req *ogent.LoginReq) (ogent.L
 	
 	tokenMap := make(map[string]string)
 
-	// Represents whether a given requirement has been met
-	metReq := make([]map[string]bool, len(req.RequiredClaims))
-	for i := range metReq {
-		metReq[i] = make(map[string]bool)
-	}
-
+	matchedOne := false
 	for _, pvClaim := range pvClaims {
-		for i, claimReq := range req.RequiredClaims {
-			if value, exist := claimReq[pvClaim.ShortName]; exist  {
-				metReq[i][value] = value == "" || pvClaim.Value == value
+		if !matchedOne {
+			for _, claimReq := range req.RequiredClaims {
+				if value, exist := claimReq[pvClaim.ShortName]; exist {
+					matchedOne = value == "" || pvClaim.Value == value
+				}
 			}
 		}
 
@@ -61,23 +63,6 @@ func (h *entityHandler) Login(ctx context.Context, req *ogent.LoginReq) (ogent.L
 			} else {
 				tokenMap[pvClaim.ShortName] = pvClaim.Value
 			}
-		}
-	}
-
-	// TODO do this not tired. We want to make sure that we match at least one of the requirements
-	// Maybe put the logic in the pvClaims loop?
-	matchedOne := false
-	for _, mapMatches := range metReq {
-		matched := true
-		for _, value := range mapMatches {
-			if !value {
-				matched = false
-				break
-			}
-		}
-		if matched {
-			matchedOne = true
-			break
 		}
 	}
 

@@ -67,7 +67,12 @@ func (a *AsymetricTokenIssuer[P]) IssueToken(claims *stoke.Claims, ctx context.C
 }
 
 func (a *AsymetricTokenIssuer[P]) RefreshToken(jwtToken *jwt.Token, refreshToken string, extendTime time.Duration, ctx context.Context) (string, string, error) {
-	logger := zerolog.Ctx(ctx).With().Str("function", "AsymetricTokenIssuer.RefreshToken").Logger()
+	logger := zerolog.Ctx(ctx).With().
+		Str("function", "AsymetricTokenIssuer.RefreshToken").
+		Str("refreshToken", refreshToken).
+		Str("authToken", jwtToken.Raw).
+		Logger()
+
 	ctx, span := tel.GetTracer().Start(ctx, "AsymetricTokenIssuer.RefreshToken")
 	defer span.End()
 
@@ -76,7 +81,6 @@ func (a *AsymetricTokenIssuer[P]) RefreshToken(jwtToken *jwt.Token, refreshToken
 		logger.Error().
 			Func(otelzerolog.AddTracingContext(span)).
 			Err(err).
-			Str("refreshToken", refreshToken).
 			Msg("Failed to decode refresh token")
 		return "", "", err
 	}
@@ -85,8 +89,6 @@ func (a *AsymetricTokenIssuer[P]) RefreshToken(jwtToken *jwt.Token, refreshToken
 		logger.Debug().
 			Func(otelzerolog.AddTracingContext(span)).
 			Err(err).
-			Str("refreshToken", refreshToken).
-			Str("authToken", jwtToken.Raw).
 			Msg("Failed to verify refresh token")
 		return "", "", err
 	}
@@ -95,8 +97,6 @@ func (a *AsymetricTokenIssuer[P]) RefreshToken(jwtToken *jwt.Token, refreshToken
 	if !ok {
 		logger.Debug().
 			Func(otelzerolog.AddTracingContext(span)).
-			Str("refreshToken", refreshToken).
-			Str("authToken", jwtToken.Raw).
 			Type("claimsType", jwtToken.Claims).
 			Interface("claimsValues", jwtToken.Claims).
 			Msg("Failed to convert jwt.Claims to stoke.Claims")
