@@ -146,18 +146,18 @@ export const managementActions = {
       throw new Error(response.statusText)
     }
   },
-  deleteUser: function(user: User) {
-    return this.simpleDelete("/api/admin/users", user)
+  deleteUser: function() {
+    return this.simpleDelete("/api/admin/users", this.currentUser)
       .then(() => this.currentUser = {})
       .then(this.fetchAllUsers)
   },
-  deleteGroup: function(group: Group) {
-    return this.simpleDelete("/api/admin/claim-groups", group)
+  deleteGroup: function() {
+    return this.simpleDelete("/api/admin/claim-groups", this.currentGroup)
       .then(() => this.currentGroup = {})
       .then(this.fetchAllGroups)
   },
-  deleteClaim: function(claim: Claim) {
-    return this.simpleDelete("/api/admin/claims", claim)
+  deleteClaim: function() {
+    return this.simpleDelete("/api/admin/claims", this.currentClaim)
       .then(() => this.currentClaim = {})
       .then(this.fetchAllClaims)
   },

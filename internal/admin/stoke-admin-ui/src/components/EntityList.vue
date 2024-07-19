@@ -32,6 +32,7 @@
 
     <template v-if="props.deleteClick" #item.row-delete="{ item }">
       <DeleteActivator
+        :onDelete="props.deleteClick"
         :titleIcon="icons.USER"
         :toDelete="item[props.deleteItemKey]"
       />
@@ -77,7 +78,7 @@
     showFooter?: boolean,
     rowProps?: Function | Object,
     deleteIcon?: string,
-    deleteClick?: Function,
+    deleteClick?: Promise<string>,
     deleteItemKey?: string,
   }>()
 
