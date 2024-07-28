@@ -1,4 +1,4 @@
-const api_url = "http://localhost:8080"
+const api_url = "https://localhost:8888"
 
 class StokeTokenManager {
 	async login(user, password, required_claims, on_refresh) {

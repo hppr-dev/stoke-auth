@@ -1,5 +1,6 @@
 from os import environ
 from concurrent import futures
+from ssl import PROTOCOL_TLS_CLIENT, SSLContext
 from grpc import server as new_server, ssl_server_credentials
 from grpc_reflection.v1alpha import reflection
 from stoke.client import StokeClient
@@ -37,12 +38,23 @@ def read_file(filename : str) -> bytes :
     with open(filename, 'rb') as f:
         return f.read()
 
+cert_file = environ.get("CARGO_CERT")
+key_file  = environ.get("CARGO_KEY")
+ca_file   = environ.get("CARGO_CA")
+
+ssl_context = SSLContext(PROTOCOL_TLS_CLIENT)
+ssl_context.load_verify_locations(ca_file)
+
+stoke_client = StokeClient(
+    url="https://172.17.0.1:8080",
+    ssl_context=ssl_context,
+)
 
 def serve():
     print("Starting grpc server...")
     server = new_server(
         thread_pool=futures.ThreadPoolExecutor(max_workers=10),
-        interceptors=intercept_all(StokeClient(url="http://172.17.0.1:8080"), required_claims={"car":"acc"})
+        interceptors=intercept_all(stoke_client, required_claims={"car":"acc"})
     )
 
     add_CargoHoldServicer_to_server(CargoHoldServer(100, 100, 100), server)
@@ -52,10 +64,6 @@ def serve():
         reflection.SERVICE_NAME,
     )
     reflection.enable_server_reflection(SERVICE_NAMES, server)
-
-    cert_file = environ.get("CARGO_CERT")
-    key_file  = environ.get("CARGO_KEY")
-    ca_file   = environ.get("CARGO_CA")
 
     if cert_file is not None and key_file is not None and ca_file is not None:
         print("Reading certificate files...")

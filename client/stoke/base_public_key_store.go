@@ -2,6 +2,7 @@ package stoke
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -14,6 +15,7 @@ import (
 // BasePublicKeyStore implements contains common public key store functionality
 type BasePublicKeyStore struct {
 	Endpoint   string
+	httpClient *http.Client
 	nextUpdate time.Time
 	keySet jwt.VerificationKeySet
 	keyFunc jwt.Keyfunc
@@ -32,12 +34,23 @@ func (s *BasePublicKeyStore) ParseClaims(ctx context.Context, token string, reqC
 	return jwt.ParseWithClaims(token, reqClaims.New(), s.keyFunc, parserOpts...)
 }
 
+
+// Sets the tls config for the key store
+func (s *BasePublicKeyStore) SetTLSConfig(tlsConfig *tls.Config) {
+	s.httpClient = &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: tlsConfig,
+		},
+	}
+}
+
+
 // refreshPublicKeys retreives public keys from the configured endpoint and saves them to the store
 func (s *BasePublicKeyStore) refreshPublicKeys(ctx context.Context) error {
 	_, span := getTracer().Start(ctx, "ClientKeyStore.refreshPublicKeys")
 	defer span.End()
 
-	resp, err := http.Get(s.Endpoint)
+	resp, err := s.httpClient.Get(s.Endpoint)
 	if err != nil {
 		return err
 	}

@@ -1,13 +1,13 @@
 ---
 # Web Server configuration
 server:
-  address: ""                         # Address to listen on
-  port: 8080                          # Port to listen on 
-  timeout: 1000                       # Request timeout (milliseconds)
-  tls_private_key: "" # stoke-private.key  # Private key to use for https TLS
-  tls_public_cert: "" # stoke-public.crt   # Public key to use for https TLS
-  disable_admin: false                # Disable the admin UI
-  allowed_hosts:                      # Hosts to include in the allowed hosts CORS header
+  address: ""                           # Address to listen on
+  port: 8080                            # Port to listen on 
+  timeout: 1000                         # Request timeout (milliseconds)
+  tls_private_key: /etc/stoke/stoke.key # Private key to use for https TLS
+  tls_public_cert: /etc/stoke/stoke.crt # Public key to use for https TLS
+  disable_admin: false                  # Disable the admin UI
+  allowed_hosts:                        # Hosts to include in the allowed hosts CORS header
     - "*"
 
 # Local database configuration
@@ -47,8 +47,8 @@ tokens:
   num_bits: 256          # Number of bits to use in the algorithm. Only applies for ECDSA or RSA (512, 384, or 256)
 
   persist_keys: true     # Whether to save private keys in the database
-  key_duration: 3h       # How long signing keys are valid
-  token_duration: 30m    # How long tokens are valid
+  key_duration: 10m       # How long signing keys are valid
+  token_duration: 1m    # How long tokens are valid
 
   issuer: "stk"          # Issuer field in all tokens
   subject: ""            # Subject field in all tokens
@@ -56,8 +56,8 @@ tokens:
   include_issued_at: no  # Whether to set the issued at field in all tokens
   include_not_before: no # Whether to set the not before field in all tokens
 
-  token_refresh_limit: 2      # Maximum number of refreshes per token. Set to 0 for unlimited
-  token_refresh_count_key: "" # Claim to store the number of times token has been refreshed. Defaults to using the jti registered claim.
+  #token_refresh_limit: 2      # Maximum number of refreshes per token. Set to 0 for unlimited
+  #token_refresh_count_key: "" # Claim to store the number of times token has been refreshed. Defaults to using the jti registered claim.
 
   user_info:
     full_name: "n" # Token field to hold full name

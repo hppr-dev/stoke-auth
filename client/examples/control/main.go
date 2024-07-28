@@ -14,7 +14,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/net/websocket"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/credentials"
 	"hppr.dev/stoke"
 )
 
@@ -31,20 +31,25 @@ func main() {
 		keyStore = stoke.NewTestPublicKeyStore(jwt.New(jwt.SigningMethodNone))
 	} else {
 		log.Println("USING AUTH")
-		keyStore, err = stoke.NewPerRequestPublicKeyStore("http://172.17.0.1:8080/api/pkeys", ctx)
+		prKeyStore, prErr := stoke.NewPerRequestPublicKeyStore("https://172.17.0.1:8080/api/pkeys", ctx, stoke.ConfigureTLS("/etc/ca.crt"))
+		keyStore = prKeyStore
+		err = prErr
 	}
 
 	if err != nil {
-		log.Println(err)
-		panic("An error occurred while creating public key store")
+		log.Fatalf("An error occurred while creating public key store: %v", err)
+	}
+
+	grpcCreds, err := credentials.NewClientTLSFromFile("/etc/engine.crt", "engine")
+	if err != nil {
+		log.Fatalf("failed to load credentials: %v", err)
 	}
 
 	grpcClient, err := grpc.NewClient(engineURL,
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithTransportCredentials(grpcCreds),
 	)
 	if err != nil {
-		log.Println(err)
-		panic("An error occured while connecting to engine")
+		log.Fatalf("An error occured while connecting to engine: %v", err)
 	}
 	defer grpcClient.Close()
 
@@ -108,7 +113,7 @@ func main() {
 		),
 	)
 
-	if err := http.ListenAndServe(":8080", mux); err != nil {
+	if err := http.ListenAndServeTLS(":8080", "/etc/control.crt", "/etc/control.key", mux); err != nil {
 		log.Printf("Listening returned an error: %v", err)
 	}
 

@@ -2,6 +2,7 @@ package stoke
 
 import (
 	"context"
+	"net/http"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -15,14 +16,22 @@ type PerRequestPublicKeyStore struct {
 }
 
 // Initialize a new per request public key store. Must be called before use
-func NewPerRequestPublicKeyStore(endpoint string, ctx context.Context) (*PerRequestPublicKeyStore, error) {
+func NewPerRequestPublicKeyStore(endpoint string, ctx context.Context, opts ...PublicKeyStoreOpt) (*PerRequestPublicKeyStore, error) {
 	s := &PerRequestPublicKeyStore{
 		BasePublicKeyStore: BasePublicKeyStore{
 			Endpoint: endpoint,
+			httpClient: http.DefaultClient,
 		},
 	}
 	s.BasePublicKeyStore.keyFunc = s.keyFunc
 	s.ctx = ctx
+
+	for _, opt := range opts {
+		if err := opt(&s.BasePublicKeyStore); err != nil {
+			return nil, err
+		}
+	}
+
   if err := s.refreshPublicKeys(s.ctx); err != nil {
 		return nil, err
 	}

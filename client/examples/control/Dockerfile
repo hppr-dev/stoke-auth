@@ -12,6 +12,10 @@ RUN go mod tidy && go build -o ./ship-control .
 FROM alpine:3.19
 
 COPY --from=go-builder /build/examples/control/ship-control /usr/bin/ship-control
+COPY --from=go-builder /build/examples/certs/engine.crt /etc/engine.crt
+COPY --from=go-builder /build/examples/certs/ca.crt /etc/ca.crt
+COPY --from=go-builder /build/examples/certs/control.crt /etc/control.crt
+COPY --from=go-builder /build/examples/certs/control.key /etc/control.key
 
 EXPOSE 8080
 

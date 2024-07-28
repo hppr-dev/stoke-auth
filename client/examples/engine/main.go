@@ -10,6 +10,7 @@ import (
 	"slices"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/reflection"
 	"hppr.dev/stoke"
 )
@@ -91,11 +92,18 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	keyStore, err := stoke.NewPerRequestPublicKeyStore("http://172.17.0.1:8080/api/pkeys", ctx)
+	keyStore, err := stoke.NewPerRequestPublicKeyStore("https://172.17.0.1:8080/api/pkeys", ctx, stoke.ConfigureTLS("/etc/ca.crt"))
 	if err != nil {
-		log.Fatalf("Could not get stoke public keys: %v", err)
+		log.Fatalf("Could not create stoke public key store: %v", err)
 	}
+
+	grpcCreds, err := credentials.NewServerTLSFromFile("/etc/engine.crt", "/etc/engine.key")
+	if err != nil {
+		log.Fatalf("failed to create credentials: %v", err)
+	}
+
 	s := grpc.NewServer(
+		grpc.Creds(grpcCreds),
 		stoke.NewUnaryTokenInterceptor(keyStore, stoke.RequireToken()).Opt(),
 		stoke.NewStreamTokenInterceptor(keyStore, stoke.RequireToken()).Opt(),
 	)

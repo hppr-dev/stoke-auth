@@ -1,9 +1,11 @@
 services:
   stoke_server:
-    build: ../
+    build: ../../../
     volumes:
       - ./config.yaml:/etc/stoke/config.yaml
-      - ./dbinit.yaml:/etc/stoke/dbinit.yaml
+      - ./client_integration.yaml:/etc/stoke/dbinit.yaml
+      - ../certs/stoke.crt:/etc/stoke/stoke.crt:ro
+      - ../certs/stoke.key:/etc/stoke/stoke.key:ro
     ports:
       - 8080:8080
     command: ["-dbinit", "/etc/stoke/dbinit.yaml"]
@@ -14,7 +16,7 @@ services:
       - METRICS_STORAGE_TYPE=prometheus
     ports:
       - 0.0.0.0:4317:4317
-      - 0.0.0.0:8000:16686
+      - 0.0.0.0:16686:16686
       - 14269:14269
 
   restfox:

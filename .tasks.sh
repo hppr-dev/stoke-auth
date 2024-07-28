@@ -198,27 +198,29 @@ task_certs() {
 
 arguments_clients() {
 	DESCRIPTION="Manage test/example client docker containers"
-	SUBCOMMANDS="up|down|logs"
+	SUBCOMMANDS="up|down|sh|ps|logs"
 	CLIENTS_OPTIONS="build:b:bool detach:d:bool"
+	SH_REQUIREMENTS="service:s:str"
 }
 
 task_clients() {
 	if [[ "$TASK_SUBCOMMAND" == "up" ]] && ! docker ps | grep stoke_server > /dev/null
 	then
-		echo Could not find running stoke_server. Please run task compose up first
+		echo Could not find running stoke_server. Please run task stoke up first
 		exit 1
 	fi
 	_compose_task "$TASK_DIR/client/client-test-compose.yaml"
 }
 
-arguments_compose() {
-	DESCRIPTION="Manage docker compose containers"
-	SUBCOMMANDS="up|down|logs"
-	COMPOSE_OPTIONS="build:b:bool detach:d:bool"
+arguments_stoke() {
+	DESCRIPTION="Manage stoke compose containers"
+	SUBCOMMANDS="up|down|sh|ps|logs"
+	STOKE_OPTIONS="build:b:bool detach:d:bool"
+	SH_REQUIREMENTS="service:s:str"
 }
 
-task_compose() {
-	_compose_task "$TASK_DIR/compose/docker-compose.yaml"
+task_stoke() {
+	_compose_task "$TASK_DIR/client/examples/stoke-server/docker-compose.yaml"
 }
 
 _compose_task() { #compose_file
@@ -238,6 +240,14 @@ _compose_task() { #compose_file
 	elif [[ "$TASK_SUBCOMMAND" == "down" ]]
 	then
 		docker compose -f $compose_file down
+
+	elif [[ "$TASK_SUBCOMMAND" == "ps" ]]
+	then
+		docker compose -f $compose_file ps
+
+	elif [[ "$TASK_SUBCOMMAND" == "sh" ]]
+	then
+		docker compose -f $compose_file exec -it $ARG_SERVICE /bin/sh
 
 	elif [[ "$TASK_SUBCOMMAND" == "logs" ]]
 	then

@@ -5,7 +5,7 @@ Procedures to generate/clean this data are implemented in the `t cert` task
 
 ## Certificates
 
-The following certificates must be generated use/test the example environment:
+The following certificates must be generated to use/test the example environment:
 
   * ca.key/ca.crt -- The ca certificate
   * cargo.key/cargo.crt -- the cargo hold grpc certificate for use with mTLS

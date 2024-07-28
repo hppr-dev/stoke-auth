@@ -2,6 +2,7 @@ package stoke
 
 import (
 	"context"
+	"net/http"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -16,14 +17,21 @@ type WebCachePublicKeyStore struct {
 
 // Initialize a WebCachePublicKeyStore
 // Starts the management go routine.
-func NewWebCachePublicKeyStore(endpoint string, ctx context.Context) (*WebCachePublicKeyStore, error) {
+func NewWebCachePublicKeyStore(endpoint string, ctx context.Context, opts ...PublicKeyStoreOpt) (*WebCachePublicKeyStore, error) {
 	s := &WebCachePublicKeyStore{
 		BasePublicKeyStore: BasePublicKeyStore{
 			Endpoint: endpoint,
+			httpClient: http.DefaultClient,
 		},
 	}
 	s.keyFunc = func(token *jwt.Token) (interface{}, error) {
 		return s.keySet, nil
+	}
+
+	for _, opt := range opts {
+		if err := opt(&s.BasePublicKeyStore); err != nil {
+			return nil, err
+		}
 	}
 
   if err := s.refreshPublicKeys(ctx); err != nil {
