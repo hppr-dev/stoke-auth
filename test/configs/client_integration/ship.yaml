@@ -4,6 +4,8 @@ server:
   address: ""
   port: 8080
   timeout: 1000
+  tls_private_key: /etc/stoke/stoke.key
+  tls_public_cert: /etc/stoke/stoke.crt
 
 # Local database configuration
 database:

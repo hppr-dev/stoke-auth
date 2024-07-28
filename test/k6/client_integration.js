@@ -16,7 +16,13 @@ export const options = {
 			duration: '1m',
 			vus: 10,
 		},
-	}
+	},
+	tlsAuth: [
+    {
+      cert: open('../../client/examples/certs/k6.crt'),
+      key: open('../../client/examples/certs/k6.key'),
+    },
+	]
 };
 
 export function setup() {
@@ -28,7 +34,7 @@ export function setup() {
 	]
 
 	// Make request for users to create them in the database
-	requests.forEach((rq) => http.post('http://localhost:8080/api/login',
+	requests.forEach((rq) => http.post('https://localhost:8080/api/login',
 			rq,
 			{
 				headers: {
@@ -45,17 +51,17 @@ export function setup() {
 export function access_granted() {
 	// http services
 	const services = [ 
-		"http://localhost:8888/control/location",            // requires ctl:nav -- go rest
-		"http://localhost:8888/control/speed",               // requires ctl:sp  -- go rest/unary grpc
-		"http://localhost:8888/request/shipment",            // requires req:acc -- python rest flask
-		"http://localhost:8888/inventory/test/",             // requires inv:acc -- python rest django
-		"http://localhost:8888/inventory/cargo_contents/",   // requires car:acc -- python rest django/unary grpc
+		"https://localhost:8888/control/location",            // requires ctl:nav -- go rest
+		"https://localhost:8888/control/speed",               // requires ctl:sp  -- go rest/unary grpc
+		"https://localhost:8888/request/shipment",            // requires req:acc -- python rest flask
+		"https://localhost:8888/inventory/test/",             // requires inv:acc -- python rest django
+		"https://localhost:8888/inventory/cargo_contents/",   // requires car:acc -- python rest django/unary grpc
 	]
 	const user_logins = [
 		JSON.stringify({ "username" : "leela", "password": "leela" }),
 		JSON.stringify({ "username" : "fry", "password": "fry" }),
 	]
-  const stokeResp = http.post('http://localhost:8080/api/login',
+  const stokeResp = http.post('https://localhost:8080/api/login',
 		user_logins[Math.floor(Math.random() * 2)],
 		{
 			headers: {
@@ -90,8 +96,8 @@ export function access_granted() {
 
 	//ws services. Tokens are sent as url parameters
 	const ws_services = [
-		{ url: "ws://localhost:8888/control/foobar", request: "foo", response: "bar", times: 3 },    // requires ctl:acc  -- go rest/stream grpc
-		{ url: "ws://localhost:8888/inventory/load_cargo/", request: `{"num":1,"name":"hello","id":"foobar"}`, response: `{"loaded": true, "message": ""}`, times: 3 } // requires car:acc -- python django/stream grpc
+		{ url: "wss://localhost:8888/control/foobar", request: "foo", response: "bar", times: 3 },    // requires ctl:acc  -- go rest/stream grpc
+		{ url: "wss://localhost:8888/inventory/load_cargo/", request: `{"num":1,"name":"hello","id":"foobar"}`, response: `{"loaded": true, "message": ""}`, times: 3 } // requires car:acc -- python django/stream grpc
 	]
 	ws_services.forEach((service) => {
 		let checks = {}
@@ -124,17 +130,17 @@ export function access_granted() {
 export function access_denied() {
 	// http services
 	const services = [ 
-		"http://localhost:8888/control/location",            // requires ctl:nav -- go rest
-		"http://localhost:8888/control/speed",               // requires ctl:sp  -- go rest/unary grpc
-		"http://localhost:8888/request/shipment",            // requires req:acc -- python rest flask
-		"http://localhost:8888/inventory/test/",             // requires inv:acc -- python rest django
-		"http://localhost:8888/inventory/cargo_contents/",   // requires car:acc -- python rest django/unary grpc
+		"https://localhost:8888/control/location",            // requires ctl:nav -- go rest
+		"https://localhost:8888/control/speed",               // requires ctl:sp  -- go rest/unary grpc
+		"https://localhost:8888/request/shipment",            // requires req:acc -- python rest flask
+		"https://localhost:8888/inventory/test/",             // requires inv:acc -- python rest django
+		"https://localhost:8888/inventory/cargo_contents/",   // requires car:acc -- python rest django/unary grpc
 	]
 	const user_logins = [
 		JSON.stringify({ "username" : "hermes", "password": "hermes" }),
 		JSON.stringify({ "username" : "professor", "password": "professor" }),
 	]
-  const stokeResp = http.post('http://localhost:8080/api/login',
+  const stokeResp = http.post('https://localhost:8080/api/login',
 		user_logins[Math.floor(Math.random() * 2)],
 		{
 			headers: {
@@ -169,8 +175,8 @@ export function access_denied() {
 
 	//ws services. Tokens are sent as url parameters
 	const ws_services = [
-		{ url: "ws://localhost:8888/control/foobar", request: "foo", response: "bar", times: 3 },    // requires ctl:acc  -- go rest/stream grpc
-		{ url: "ws://localhost:8888/inventory/load_cargo/", request: `{"num":1,"name":"hello","id":"foobar"}`, response: `{"loaded": true, "message": ""}`, times: 3 } // requires car:acc -- python django/stream grpc
+		{ url: "wss://localhost:8888/control/foobar", request: "foo", response: "bar", times: 3 },    // requires ctl:acc  -- go rest/stream grpc
+		{ url: "wss://localhost:8888/inventory/load_cargo/", request: `{"num":1,"name":"hello","id":"foobar"}`, response: `{"loaded": true, "message": ""}`, times: 3 } // requires car:acc -- python django/stream grpc
 	]
 	ws_services.forEach((service) => {
 		let open_checks = {}

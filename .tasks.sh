@@ -286,6 +286,8 @@ _run_k6_test() { # config dbinit k6file docker_image post_server_command
 	docker_args="--name stoke-test \
 		-v $(pwd)/$config:/etc/stoke/config.yaml \
 		-v $(pwd)/configs/dbinit/$dbinit:/etc/stoke/dbinit.yaml \
+		-v $TASK_DIR/client/examples/certs/stoke.crt:/etc/stoke/stoke.crt \
+		-v $TASK_DIR/client/examples/certs/stoke.key:/etc/stoke/stoke.key \
 		-p 8080:8080 \
 		$docker_image -dbinit /etc/stoke/dbinit.yaml"
 	docker run -d $docker_args > /dev/null
@@ -317,7 +319,7 @@ _run_k6_test() { # config dbinit k6file docker_image post_server_command
 	fi
 
 	echo ============================== $config =======================================
-	if ! k6 run $k6_args k6/$k6file
+	if ! k6 run --insecure-skip-tls-verify $k6_args k6/$k6file
 	then
 		echo "***************************** FAILED ******************************"
 	fi
