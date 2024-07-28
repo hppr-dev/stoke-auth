@@ -289,11 +289,11 @@ func getExpiryFromToken(token string) time.Time {
 	usedDefaultTime := true
 
 	jwtBody := strings.Split(token, ".")[1]
-	padding := strings.Repeat("=", 4 - len(jwtBody) % 4)
+	padding := strings.Repeat("=", len(jwtBody) % 4)
 
 	if claimsBytes, err := base64.URLEncoding.DecodeString(jwtBody + padding); err == nil {
 		var claimsMap map[string]interface{}
-		if err := json.Unmarshal(claimsBytes, &claimsMap); err == nil {
+		if err = json.Unmarshal(claimsBytes, &claimsMap); err == nil {
 			if expClaim, ok := claimsMap["exp"]; ok {
 				if expFloat, ok := expClaim.(float64); ok {
 					expTime = time.Unix(int64(expFloat), 0).Add(-750 * time.Millisecond)
