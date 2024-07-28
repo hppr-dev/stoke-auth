@@ -1,17 +1,5 @@
 # Stoke Authentication Clients
 
-## Languages
-
-TODO
-
-- go
-- rust
-- python
-- elixer
-- java
-
-## Client Operation
-
 Clients libraries implement the following:
 
 1. Managing, i.e. pulling and refreshing, public keys in JWK format
@@ -33,4 +21,3 @@ Some considerations:
     * Using standard web request/handling libraries
     * Exposing verification functionality
   * Clients should provide testing structures to allow mocking/faking during tests
-
