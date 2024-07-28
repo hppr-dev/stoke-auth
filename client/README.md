@@ -1,4 +1,4 @@
-# Stoke Authentication Clients
+# Stoke Client Libraries
 
 Clients libraries implement the following:
 
