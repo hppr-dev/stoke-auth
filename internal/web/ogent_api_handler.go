@@ -68,6 +68,9 @@ func (s *secHandler) HandleToken(ctx context.Context, operationName string, t og
 	case "Capabilities", "Totals":
 		claims.Or(stoke.RequireToken().WithClaimMatch("stk", "^[sSuUgGcC]$"))
 
+	case "Refresh":
+		claims = stoke.RequireToken()
+
 	//case "listPrivateKey", "readPrivateKey":
 	// TODO either remove or incorperate
 	}
