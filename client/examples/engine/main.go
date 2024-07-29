@@ -92,7 +92,7 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	keyStore, err := stoke.NewPerRequestPublicKeyStore("https://172.17.0.1:8080/api/pkeys", ctx, stoke.ConfigureTLS("/etc/ca.crt"))
+	keyStore, err := stoke.NewPerRequestPublicKeyStore("https://172.17.0.1:8080", ctx, stoke.ConfigureTLS("/etc/ca.crt"))
 	if err != nil {
 		log.Fatalf("Could not create stoke public key store: %v", err)
 	}
@@ -104,8 +104,8 @@ func main() {
 
 	s := grpc.NewServer(
 		grpc.Creds(grpcCreds),
-		stoke.NewUnaryTokenInterceptor(keyStore, stoke.RequireToken()).Opt(),
-		stoke.NewStreamTokenInterceptor(keyStore, stoke.RequireToken()).Opt(),
+		stoke.NewUnaryTokenInterceptor(keyStore, stoke.RequireToken().WithClaim("ctl", "sp")).Opt(),
+		stoke.NewStreamTokenInterceptor(keyStore, stoke.RequireToken().WithClaim("ctl", "sp")).Opt(),
 	)
 
 	engine := &engineServer{

@@ -31,7 +31,7 @@ func main() {
 		keyStore = stoke.NewTestPublicKeyStore(jwt.New(jwt.SigningMethodNone))
 	} else {
 		log.Println("USING AUTH")
-		prKeyStore, prErr := stoke.NewPerRequestPublicKeyStore("https://172.17.0.1:8080/api/pkeys", ctx, stoke.ConfigureTLS("/etc/ca.crt"))
+		prKeyStore, prErr := stoke.NewPerRequestPublicKeyStore("https://172.17.0.1:8080", ctx, stoke.ConfigureTLS("/etc/ca.crt"))
 		keyStore = prKeyStore
 		err = prErr
 	}
@@ -80,7 +80,7 @@ func main() {
 						Direction: proto.SpeedCommandDirection_UP,
 						Increment: 10,
 					},
-					stoke.Credentials().Token(stoke.Token(ctx).Raw).DisableSecurity().CallOption(),
+					stoke.Credentials().Token(stoke.Token(ctx).Raw).CallOption(),
 				)
 				if err != nil {
 					log.Printf("An error occurred calling engine grpc: %v", err)

@@ -19,7 +19,7 @@ type PerRequestPublicKeyStore struct {
 func NewPerRequestPublicKeyStore(endpoint string, ctx context.Context, opts ...PublicKeyStoreOpt) (*PerRequestPublicKeyStore, error) {
 	s := &PerRequestPublicKeyStore{
 		BasePublicKeyStore: BasePublicKeyStore{
-			Endpoint: endpoint,
+			Endpoint: endpoint + "/api/pkeys",
 			httpClient: http.DefaultClient,
 		},
 	}

@@ -20,7 +20,7 @@ type WebCachePublicKeyStore struct {
 func NewWebCachePublicKeyStore(endpoint string, ctx context.Context, opts ...PublicKeyStoreOpt) (*WebCachePublicKeyStore, error) {
 	s := &WebCachePublicKeyStore{
 		BasePublicKeyStore: BasePublicKeyStore{
-			Endpoint: endpoint,
+			Endpoint: endpoint + "/api/pkeys",
 			httpClient: http.DefaultClient,
 		},
 	}
