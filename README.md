@@ -281,14 +281,15 @@ The claim that grants administrative access to the admin console is "stk=S".
 In other words, if a user has `"stk" : "S"` in their token claims, they are able to access all admin pages.
 
 The following claims are used for admin console access:
-    * Monitoring access       - stk = m
-    * Read all (no write)     - stk = s
-    * Read stoke users        - stk = u
-    * Read/Write stoke users  - stk = U
-    * Read stoke groups       - stk = g
-    * Read/Write stoke groups - stk = G
-    * Read stoke claims       - stk = c
-    * Read/Write stoke claims - stk = C
+    
+* Monitoring access       - stk = m
+* Read all (no write)     - stk = s
+* Read stoke users        - stk = u
+* Read/Write stoke users  - stk = U
+* Read stoke groups       - stk = g
+* Read/Write stoke groups - stk = G
+* Read stoke claims       - stk = c
+* Read/Write stoke claims - stk = C
 
 ## Keys
 
