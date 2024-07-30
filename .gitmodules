@@ -1,0 +1,3 @@
+[submodule "client/stoke"]
+	path = client/stoke
+	url = git@github.com:hppr-dev/stoke-auth-go-client.git
