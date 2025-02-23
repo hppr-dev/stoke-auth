@@ -1,5 +1,6 @@
 package usr
 
+/*
 import (
 	"context"
 	"stoke/internal/ent"
@@ -13,3 +14,4 @@ type Provider interface {
 	CheckCreateForStokeClaims(ctx context.Context) error
 	WithContext(context.Context) context.Context
 }
+*/

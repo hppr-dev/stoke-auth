@@ -2,8 +2,6 @@ package usr
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/base64"
 	"fmt"
 	"stoke/internal/ent"
 	"stoke/internal/ent/claim"
@@ -13,33 +11,11 @@ import (
 
 	"github.com/rs/zerolog"
 	"github.com/vincentfree/opentelemetry/otelzerolog"
-	"golang.org/x/crypto/argon2"
 )
 
+type localProvider struct {}
 
-type LocalProvider struct {}
-
-type providerCtxKey struct {}
-
-func HashPass(pass, salt string) string {
-	return base64.StdEncoding.EncodeToString(argon2.IDKey([]byte(pass), []byte(salt), 2, 19*1024, 1, 64))
-}
-
-func GenSalt() string {
-	saltBytes := make([]byte, 32)
-	rand.Read(saltBytes)
-	return base64.StdEncoding.EncodeToString(saltBytes)
-}
-
-func ProviderFromCtx(ctx context.Context) Provider {
-	return ctx.Value(providerCtxKey{}).(Provider)
-}
-
-func (l LocalProvider) WithContext(ctx context.Context) context.Context {
-	return context.WithValue(ctx, providerCtxKey{}, l)
-}
-
-func (l LocalProvider) AddUser(fname, lname, email, username, password string, _ bool, ctx context.Context) error {
+func (l localProvider) AddUser(fname, lname, email, username, password string, ctx context.Context) error {
 	logger := zerolog.Ctx(ctx)
 	ctx, span := tel.GetTracer().Start(ctx, "LoginApiHandler.ServeHTTP")
 	defer span.End()
@@ -58,7 +34,7 @@ func (l LocalProvider) AddUser(fname, lname, email, username, password string, _
 		SetLname(lname).
 		SetEmail(email).
 		SetUsername(username).
-		SetSource("LOCAL").
+		SetSource(LOCAL_SOURCE).
 		SetSalt(salt).
 		SetPassword(HashPass(password, salt)).
 		Save(ctx)
@@ -75,59 +51,41 @@ func (l LocalProvider) AddUser(fname, lname, email, username, password string, _
 	return nil
 }
 
-func (l LocalProvider) GetUserClaims(username, password string, verify bool, ctx context.Context) (*ent.User, ent.Claims, error) {
-	logger := zerolog.Ctx(ctx)
+func (l localProvider) GetUserClaims(username, password string, ctx context.Context) (*ent.User, ent.Claims, error) {
 	ctx, span := tel.GetTracer().Start(ctx, "LocalUserProvider.GetUserClaims")
 	defer span.End()
 
-	logger.Debug().
-		Func(otelzerolog.AddTracingContext(span)).
-		Str("username", username).
-		Msg("Getting user claims")
+	logger := zerolog.Ctx(ctx).With().
+			Str("username", username).
+			Logger()
 
-	usr, err := ent.FromContext(ctx).User.Query().
-		Where(
-			user.And(
-				user.Or(
-					user.UsernameEQ(username),
-					user.EmailEQ(username),
-				),
-			),
-		).
-		WithClaimGroups(func (q *ent.ClaimGroupQuery) {
-			q.WithClaims()
-		}).
-		Only(ctx)
+	entUser, allClaims, err := retreiveLocalClaims(username, ctx)
 	if err != nil {
 		logger.Error().
 			Func(otelzerolog.AddTracingContext(span)).
 			Err(err).
-			Str("username", username).
-			Msg("Could not find user")
+			Msg("Could not retrieve local claims")
 		return nil, nil, err
 	}
 
-	if verify && HashPass(password, usr.Salt) != usr.Password {
+	// We only need to verify the stored password hash if the user is local.
+	// The password will be blank for all other sources.
+	// Other provider sources must verify the password before retreiving claims from local
+	if entUser.Source == LOCAL_SOURCE && HashPass(password, entUser.Salt) != entUser.Password {
 		logger.Debug().
 			Func(otelzerolog.AddTracingContext(span)).
-			Str("username", username).
 			Msg("User password did not match")
 		return nil, nil, fmt.Errorf("Bad Password")
 	}
 
-	var allClaims ent.Claims
-	for _, group := range usr.Edges.ClaimGroups {
-		allClaims = append(allClaims, group.Edges.Claims...)
-	}
 	logger.Debug().
-		Str("username", username).
 		Func(otelzerolog.AddTracingContext(span)).
 		Interface("claims", allClaims).
 		Msg("Claims found")
-	return usr, allClaims, nil
+	return entUser, allClaims, nil
 }
 
-func (l LocalProvider) getOrCreateSuperGroup(ctx context.Context) (*ent.ClaimGroup, error) {
+func (l localProvider) getOrCreateSuperGroup(ctx context.Context) (*ent.ClaimGroup, error) {
 	logger := zerolog.Ctx(ctx)
 
 	client := ent.FromContext(ctx)
@@ -173,14 +131,14 @@ func (l LocalProvider) getOrCreateSuperGroup(ctx context.Context) (*ent.ClaimGro
 	return superGroup, nil
 }
 
-func (l LocalProvider) CheckCreateForSuperUser(ctx context.Context) error {
+func (l localProvider) CheckCreateForSuperUser(ctx context.Context) error {
 	superGroup, err := l.getOrCreateSuperGroup(ctx)
 	if err != nil {
 		return err
 	}
 	if len(superGroup.Edges.Users) == 0 {
 		randomPass := GenSalt()
-		l.AddUser("Stoke", "Admin", "sadmin@localhost", "sadmin", randomPass, true, ctx)
+		l.AddUser("Stoke", "Admin", "sadmin@localhost", "sadmin", randomPass, ctx)
 		ent.FromContext(ctx).User.Update().
 			Where(user.UsernameEQ("sadmin")).
 			AddClaimGroups(superGroup).
@@ -192,7 +150,7 @@ func (l LocalProvider) CheckCreateForSuperUser(ctx context.Context) error {
 	return nil
 }
 
-func (l LocalProvider) UpdateUserPassword(username, oldPassword, newPassword string, force bool, ctx context.Context) error {
+func (l localProvider) UpdateUserPassword(username, oldPassword, newPassword string, force bool, ctx context.Context) error {
 	logger := zerolog.Ctx(ctx)
 	ctx, span := tel.GetTracer().Start(ctx, "LocalUserProvider.UpdateUser")
 	defer span.End()
@@ -221,7 +179,7 @@ func (l LocalProvider) UpdateUserPassword(username, oldPassword, newPassword str
 	return err
 }
 
-func (l LocalProvider) CheckCreateForStokeClaims(ctx context.Context) error {
+func (l localProvider) CheckCreateForStokeClaims(ctx context.Context) error {
 	logger := zerolog.Ctx(ctx)
 	if err := l.checkCreateClaim("Read Claims", "Grants read access to claims", "c", ctx); err != nil {
 		logger.Warn().Err(err).Msg("Could not create read claims claim")
@@ -250,7 +208,7 @@ func (l LocalProvider) CheckCreateForStokeClaims(ctx context.Context) error {
 	return nil
 }
 
-func (l LocalProvider) checkCreateClaim(name, desc, value string, ctx context.Context) error {
+func (l localProvider) checkCreateClaim(name, desc, value string, ctx context.Context) error {
 	client := ent.FromContext(ctx)
 
 	_, err := client.Claim.Query().

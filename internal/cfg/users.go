@@ -57,7 +57,8 @@ type Users struct {
 
 func (u Users) withContext(ctx context.Context) context.Context {
 	logger := zerolog.Ctx(ctx)
-	var provider usr.Provider
+
+	providerList := usr.NewProviderList()
 
 	if u.EnableLDAP {
 		groupFilterTemplate := template.New("group-filter")
@@ -112,30 +113,31 @@ func (u Users) withContext(ctx context.Context) context.Context {
 			)
 		}
 
-		provider = usr.NewLDAPUserProvider(
-			u.ServerURL,
-			u.BindUserDN,
-			u.BindUserPassword,
-			u.GroupSearchRoot,
-			u.GroupNameField,
-			u.UserSearchRoot,
-			u.FirstNameField,
-			u.LastNameField,
-			u.EmailField,
-			u.SearchTimeout,
-			groupFilterTemplate,
-			userFilterTemplate,
-			dialOpts...,
+		providerList.AddForeignProvider(
+			usr.NewLDAPUserProvider(
+				u.ServerURL,
+				u.BindUserDN,
+				u.BindUserPassword,
+				u.GroupSearchRoot,
+				u.GroupNameField,
+				u.UserSearchRoot,
+				u.FirstNameField,
+				u.LastNameField,
+				u.EmailField,
+				u.SearchTimeout,
+				groupFilterTemplate,
+				userFilterTemplate,
+				dialOpts...,
+			),
 		)
-	} else {
-		provider = usr.LocalProvider{}
-	}
+	} 
+
 
 	if u.CreateStokeClaims {
-		provider.CheckCreateForStokeClaims(ctx)
+		providerList.CheckCreateForStokeClaims(ctx)
 	}
 
-	return provider.WithContext(ctx)
+	return providerList.WithContext(ctx)
 }
 
 func readPublicCertFile(name string) ([]*x509.Certificate, error) {
