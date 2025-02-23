@@ -16,7 +16,10 @@ import (
 	"golang.org/x/crypto/argon2"
 )
 
+
 type LocalProvider struct {}
+
+type providerCtxKey struct {}
 
 func HashPass(pass, salt string) string {
 	return base64.StdEncoding.EncodeToString(argon2.IDKey([]byte(pass), []byte(salt), 2, 19*1024, 1, 64))
@@ -29,11 +32,11 @@ func GenSalt() string {
 }
 
 func ProviderFromCtx(ctx context.Context) Provider {
-	return ctx.Value("user-provider").(Provider)
+	return ctx.Value(providerCtxKey{}).(Provider)
 }
 
 func (l LocalProvider) WithContext(ctx context.Context) context.Context {
-	return context.WithValue(ctx, "user-provider", l)
+	return context.WithValue(ctx, providerCtxKey{}, l)
 }
 
 func (l LocalProvider) AddUser(fname, lname, email, username, password string, _ bool, ctx context.Context) error {

@@ -61,7 +61,8 @@ func TestGenerateHappy(t *testing.T) {
 		t.Fatalf("Failed to generate RSSAKeyPair: %v", err)
 	}
 
-	if newRs.Key().Size() != (256 / 8) {
+	// Key size is independent from the bitsize. It is statically set
+	if newRs.Key().Size() != 256 {
 		t.Fatalf("RSA was not what was expected: %d", newRs.Key().Size())
 	}
 }

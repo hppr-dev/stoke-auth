@@ -87,7 +87,7 @@ func (ldapDialer) Connect(url string, dialOpts ...ldap.DialOpt) (ldap.Client, er
 }
 
 func (l *LDAPUserProvider) WithContext(ctx context.Context) context.Context {
-	return context.WithValue(ctx, "user-provider", l)
+	return context.WithValue(ctx, providerCtxKey{}, l)
 }
 
 // Set the ldap connector to use.
