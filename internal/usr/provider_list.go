@@ -14,8 +14,8 @@ type provider interface {
 }
 
 type ProviderList struct {
+	*localProvider
 	foreignProviders []provider
-	localProvider *localProvider
 }
 
 func NewProviderList() *ProviderList {

@@ -134,7 +134,7 @@ func (h *entityHandler) Totals(ctx context.Context) (*ogent.TotalsOK, error) {
 }
 
 func (h *entityHandler) CreateLocalUser(ctx context.Context, req *ogent.CreateLocalUserReq) (ogent.CreateLocalUserRes, error) {
-	if err := usr.ProviderFromCtx(ctx).AddUser(req.Fname, req.Lname, req.Email, req.Username, req.Password, false, ctx); err != nil {
+	if err := usr.ProviderFromCtx(ctx).AddUser(req.Fname, req.Lname, req.Email, req.Username, req.Password, ctx); err != nil {
 		return &ogent.CreateLocalUserBadRequest{
 			Message: err.Error(),
 		}, nil

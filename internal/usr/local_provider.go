@@ -15,7 +15,7 @@ import (
 
 type localProvider struct {}
 
-func (l localProvider) AddUser(fname, lname, email, username, password string, ctx context.Context) error {
+func (l *localProvider) AddUser(fname, lname, email, username, password string, ctx context.Context) error {
 	logger := zerolog.Ctx(ctx)
 	ctx, span := tel.GetTracer().Start(ctx, "LoginApiHandler.ServeHTTP")
 	defer span.End()
@@ -51,7 +51,7 @@ func (l localProvider) AddUser(fname, lname, email, username, password string, c
 	return nil
 }
 
-func (l localProvider) GetUserClaims(username, password string, ctx context.Context) (*ent.User, ent.Claims, error) {
+func (l *localProvider) GetUserClaims(username, password string, ctx context.Context) (*ent.User, ent.Claims, error) {
 	ctx, span := tel.GetTracer().Start(ctx, "LocalUserProvider.GetUserClaims")
 	defer span.End()
 
@@ -85,7 +85,7 @@ func (l localProvider) GetUserClaims(username, password string, ctx context.Cont
 	return entUser, allClaims, nil
 }
 
-func (l localProvider) getOrCreateSuperGroup(ctx context.Context) (*ent.ClaimGroup, error) {
+func (l *localProvider) getOrCreateSuperGroup(ctx context.Context) (*ent.ClaimGroup, error) {
 	logger := zerolog.Ctx(ctx)
 
 	client := ent.FromContext(ctx)
@@ -131,7 +131,7 @@ func (l localProvider) getOrCreateSuperGroup(ctx context.Context) (*ent.ClaimGro
 	return superGroup, nil
 }
 
-func (l localProvider) CheckCreateForSuperUser(ctx context.Context) error {
+func (l *localProvider) CheckCreateForSuperUser(ctx context.Context) error {
 	superGroup, err := l.getOrCreateSuperGroup(ctx)
 	if err != nil {
 		return err
@@ -150,7 +150,7 @@ func (l localProvider) CheckCreateForSuperUser(ctx context.Context) error {
 	return nil
 }
 
-func (l localProvider) UpdateUserPassword(username, oldPassword, newPassword string, force bool, ctx context.Context) error {
+func (l *localProvider) UpdateUserPassword(username, oldPassword, newPassword string, force bool, ctx context.Context) error {
 	logger := zerolog.Ctx(ctx)
 	ctx, span := tel.GetTracer().Start(ctx, "LocalUserProvider.UpdateUser")
 	defer span.End()
@@ -179,7 +179,7 @@ func (l localProvider) UpdateUserPassword(username, oldPassword, newPassword str
 	return err
 }
 
-func (l localProvider) CheckCreateForStokeClaims(ctx context.Context) error {
+func (l *localProvider) CheckCreateForStokeClaims(ctx context.Context) error {
 	logger := zerolog.Ctx(ctx)
 	if err := l.checkCreateClaim("Read Claims", "Grants read access to claims", "c", ctx); err != nil {
 		logger.Warn().Err(err).Msg("Could not create read claims claim")
@@ -208,7 +208,7 @@ func (l localProvider) CheckCreateForStokeClaims(ctx context.Context) error {
 	return nil
 }
 
-func (l localProvider) checkCreateClaim(name, desc, value string, ctx context.Context) error {
+func (l *localProvider) checkCreateClaim(name, desc, value string, ctx context.Context) error {
 	client := ent.FromContext(ctx)
 
 	_, err := client.Claim.Query().
