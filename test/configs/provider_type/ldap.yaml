@@ -40,22 +40,23 @@ tokens:
 
 # User Provider configuration
 users:
-  enable_ldap: true
-  server_url: ldap://172.17.0.1:10389
+  providers:
+    - type: ldap
+      server_url: ldap://172.17.0.1:10389
 
-  bind_user_dn: "cn=admin,dc=planetexpress,dc=com"
-  bind_user_password: GoodNewsEveryone
+      bind_user_dn: "cn=admin,dc=planetexpress,dc=com"
+      bind_user_password: GoodNewsEveryone
 
-  group_search_root: "ou=people,dc=planetexpress,dc=com"
-  group_filter_template: "(&(objectClass=group)(member={{ .UserDN }}))"
+      group_search_root: "ou=people,dc=planetexpress,dc=com"
+      group_filter_template: "(&(objectClass=group)(member={{ .UserDN }}))"
 
-  user_search_root: "ou=people,dc=planetexpress,dc=com"
-  user_filter_template: "(&(objectClass=inetOrgPerson)(uid={{ .Username }}))"
+      user_search_root: "ou=people,dc=planetexpress,dc=com"
+      user_filter_template: "(&(objectClass=inetOrgPerson)(uid={{ .Username }}))"
 
-  ldap_group_name_field: "cn"
-  ldap_first_name_field: "givenName"
-  ldap_last_name_field:  "sn"
-  ldap_email_field: "mail"
+      ldap_group_name_field: "cn"
+      ldap_first_name_field: "givenName"
+      ldap_last_name_field:  "sn"
+      ldap_email_field: "mail"
 
-  skip_certificate_verification: true
+      skip_certificate_verification: true
 
