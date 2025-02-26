@@ -7,8 +7,6 @@ import (
 	"stoke/internal/usr"
 )
 
-
-
 type Users struct {
 	// Enable checking/creating stoke admin per-operation claims
 	CreateStokeClaims bool             `json:"create_stoke_claims"`
@@ -54,8 +52,11 @@ func (pc *ProviderConfig) UnmarshalJSON(b []byte) error {
 
 	pc.ProviderType = temp.ProviderType
 	switch(pc.ProviderType) {
-	case "ldap":
+	case "ldap", "LDAP":
 		pc.providerConfig = &LDAPProviderConfig{}
+		return json.Unmarshal(b, pc.providerConfig)
+	case "oidc", "OIDC":
+		pc.providerConfig = &OIDCProviderConfig{}
 		return json.Unmarshal(b, pc.providerConfig)
 	}
 	return fmt.Errorf("Provider type not supported: %s", temp.ProviderType)
