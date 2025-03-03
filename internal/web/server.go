@@ -36,7 +36,7 @@ func NewServer(ctx context.Context) *http.Server {
 	telConf := cfg.Ctx(ctx).Telemetry
 	issuer := key.IssuerFromCtx(ctx)
 
-	mux := http.NewServeMux()
+	mux := cfg.MuxFromContext(ctx)
 
 	dLogger := debugLogger{ logger: logger.With().Str("component", "http.Server").Logger() }
 

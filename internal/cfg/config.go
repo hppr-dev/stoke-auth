@@ -34,6 +34,7 @@ func FromFile(filename string) *Config {
 func (c *Config) WithContext(ctx context.Context) context.Context {
 	confCtx := context.WithValue(ctx, configCtxKey{}, c)
 	confCtx = c.Logging.withContext(confCtx)
+	confCtx = c.Server.WithContext(confCtx)
 	confCtx = c.Database.withContext(confCtx)
 	confCtx = c.Users.withContext(confCtx) 
 	return c.Tokens.withContext(confCtx)

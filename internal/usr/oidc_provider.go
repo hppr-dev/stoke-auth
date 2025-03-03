@@ -1,41 +1,373 @@
 package usr
 
-import "context"
+import (
+	"context"
+	"crypto/rand"
+	"crypto/sha256"
+	"encoding/base64"
+	"encoding/json"
+	"errors"
+	"io"
+	"net/http"
+	"net/url"
+	"slices"
+	"stoke/internal/tel"
+
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/rs/zerolog"
+)
 
 // https://openid.net/specs/openid-connect-core-1_0.html
 // Need to verify the user is who they say they are by sending username/password to oidc
 // The received JWT has claims that are used to build a stoke token
 // Should be able to:
-// 		* Pass through claims from provider to issued token
+// 		* Passthrough claims from provider to issued token
 //    * Map claims from provider to issued token
+//
+// The process should go as follows
+// 1. User goes to /oidc/{provider-name}
+// 2. Stoke sends an authentication request to the provider
+// 3. Provider responds with a combination of  the following:
+//     i.   If the provider is using "code" in it's AuthFlowType then an access code for the TokenURL is returned
+//     ii.  If the provider is using "id_token" in it's AuthFlowType then an identity token is returned
+//     iii. If the provider is using "token" in it's AuthFlowType then an access token for the UserInfoURL is returned
+// 4. Stoke sends a token request to the provider using the access code
+// 5. Provider returns an id_token and/or an access token
+// 6. Stoke sends a UserInfo request to the provider using the access token
+// 7. Stoke uses claims to update database
+//
+// Depending on the AuthFlowType and the ClaimSource, some steps may be skipped.
+// The ClaimSource defines the goal of the process, so once it has been obtained no additional steps are needed
 
 type OIDCAuthRequest struct {
 	Scope        string
-	ResponseType string
 	ClientID     string
 	RedirectURI  string
-	State        string
-	Nonce        string
 	ExtraArgs    map[string]string
+
+	responseType string
 }
+
+var (
+	TokenRetrievalError = errors.New("Could not retrieve token from token url")
+)
 
 type oidcUserProvider struct {
-	// URL to use to get the OIDC token from the provider
-	TokenURL          string
 	// URL to use to authenticate users with the provider
-	AuthenticationURL string
+	AuthenticationURL *url.URL
+	// URL to use to get the tokens from the provider. Requires an auth code
+	TokenURL          *url.URL
+	// URL to use to get UserInfo. Requires an access token
+	UserInfoURL       *url.URL
+
+	// Whether to retreive user claims from the id token or the UserInfo endpoint
+	ClaimSource       ClaimSourceType
 	// The authentication request to use when authenticating to the AuthenticationURL
 	Request           OIDCAuthRequest
+	// Salt to be used to generate state hashes. Must be the same accross shared stoke servers
+	StateSalt         []byte
+	// Authenctication flow type
+	FlowType          AuthFlowType
+
 }
 
-func NewOIDCUserProvider(tokenURL, authURL string, req OIDCAuthRequest) *oidcUserProvider {
-	return &oidcUserProvider{
+func NewOIDCUserProvider(
+	name, stateSecret string,
+	tokenURL, authURL, userInfoURL *url.URL,
+	req OIDCAuthRequest,
+	mux *http.ServeMux,
+	flowType AuthFlowType,
+	claimSource ClaimSourceType,
+) *oidcUserProvider {
+	stateSalt := []byte(stateSecret)
+	if stateSecret == "" {
+		stateSalt = make([]byte, 16)
+		rand.Read(stateSalt)
+	}
+
+	provider := &oidcUserProvider{
 		TokenURL : tokenURL,
 		AuthenticationURL: authURL,
+		UserInfoURL: userInfoURL,
 		Request: req,
+		StateSalt: stateSalt,
 	}
+
+	mux.Handle("/oidc/" + name, provider)
+
+	return provider
 }
 
+// Handles redirect to and from provider
+// 2. Stoke sends an authentication request to the provider (by redirecting to the AuthenticationURL with params)
+// 3. Provider responds with a combination of  the following:
+//   i.   If the provider is using "code" in it's AuthFlowType then an access code for the TokenURL is returned
+//   ii.  If the provider is using "id_token" in it's AuthFlowType then an identity token is returned
+//   iii. If the provider is using "token" in it's AuthFlowType then an access token for the UserInfoURL is returned
+func (o *oidcUserProvider) ServeHTTP(res http.ResponseWriter, req *http.Request) {
+	urlParams := req.URL.Query()
+	urlState := urlParams.Get("state")
+	urlNonce := urlParams.Get("nonce")
+
+	ctx := req.Context()
+	logger := zerolog.Ctx(ctx).With().
+		Str("component", "OIDCProvider").
+		Str("state", urlState).
+		Str("nonce", urlNonce).
+		Stringer("claim_source", o.ClaimSource).
+		Stringer("flow_type", o.FlowType).
+		Logger()
+
+	ctx, span := tel.GetTracer().Start(ctx, "oidcUserProvider.UpdateUserClaims")
+	defer span.End()
+
+	if urlError := urlParams.Get("error"); urlError != "" {
+		res.WriteHeader(http.StatusNotAcceptable)
+		return
+	}
+
+
+	// State is used to determine which side of the process we are on.
+	if urlState == "" {
+		logger.Info().Msg("Redirecting to AuthURL")
+		http.Redirect(res, req, o.addParamsToAuthURL(req).String(), http.StatusTemporaryRedirect)
+		return
+	}
+
+	// Validate that the state was generated by us for the given address
+	nonceBytes, err := base64.URLEncoding.DecodeString(urlNonce)
+	if err != nil || o.computeState(req, nonceBytes) != urlState {
+		logger.Error().Msg("Could not verify state")
+		res.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	// Get response values from url parameters, and return them to the user
+	respBytes, err := json.Marshal(o.FlowType.GetResponseMap(urlParams))
+	if err != nil {
+		logger.Error().
+			Err(err).
+			Msg("Could not marshal response bytes")
+		res.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	res.Write(respBytes)
+}
+
+// Update user claims
+// the username and password depend on which authorization flow is being used:
+// * IMPLICIT_FLOW, IMPLICIT_USER_INFO and HYBRID_FLOW username must be the id token
+// * CODE_FLOW, HYBRID_FLOW and HYBRID_USER_INFO password must be the auth code from the server
+// * HYBRID_USER_INFO username is the access token
+// 4. Stoke sends a token request to the provider using the access code
+// 5. Provider returns an id_token and/or an access token
+// 6. Stoke sends a UserInfo request to the provider using the access token
+// 7. Stoke uses claims to update database
 func (o *oidcUserProvider) UpdateUserClaims(username, password string, ctx context.Context) error {
+
+	ctx, span := tel.GetTracer().Start(ctx, "oidcUserProvider.UpdateUserClaims")
+	defer span.End()
+
+	var idToken, authCode, accessToken string
+	var claimMap jwt.MapClaims
+	var err error
+
+	if o.FlowType == HYBRID_USER_INFO {
+		accessToken = username
+	} else if o.FlowType.HasIDToken(){
+		idToken = username
+	}
+
+	if o.FlowType.HasAuthCode() {
+		authCode = password
+	} else if o.FlowType.HasAccessToken() {
+		accessToken = password
+	}
+
+	// Retreive tokens from TokenURL, if we need to
+	idToken, accessToken, err = o.getTokens(idToken, accessToken, authCode, ctx)
+	if err != nil {
+		return err
+	}
+
+	if o.ClaimSource == IDENTITY_TOKEN {
+		jParser := jwt.NewParser()
+		t, _, err := jParser.ParseUnverified(idToken, jwt.MapClaims{})
+		if err != nil {
+			return err
+		}
+		claimMap = t.Claims.(jwt.MapClaims)
+
+		// TODO verify when FlowType is IMPLICIT_FLOW
+	} else {
+		// o.ClaimSource == USER_INFO
+		claimMap, err = o.getUserInfo(accessToken, ctx)
+		if err != nil {
+			return err
+		}
+	}
+
+	return o.persistClaims(claimMap, ctx)
+}
+
+func (o *oidcUserProvider) addParamsToAuthURL(req *http.Request) *url.URL {
+	u, _ := url.Parse(o.AuthenticationURL.String())
+	q := u.Query()
+
+	q.Add("scope", o.Request.Scope)
+	q.Add("response_type", o.FlowType.String())
+	q.Add("client_id",o.Request.ClientID)
+	q.Add("redirect_uri",o.Request.RedirectURI)
+	for key, val := range o.Request.ExtraArgs {
+		q.Add(key, val)
+	}
+
+	nonce := make([]byte, 32)
+	rand.Read(nonce)
+
+	q.Add("state", o.computeState(req, nonce))
+	q.Add("nonce", base64.URLEncoding.EncodeToString(nonce))
+
+	u.RawQuery = q.Encode()
+	return u
+}
+
+// Translates/persists claims to the database from the given claimsString
+func (o *oidcUserProvider) persistClaims(claimMap jwt.MapClaims, ctx context.Context) error {
+	logger := zerolog.Ctx(ctx).With().
+		Str("component", "OIDCProvider").
+		Interface("provider_claims", claimMap).
+		Logger()
+	logger.Info().Msg("TODO: Pushing claims to database")
 	return nil
 }
+
+// Gets user claims from the UserInfoURL
+func (o *oidcUserProvider) getUserInfo(accessToken string, ctx context.Context) (jwt.MapClaims, error) {
+	logger := zerolog.Ctx(ctx).With().
+		Str("component", "OIDCProvider").
+		Stringer("claim_source", o.ClaimSource).
+		Stringer("flow_type", o.FlowType).
+		Stringer("user_info_url", o.UserInfoURL).
+		Logger()
+
+	logger.Info().Msg("Requesting user info")
+	req, err := http.NewRequest(
+		http.MethodGet, 
+		o.UserInfoURL.String(),
+		nil,
+	)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Authorization", "Bearer " + accessToken)
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		logger.Error().
+			Err(err).
+			Msg("Could not get user info")
+		return nil, err
+	}
+
+	bodyBytes, err := io.ReadAll(res.Body)
+	if err != nil {
+		logger.Error().
+			Err(err).
+			Msg("Could not read user info")
+		return nil, err
+	}
+
+	claims := make(jwt.MapClaims)
+	err = json.Unmarshal(bodyBytes, &claims)
+	if err != nil {
+		logger.Error().
+			Err(err).
+			Msg("Could not unmarshal user info")
+		return nil, err
+	}
+
+	logger.Debug().
+		Interface("claims", claims).
+		Msg("Retrieved user claims from user info endpoint")
+
+	return claims, nil
+}
+
+// Gets id token and access token from tokenURL.
+// If we already have the tokens we need, it will do nothing
+func (o *oidcUserProvider) getTokens(idToken, accessToken, authCode string, ctx context.Context) (string, string, error) {
+	logger := zerolog.Ctx(ctx).With().
+		Str("component", "OIDCProvider").
+		Stringer("claim_source", o.ClaimSource).
+		Stringer("flow_type", o.FlowType).
+		Stringer("token_url", o.TokenURL).
+		Str("id_token", idToken).
+		Logger()
+
+	if o.ClaimSource == IDENTITY_TOKEN && idToken != "" {
+		return idToken, accessToken, nil
+	}
+	if o.ClaimSource == USER_INFO && accessToken != "" {
+		return idToken, accessToken, nil
+	}
+
+	logger.Info().Msg("Requesting tokens")
+
+	formVals := url.Values{}
+	formVals.Add("grant_type", "authorization_code")
+	formVals.Add("code", authCode)
+	formVals.Add("redirect_uri", o.Request.RedirectURI)
+
+	resp, err := http.PostForm(o.TokenURL.String(), formVals)
+	if err != nil {
+		return idToken, accessToken, err
+	}
+
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return idToken, accessToken, err
+	}
+
+	tokens := make(map[string]string)
+	err = json.Unmarshal(bodyBytes, &tokens)
+	if err != nil {
+		logger.Error().
+			Bytes("response_bytes", bodyBytes).
+			Msg("Could not unmarshal json from token endpoint")
+		return idToken, accessToken, err
+	}
+
+	if acc, ok := tokens["token"]; accessToken == "" && ok {
+		logger.Debug().Msg("Received access token")
+		accessToken = acc
+	}
+	if id, ok := tokens["id_token"]; idToken == "" && ok {
+		logger.Debug().Msg("Received identity token")
+		idToken = id
+	}
+	if respErr, ok := tokens["error"]; ok {
+		logger.Error().
+			Str("response_error", respErr).
+			Msg("Received an error from the token endpoint")
+		return "", "", TokenRetrievalError
+	}
+
+	if idToken == "" || accessToken == "" {
+		return "", "", TokenRetrievalError
+	}
+
+	logger.Debug().
+		Str("access_token", accessToken).
+		Str("id_token", idToken).
+		Msg("Retrieved tokens from token url")
+
+	return idToken, accessToken, nil
+}
+
+// Computes a state hash that should be specific to a host and a request
+func (o *oidcUserProvider) computeState(req *http.Request, nonce []byte) string {
+	hash := sha256.Sum256(slices.Concat([]byte(req.RemoteAddr), o.StateSalt, nonce))
+	return base64.URLEncoding.EncodeToString(hash[:])
+}
+

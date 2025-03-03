@@ -103,4 +103,9 @@ users:
       search_timeout: 0                   # LDAP search timeout. Set to 0 for unlimited.
       ldap_ca_cert: ""                    # Certificate to use when verifying connections to LDAP
       skip_certificate_verification: true # Whether to skip certificate verification for secure LDAP server
+    - type: oidc
+      name: google
+      discovery_url: "https://accounts.google.com/.well-known/openid-configuration"
+      auth_flow_type: code
+      claims_source: token
 
