@@ -81,5 +81,8 @@ func (a AuthFlowType) String() string {
 	if a.HasAccessToken() {
 		b.WriteString("token ")
 	}
+	if b.Len() == 0 {
+		return ""
+	}
 	return b.String()[0:b.Len() - 1]
 }

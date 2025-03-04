@@ -103,9 +103,20 @@ users:
       search_timeout: 0                   # LDAP search timeout. Set to 0 for unlimited.
       ldap_ca_cert: ""                    # Certificate to use when verifying connections to LDAP
       skip_certificate_verification: true # Whether to skip certificate verification for secure LDAP server
+
     - type: oidc
-      name: google
-      discovery_url: "https://accounts.google.com/.well-known/openid-configuration"
-      auth_flow_type: code
-      claims_source: token
+      name: google                                                                  # Name of the oidc provider. Used as an endpoint
+      discovery_url: "https://accounts.google.com/.well-known/openid-configuration" # Url to pull openid configuration information from
+      authentication_url: ""                                                        # Where to authorize with the provider. (pulled from discovery_url automatically)
+      token_url: ""                                                                 # Where to get tokens from the provider. (pulled from discovery_url automatically)
+      user_info_url: ""                                                             # Where to get user info from the provider. (pulled from discovery_url automatically)
+      auth_flow_type: code                                                          # OpenID flow type to use. Must be code, implicit or hybrid
+      claims_source: token                                                          # Main source for claims to map in stoke. Must be token or endpoint
+      client_secret: CLIENT_SECRET_FROM_PROVIDER                                    # Client secret supplied by provider. Used as password to token url
+      request_config:                                                               # Authentication request config
+        scopes:                                                                     # Scopes to request from the provider. openid is automatically added
+          - profile
+          - email
+        client_id: CLIENT_ID_FROM_PROVIDER                                          # Client ID from the provider
+        redirect_uri: "http://localhost:8080/oidc/google"                           # Must match what is registered with the provider
 

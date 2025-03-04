@@ -33,6 +33,8 @@ type OIDCProviderConfig struct {
 	ClaimsSource      string `json:"claims_source"`
 	// The authentication request to use when authenticating to the AuthenticationURL
 	Request AuthenticationRequestConfig `json:"request_config"`
+	// The client secret used to authenticate to the provider
+	ClientSecret      string `json:"client_secret"`
 }
 
 type AuthenticationRequestConfig struct {
@@ -100,6 +102,7 @@ func (o OIDCProviderConfig) CreateProvider(ctx context.Context) foreignProvider 
 	return usr.NewOIDCUserProvider(
 		o.Name,
 		o.StateSecret,
+		o.ClientSecret,
 		tokenURL,
 		authURL,
 		userInfoURL,
