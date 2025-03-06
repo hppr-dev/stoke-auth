@@ -8,6 +8,8 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"html/template"
 	"io"
 	"net/http"
 	"net/url"
@@ -42,7 +44,45 @@ import (
 // Depending on the AuthFlowType and the ClaimSource, some steps may be skipped.
 // The ClaimSource defines the goal of the process, so once it has been obtained no additional steps are needed
 
-type OIDCAuthRequest struct {
+
+var (
+	TokenRetrievalError = errors.New("Could not retrieve token from token url")
+	ProviderAuthError = errors.New("Could not authenticate user")
+)
+
+type postRedirectData struct {
+	IDToken string
+	AccessToken string
+	NextURL string
+	LocalStorage bool
+	ChildWindow bool
+}
+
+var (
+	POST_TEMPLATE = `
+<html>
+	<head>
+		<script lang="javascript">
+			window.onload = function() {
+			{{ if .LocalStorage }}
+				window.sessionStorage.setItem("id_token", "{{ .IDToken }}")
+				window.sessionStorage.setItem("access_token", "{{ .AccessToken }}")
+				{{ if ne .NextURL "" }}
+					window.location = "{{ .NextURL }}"
+				{{ end }}
+			{{ else if .ChildWindow }}
+				window.opener.sessionStorage.setItem("id_token", "{{ .IDToken }}")
+				window.opener.sessionStorage.setItem("access_token", "{{ .AccessToken }}")
+				window.close()
+			{{ end }}
+			}
+		</script>
+	</head>
+</html>
+`
+)
+
+type oidcAuthRequest struct {
 	Scope        string
 	ClientID     string
 	RedirectURI  string
@@ -51,11 +91,9 @@ type OIDCAuthRequest struct {
 	responseType string
 }
 
-var (
-	TokenRetrievalError = errors.New("Could not retrieve token from token url")
-)
-
 type oidcUserProvider struct {
+	// Unique name of this user provider
+	Name string
 	// URL to use to authenticate users with the provider
 	AuthenticationURL *url.URL
 	// URL to use to get the tokens from the provider. Requires an auth code
@@ -66,7 +104,7 @@ type oidcUserProvider struct {
 	// Whether to retreive user claims from the id token or the UserInfo endpoint
 	ClaimSource       ClaimSourceType
 	// The authentication request to use when authenticating to the AuthenticationURL
-	Request           OIDCAuthRequest
+	Request           oidcAuthRequest
 	// Salt to be used to generate state hashes. Must be the same accross shared stoke servers
 	StateSalt         []byte
 	// Authenctication flow type
@@ -74,12 +112,14 @@ type oidcUserProvider struct {
 	// Client Secret, given by provider
 	ClientSecret      string
 
+	postRedirectTempl *template.Template
 }
 
 func NewOIDCUserProvider(
-	name, stateSecret, clientSecret string,
+	name, scopes, redirectURI,
+	stateSecret, clientID, clientSecret string,
+	extraArgs map[string]string,
 	tokenURL, authURL, userInfoURL *url.URL,
-	req OIDCAuthRequest,
 	mux *http.ServeMux,
 	flowType AuthFlowType,
 	claimSource ClaimSourceType,
@@ -89,16 +129,24 @@ func NewOIDCUserProvider(
 		stateSalt = make([]byte, 16)
 		rand.Read(stateSalt)
 	}
-
+	prt, _ := template.New("postRedirect").Parse(POST_TEMPLATE)
 	provider := &oidcUserProvider{
+		Name: name,
 		TokenURL : tokenURL,
 		AuthenticationURL: authURL,
 		UserInfoURL: userInfoURL,
-		Request: req,
+		Request: oidcAuthRequest{
+			Scope: scopes,
+			RedirectURI: redirectURI,
+			ClientID: clientID,
+			ExtraArgs: extraArgs,
+			responseType: flowType.String(),
+		},
 		StateSalt: stateSalt,
 		FlowType: flowType,
 		ClaimSource: claimSource,
 		ClientSecret: clientSecret,
+		postRedirectTempl: prt,
 	}
 
 	mux.Handle("/oidc/" + name, provider)
@@ -112,6 +160,8 @@ func NewOIDCUserProvider(
 //   i.   If the provider is using "code" in it's AuthFlowType then an access code for the TokenURL is returned
 //   ii.  If the provider is using "id_token" in it's AuthFlowType then an identity token is returned
 //   iii. If the provider is using "token" in it's AuthFlowType then an access token for the UserInfoURL is returned
+// 4. Stoke sends a token request to the provider using the access code
+// 5. Provider returns an id_token and/or an access token
 func (o *oidcUserProvider) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	urlParams := req.URL.Query()
 	urlState := urlParams.Get("state")
@@ -132,16 +182,37 @@ func (o *oidcUserProvider) ServeHTTP(res http.ResponseWriter, req *http.Request)
 		return
 	}
 
-
 	// State is used to determine which side of the process we are on.
 	if urlState == "" {
-		logger.Info().Msg("Redirecting to AuthURL")
-		http.Redirect(res, req, o.addParamsToAuthURL(req).String(), http.StatusTemporaryRedirect)
+		nonce := newNonce()
+		logger.Info().Bytes("nonce", nonce).Msg("Redirecting to AuthURL")
+		// Save the generated nonce
+		http.SetCookie(res, &http.Cookie{
+			Name:  o.cookieName("nonce"),
+			Value: base64.URLEncoding.EncodeToString(nonce),
+		})
+		// Save the supplied transfer method
+		xferMethod := "local"
+		if urlXfer := urlParams.Get("xfer"); urlXfer != "" && urlXfer == "window"{
+			xferMethod = urlXfer
+		}
+		http.SetCookie(res, &http.Cookie{
+			Name:  o.cookieName("xfer"),
+			Value: xferMethod,
+		})
+		// Save the next url if it was specified
+		if urlNext := urlParams.Get("next"); urlNext != "" {
+			http.SetCookie(res, &http.Cookie{
+				Name:  o.cookieName("next-url"),
+				Value: urlNext,
+			})
+		}
+		http.Redirect(res, req, o.addParamsToAuthURL(req, nonce).String(), http.StatusTemporaryRedirect)
 		return
 	}
 
 	// Validate that the state was generated by us for the given address
-	if o.validateState(req) {
+	if !o.hasValidState(req) {
 		logger.Error().Msg("Could not verify state")
 		res.WriteHeader(http.StatusConflict)
 		return
@@ -158,58 +229,47 @@ func (o *oidcUserProvider) ServeHTTP(res http.ResponseWriter, req *http.Request)
 		return 
 	}
 
-	respMap := make(map[string]string)
-	respMap["id_token"] = idToken
-	respMap["token"] = accessToken
-	respMap["state"] = urlState
-
-	// Get response values from url parameters, and return them to the user
-	respBytes, err := json.Marshal(respMap)
-	if err != nil {
-		logger.Error().Err(err).Msg("Could not marshal response bytes")
-		res.WriteHeader(http.StatusInternalServerError)
-		return
+	xferMethod := "local"
+	next := ""
+	nonceStr := ""
+	if nextCookie, err := req.Cookie(o.cookieName("next-url")) ; err == nil {
+		next = nextCookie.Value
+	}
+	if xferCookie, err := req.Cookie(o.cookieName("xfer")); err == nil {
+		xferMethod = xferCookie.Value
+	}
+	if nonceCookie, err := req.Cookie(o.cookieName("xfer")); err == nil {
+		nonceStr = nonceCookie.Value
 	}
 
+	respValues := postRedirectData{
+		IDToken: idToken,
+		AccessToken: accessToken,
+		NextURL: next,
+		LocalStorage: xferMethod == "local",
+		ChildWindow: xferMethod == "window",
+	}
+	if o.ClaimSource == IDENTITY_TOKEN {
+		respValues.AccessToken = fmt.Sprintf("%s.%s.%s", urlState, req.RemoteAddr, nonceStr)
+	} 
 
-	res.Write(respBytes)
+	if err := o.postRedirectTempl.Execute(res, respValues); err != nil {
+		logger.Error().Err(err).Msg("Could not fill template")
+		res.WriteHeader(http.StatusInternalServerError)
+	}
 }
 
 // Update user claims
-// the username and password depend on which authorization flow is being used:
-// * IMPLICIT_FLOW, IMPLICIT_USER_INFO and HYBRID_FLOW username must be the id token
-// * CODE_FLOW, HYBRID_FLOW and HYBRID_USER_INFO password must be the auth code from the server
-// * HYBRID_USER_INFO username is the access token
-// 4. Stoke sends a token request to the provider using the access code
-// 5. Provider returns an id_token and/or an access token
-// 6. Stoke sends a UserInfo request to the provider using the access token
+// 6a. Stoke sends a UserInfo request to the provider using the access token
+// 6b. Stoke gets state from idToken and verifies the access token is the state that we gave for that idToken
 // 7. Stoke uses claims to update database
-func (o *oidcUserProvider) UpdateUserClaims(username, password string, ctx context.Context) error {
-
+func (o *oidcUserProvider) UpdateUserClaims(idToken, accessToken string, ctx context.Context) error {
 	ctx, span := tel.GetTracer().Start(ctx, "oidcUserProvider.UpdateUserClaims")
 	defer span.End()
 
-	var idToken, authCode, accessToken string
 	var claimMap jwt.MapClaims
 	var err error
-
-	if o.FlowType == HYBRID_USER_INFO {
-		accessToken = username
-	} else if o.FlowType.HasIDToken(){
-		idToken = username
-	}
-
-	if o.FlowType.HasAuthCode() {
-		authCode = password
-	} else if o.FlowType.HasAccessToken() {
-		accessToken = password
-	}
-
-	// Retreive tokens from TokenURL, if we need to
-	idToken, accessToken, err = o.getTokens(idToken, accessToken, authCode, ctx)
-	if err != nil {
-		return err
-	}
+	var ok bool
 
 	if o.ClaimSource == IDENTITY_TOKEN {
 		jParser := jwt.NewParser()
@@ -217,11 +277,43 @@ func (o *oidcUserProvider) UpdateUserClaims(username, password string, ctx conte
 		if err != nil {
 			return err
 		}
-		claimMap = t.Claims.(jwt.MapClaims)
+		claimMap, ok = t.Claims.(jwt.MapClaims)
+		if !ok {
+			return jwt.ErrTokenMalformed
+		}
 
-		// TODO verify when FlowType is IMPLICIT_FLOW
+		// state.addr.nonce
+		accessParts := strings.Split(accessToken, ".")
+		if len(accessParts) != 3 {
+			return ProviderAuthError
+		}
+		state := accessParts[0]
+		addr := accessParts[1]
+		nonceStr := accessParts[2]
+
+		if nonceClaim, ok := claimMap["nonce"]; ok && nonceClaim != nonceStr {
+			return ProviderAuthError
+		}
+
+		// The iat should be within the same interval as the generated state (10min)
+		tint := timePeriod(10)
+		if iatClaim, err := claimMap.GetIssuedAt(); err == nil{
+			if time.Now().After(iatClaim.Add(time.Second)){
+				return ProviderAuthError
+			}
+			tint = timeToBytes(iatClaim.Truncate(10 * time.Minute))
+		}
+
+		nonce, err := base64.URLEncoding.DecodeString(nonceStr)
+		if err != nil {
+			return err
+		}
+
+		if state != stateHash(o.StateSalt, nonce, []byte(addr), tint) {
+			return ProviderAuthError
+		}
 	} else {
-		// o.ClaimSource == USER_INFO
+		// o.ClaimSource == USER_INFO, trust the provider to authenticate the user.
 		claimMap, err = o.getUserInfo(accessToken, ctx)
 		if err != nil {
 			return err
@@ -231,7 +323,7 @@ func (o *oidcUserProvider) UpdateUserClaims(username, password string, ctx conte
 	return o.persistClaims(claimMap, ctx)
 }
 
-func (o *oidcUserProvider) addParamsToAuthURL(req *http.Request) *url.URL {
+func (o *oidcUserProvider) addParamsToAuthURL(req *http.Request, nonce []byte) *url.URL {
 	u, _ := url.Parse(o.AuthenticationURL.String())
 	q := u.Query()
 
@@ -243,7 +335,7 @@ func (o *oidcUserProvider) addParamsToAuthURL(req *http.Request) *url.URL {
 		q.Add(key, val)
 	}
 
-	q.Add("state", o.computeState(req))
+	q.Add("state", o.computeState(req, nonce))
 
 	u.RawQuery = q.Encode()
 	return u
@@ -361,7 +453,7 @@ func (o *oidcUserProvider) getTokens(idToken, accessToken, authCode string, ctx 
 		return idToken, accessToken, err
 	}
 
-	if acc, ok := tokens["token"]; accessToken == "" && ok {
+	if acc, ok := tokens["access_token"]; accessToken == "" && ok {
 		logger.Debug().Msg("Received access token")
 		accessToken, _ = acc.(string)
 	}
@@ -391,19 +483,22 @@ func (o *oidcUserProvider) getTokens(idToken, accessToken, authCode string, ctx 
 }
 
 // Computes a state hash that should be specific to a host and a request
-func (o *oidcUserProvider) computeState(req *http.Request) string {
-	nonce := newNonce()
-	return requestHash(o.StateSalt, nonce, req) + "." + base64.URLEncoding.EncodeToString(nonce)
+func (o *oidcUserProvider) computeState(req *http.Request, nonce []byte) string {
+	return requestHash(o.StateSalt, nonce, req)
 }
 
 // Validates whether the state variable was generated by us
-func (o *oidcUserProvider) validateState(req *http.Request) bool {
-	stateSlice := strings.Split(".", req.URL.Query().Get("state"))
-	if len(stateSlice) != 2 {
+func (o *oidcUserProvider) hasValidState(req *http.Request) bool {
+	nonceB64, err := req.Cookie(o.cookieName("nonce"))
+	if err != nil {
 		return false
 	}
-	nonce, _ := base64.URLEncoding.DecodeString(stateSlice[1])
-	return stateSlice[0] == requestHash(o.StateSalt, nonce, req)
+	nonce, err := base64.URLEncoding.DecodeString(nonceB64.Value)
+	return req.URL.Query().Get("state") == requestHash(o.StateSalt, nonce, req)
+}
+
+func (o *oidcUserProvider) cookieName(c string) string {
+	return fmt.Sprintf("stoke-oidc-%s-%s", o.Name, c)
 }
 
 // Creates a new random 32 byte string
@@ -415,19 +510,22 @@ func newNonce() []byte {
 
 // Returns the time stamp for the given division of time in minutes
 func timePeriod(m int) []byte {
+	return timeToBytes(time.Now().Truncate(time.Duration(m) * time.Minute))
+}
+
+func timeToBytes(t time.Time) []byte {
 	tsBytes := make([]byte, 8)
-	ts := time.Now().Truncate(time.Duration(m) * time.Minute).Unix()
+	ts := t.Unix()
 	binary.NativeEndian.PutUint64(tsBytes, uint64(ts))
 	return tsBytes
 }
 
 // Creates a request specific hash. Only valid for 10 minutes.
 func requestHash(salt, nonce []byte, req *http.Request) string {
-	hash := sha256.Sum256(slices.Concat(
-		[]byte(req.RemoteAddr),
-		salt,
-		timePeriod(10),
-		nonce,
-	))
+	return stateHash(salt, nonce, []byte(req.RemoteAddr), timePeriod(10))
+}
+
+func stateHash(salt, nonce, addr, tint []byte) string {
+	hash := sha256.Sum256(slices.Concat( addr, salt, tint, nonce ))
 	return base64.URLEncoding.EncodeToString(hash[:])
 }
