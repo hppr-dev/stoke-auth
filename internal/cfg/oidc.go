@@ -111,6 +111,7 @@ func (o OIDCProviderConfig) CreateProvider(ctx context.Context) foreignProvider 
 
 	return usr.NewOIDCUserProvider(
 		o.Name, allScopes, o.RedirectURI,
+		o.FirstNameClaim, o.LastNameClaim, o.EmailClaim,
 		o.StateSecret, o.ClientID, o.ClientSecret,
 		o.ExtraArguments,
 		tokenURL, authURL, userInfoURL,

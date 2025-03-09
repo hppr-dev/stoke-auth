@@ -88,7 +88,7 @@ func (l *ldapUserProvider) SetConnector(c LDAPConnector) {
 }
 
 // GetUserClaims looks up claims that are associated in LDAP
-func (l *ldapUserProvider) UpdateUserClaims(username, password string, ctx context.Context) error {
+func (l *ldapUserProvider) UpdateUserClaims(username, password string, ctx context.Context) (*ent.User, error) {
 	logger := zerolog.Ctx(ctx).With().
 		Str("url", l.ServerURL).
 		Str("username", username).
@@ -108,7 +108,7 @@ func (l *ldapUserProvider) UpdateUserClaims(username, password string, ctx conte
 			Func(otelzerolog.AddTracingContext(span)).
 			Err(err).
 			Msg("Could not connect to LDAP server")
-		return AuthSourceError
+		return nil, AuthSourceError
 	}
 	defer conn.Close()
 
@@ -117,7 +117,7 @@ func (l *ldapUserProvider) UpdateUserClaims(username, password string, ctx conte
 			Func(otelzerolog.AddTracingContext(span)).
 			Err(err).
 			Msg("Bind user authentication failed")
-		return AuthSourceError
+		return nil, AuthSourceError
 	}
 
 	usr, groupLinks, err := l.getOrCreateUser(username, password, conn, ctx)
@@ -126,69 +126,33 @@ func (l *ldapUserProvider) UpdateUserClaims(username, password string, ctx conte
 			Func(otelzerolog.AddTracingContext(span)).
 			Err(err).
 			Msg("Could not find User in ldap")
-		return UserNotFoundError
+		return nil, UserNotFoundError
 
 	} else if errors.Is(NoLinkedGroupsError, err) {
 		if usr == nil {
-			return AuthenticationError
+			return nil, AuthenticationError
 		}
 	} else if err != nil {
 		logger.Debug().
 			Func(otelzerolog.AddTracingContext(span)).
 			Err(err).
 			Msg("Could not get or create user")
-		return err
+		return nil, err
 	}
 
 	// Update local database with claims that the user has
 	// LDAP user groups that the user already has
-	userGroups := usr.Edges.ClaimGroups
+	addClaimGroups, delClaimGroups := findGroupChanges(usr, groupLinks)
 
-	var addClaimGroups ent.ClaimGroups
-	var found bool
-	for _, grouplink := range groupLinks {
-		linkGroup := grouplink.Edges.ClaimGroup
-		found = false
-		for _, userGroup := range userGroups {
-			if userGroup.ID == linkGroup.ID {
-				found = true
-				break
-			}
-		}
-		if !found {
-			addClaimGroups = append(addClaimGroups, linkGroup)
-		}
+	if err := applyGroupChanges(addClaimGroups, delClaimGroups, usr, ctx); err != nil {
+		logger.Error().
+			Func(otelzerolog.AddTracingContext(span)).
+			Err(err).
+			Msg("Failed to add LDAP groups to local user")
+		return nil, err
 	}
 
-	var delClaimGroups ent.ClaimGroups
-	for _, userGroup := range userGroups {
-		found = false
-		for _, groupLink := range groupLinks {
-			if groupLink.Edges.ClaimGroup.ID == userGroup.ID {
-				found = true
-				break
-			}
-		}
-		if !found {
-			delClaimGroups = append(delClaimGroups, userGroup)
-		}
-	}
-
-	if len(addClaimGroups) > 0 || len(delClaimGroups) > 0 {
-		_, err := usr.Update().
-			AddClaimGroups(addClaimGroups...).
-			RemoveClaimGroups(delClaimGroups...).
-			Save(ctx)
-		if err != nil {
-			logger.Error().
-				Func(otelzerolog.AddTracingContext(span)).
-				Err(err).
-				Msg("Failed to add LDAP groups to local user")
-			return err
-		}
-	}
-
-	return nil
+	return usr, nil
 }
 
 // Creates the user if it exists in LDAP

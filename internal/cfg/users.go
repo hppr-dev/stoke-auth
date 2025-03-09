@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"stoke/internal/ent"
 	"stoke/internal/usr"
 )
 
@@ -38,7 +39,7 @@ type providerConfig interface {
 }
 
 type foreignProvider interface {
-	UpdateUserClaims(username, password string, ctx context.Context) error
+	UpdateUserClaims(username, password string, ctx context.Context) (*ent.User, error)
 }
 
 func (pc *ProviderConfig) UnmarshalJSON(b []byte) error {

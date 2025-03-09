@@ -51,7 +51,7 @@ func (l *localProvider) AddUser(fname, lname, email, username, password string, 
 	return nil
 }
 
-func (l *localProvider) GetUserClaims(username, password string, ctx context.Context) (*ent.User, ent.Claims, error) {
+func (l *localProvider) GetUserClaims(username, password string, u *ent.User, ctx context.Context) (*ent.User, ent.Claims, error) {
 	ctx, span := tel.GetTracer().Start(ctx, "LocalUserProvider.GetUserClaims")
 	defer span.End()
 
@@ -59,30 +59,37 @@ func (l *localProvider) GetUserClaims(username, password string, ctx context.Con
 			Str("username", username).
 			Logger()
 
-	entUser, allClaims, err := retreiveLocalClaims(username, ctx)
-	if err != nil {
-		logger.Error().
-			Func(otelzerolog.AddTracingContext(span)).
-			Err(err).
-			Msg("Could not retrieve local claims")
-		return nil, nil, err
-	}
+	var allClaims ent.Claims
+	var err error
 
-	// We only need to verify the stored password hash if the user is local.
-	// The password will be blank for all other sources.
-	// Other provider sources must verify the password before retreiving claims from local
-	if entUser.Source == LOCAL_SOURCE && HashPass(password, entUser.Salt) != entUser.Password {
-		logger.Debug().
-			Func(otelzerolog.AddTracingContext(span)).
-			Msg("User password did not match")
-		return nil, nil, fmt.Errorf("Bad Password")
+	// Find the user if we haven't got one yet
+	if u == nil {
+		u, err = retreiveLocalUser(username, ctx)
+		if err != nil {
+			logger.Error().
+				Func(otelzerolog.AddTracingContext(span)).
+				Err(err).
+				Msg("Could not retrieve local claims")
+			return nil, nil, err
+		}
+
+		// We only need to verify the stored password hash if the user is local.
+		// The password will be blank for all other sources.
+		// Other provider sources must verify the password before retreiving claims from local
+		if HashPass(password, u.Salt) != u.Password {
+			logger.Debug().
+				Func(otelzerolog.AddTracingContext(span)).
+				Msg("User password did not match")
+			return nil, nil, fmt.Errorf("Bad Password")
+		}
 	}
+	allClaims = allUserClaims(u)
 
 	logger.Debug().
 		Func(otelzerolog.AddTracingContext(span)).
 		Interface("claims", allClaims).
 		Msg("Claims found")
-	return entUser, allClaims, nil
+	return u, allClaims, nil
 }
 
 func (l *localProvider) getOrCreateSuperGroup(ctx context.Context) (*ent.ClaimGroup, error) {

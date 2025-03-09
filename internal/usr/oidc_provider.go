@@ -14,6 +14,9 @@ import (
 	"net/http"
 	"net/url"
 	"slices"
+	"stoke/internal/ent"
+	"stoke/internal/ent/grouplink"
+	"stoke/internal/ent/predicate"
 	"stoke/internal/tel"
 	"strings"
 	"time"
@@ -56,6 +59,7 @@ type postRedirectData struct {
 	NextURL string
 	LocalStorage bool
 	ChildWindow bool
+	LoginURL string
 }
 
 var (
@@ -64,17 +68,37 @@ var (
 	<head>
 		<script lang="javascript">
 			window.onload = function() {
-			{{ if .LocalStorage }}
-				window.sessionStorage.setItem("id_token", "{{ .IDToken }}")
-				window.sessionStorage.setItem("access_token", "{{ .AccessToken }}")
-				{{ if ne .NextURL "" }}
-					window.location = "{{ .NextURL }}"
-				{{ end }}
-			{{ else if .ChildWindow }}
-				window.opener.sessionStorage.setItem("id_token", "{{ .IDToken }}")
-				window.opener.sessionStorage.setItem("access_token", "{{ .AccessToken }}")
-				window.close()
-			{{ end }}
+				fetch("{{ .LoginURL }}", {
+					"method" : "POST",
+					"headers": { "Content-Type" : "application/json" },
+					"body" : JSON.stringify({
+						"username" : "{{ .IDToken }}",
+						"password" : "{{ .AccessToken}}",
+					})
+				}).then(function(response) {
+					response.json().then(function(data) {
+						if ( data.token ) {
+							{{ if .LocalStorage }}
+								window.sessionStorage.setItem("token", data.token)
+								window.sessionStorage.setItem("refresh", data.refresh)
+								{{ if ne .NextURL "" }}
+									window.location = "{{ .NextURL }}"
+								{{ end }}
+							{{ else if .ChildWindow }}
+								window.opener.sessionStorage.setItem("token", data.token)
+								window.opener.sessionStorage.setItem("refresh", data.refresh)
+								window.close()
+							{{ end }}
+						} else {
+							console.error("Failed to login!")
+							{{ if ne .NextURL "" }}
+								window.location = "{{ .NextURL }}"
+							{{ else if .ChildWindow }}
+								window.close()
+							{{ end }}
+						}
+					})
+				})
 			}
 		</script>
 	</head>
@@ -112,11 +136,20 @@ type oidcUserProvider struct {
 	// Client Secret, given by provider
 	ClientSecret      string
 
+	// First Name Claim
+	FNameClaim string
+	// Last Name Claim
+	LNameClaim string
+	// Email Claim
+	EmailClaim string
+
 	postRedirectTempl *template.Template
+	dbSourceName string
 }
 
 func NewOIDCUserProvider(
 	name, scopes, redirectURI,
+	fNameClaim, lNameClaim, emailClaim,
 	stateSecret, clientID, clientSecret string,
 	extraArgs map[string]string,
 	tokenURL, authURL, userInfoURL *url.URL,
@@ -146,7 +179,11 @@ func NewOIDCUserProvider(
 		FlowType: flowType,
 		ClaimSource: claimSource,
 		ClientSecret: clientSecret,
+		FNameClaim: fNameClaim,
+		LNameClaim: lNameClaim,
+		EmailClaim: emailClaim,
 		postRedirectTempl: prt,
+		dbSourceName: "OIDC-" + name,
 	}
 
 	mux.Handle("/oidc/" + name, provider)
@@ -155,13 +192,18 @@ func NewOIDCUserProvider(
 }
 
 // Handles redirect to and from provider
-// 2. Stoke sends an authentication request to the provider (by redirecting to the AuthenticationURL with params)
-// 3. Provider responds with a combination of  the following:
-//   i.   If the provider is using "code" in it's AuthFlowType then an access code for the TokenURL is returned
-//   ii.  If the provider is using "id_token" in it's AuthFlowType then an identity token is returned
-//   iii. If the provider is using "token" in it's AuthFlowType then an access token for the UserInfoURL is returned
-// 4. Stoke sends a token request to the provider using the access code
-// 5. Provider returns an id_token and/or an access token
+// Users should navigate to this endpoint to authenticate with the provider
+// Include the following query parameters to control redirect behavior:
+// 		* next -- the url the user wants to goto after authenticating
+//    * xfer -- the transfer method of the request. May be:
+//			* local
+//			* window
+//
+// Clients should register to be returned back to this endpoint after the auth with the provider,
+// i.e. the redirect uri should be registered at /oidc/<PROVIDER_NAME>.
+// Users MUST NOT include a state query parameter when requesting because that indicates a return request from the provider
+//
+// This function serves as steps 2-5 in the full authentication flow above
 func (o *oidcUserProvider) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	urlParams := req.URL.Query()
 	urlState := urlParams.Get("state")
@@ -238,11 +280,13 @@ func (o *oidcUserProvider) ServeHTTP(res http.ResponseWriter, req *http.Request)
 	if xferCookie, err := req.Cookie(o.cookieName("xfer")); err == nil {
 		xferMethod = xferCookie.Value
 	}
-	if nonceCookie, err := req.Cookie(o.cookieName("xfer")); err == nil {
+	if nonceCookie, err := req.Cookie(o.cookieName("nonce")); err == nil {
 		nonceStr = nonceCookie.Value
 	}
 
+
 	respValues := postRedirectData{
+		LoginURL: "/api/login",
 		IDToken: idToken,
 		AccessToken: accessToken,
 		NextURL: next,
@@ -250,7 +294,7 @@ func (o *oidcUserProvider) ServeHTTP(res http.ResponseWriter, req *http.Request)
 		ChildWindow: xferMethod == "window",
 	}
 	if o.ClaimSource == IDENTITY_TOKEN {
-		respValues.AccessToken = fmt.Sprintf("%s.%s.%s", urlState, req.RemoteAddr, nonceStr)
+		respValues.AccessToken = fmt.Sprintf("%s$%s$%s", urlState, req.RemoteAddr, nonceStr)
 	} 
 
 	if err := o.postRedirectTempl.Execute(res, respValues); err != nil {
@@ -259,11 +303,18 @@ func (o *oidcUserProvider) ServeHTTP(res http.ResponseWriter, req *http.Request)
 	}
 }
 
-// Update user claims
-// 6a. Stoke sends a UserInfo request to the provider using the access token
-// 6b. Stoke gets state from idToken and verifies the access token is the state that we gave for that idToken
-// 7. Stoke uses claims to update database
-func (o *oidcUserProvider) UpdateUserClaims(idToken, accessToken string, ctx context.Context) error {
+// Update user claims in the database with the claims from the provider.
+// This function should be called with the idToken and accessToken returned from the provider after the user authorizes access.
+// When the ClaimsSource is ID_TOKEN, the accessToken is used to verify the idToken using the state, network address and nonce.
+//
+// This function finishes the process (steps 6 and 7 above) and will result in the user getting a token with the most up-to-date claims available from the provider
+func (o *oidcUserProvider) UpdateUserClaims(idToken, accessToken string, ctx context.Context) (*ent.User, error) {
+	logger := zerolog.Ctx(ctx).With().
+		Str("component", "OIDCProvider.UpdateUserClaims").
+		Stringer("flow_type", o.FlowType).
+		Stringer("claim_source", o.ClaimSource).
+		Logger()
+
 	ctx, span := tel.GetTracer().Start(ctx, "oidcUserProvider.UpdateUserClaims")
 	defer span.End()
 
@@ -271,54 +322,74 @@ func (o *oidcUserProvider) UpdateUserClaims(idToken, accessToken string, ctx con
 	var err error
 	var ok bool
 
-	if o.ClaimSource == IDENTITY_TOKEN {
-		jParser := jwt.NewParser()
-		t, _, err := jParser.ParseUnverified(idToken, jwt.MapClaims{})
-		if err != nil {
-			return err
-		}
-		claimMap, ok = t.Claims.(jwt.MapClaims)
-		if !ok {
-			return jwt.ErrTokenMalformed
-		}
+	jParser := jwt.NewParser()
+	t, _, err := jParser.ParseUnverified(idToken, jwt.MapClaims{})
+	if err != nil {
+		return nil, err
+	}
+	claimMap, ok = t.Claims.(jwt.MapClaims)
+	if !ok {
+		return nil, jwt.ErrTokenMalformed
+	}
 
-		// state.addr.nonce
-		accessParts := strings.Split(accessToken, ".")
+	logger.Debug().
+		Interface("claim_map", claimMap).
+		Msg("Parsed user claim map.")
+
+	if o.ClaimSource == USER_INFO {
+		// trust the provider to authenticate the user.
+		infoClaimMap, err := o.getUserInfo(accessToken, ctx)
+		if err != nil {
+			logger.Error().Err(err).Msg("Could not get user info from endpoint")
+			return nil, err
+		}
+		for k,v := range infoClaimMap {
+			claimMap[k] = v
+		}
+	} else {
+		//o.ClaimSource == IDENTITY_TOKEN, verify accessToken as state$addr$nonce
+		accessParts := strings.Split(accessToken, "$")
 		if len(accessParts) != 3 {
-			return ProviderAuthError
+			logger.Debug().Str("token", accessToken).Msg("Received bad access token")
+			return nil, ProviderAuthError
 		}
 		state := accessParts[0]
 		addr := accessParts[1]
 		nonceStr := accessParts[2]
 
 		if nonceClaim, ok := claimMap["nonce"]; ok && nonceClaim != nonceStr {
-			return ProviderAuthError
+			logger.Debug().Interface("nonce", nonceClaim).Msg("Received bad nonce")
+			return nil, ProviderAuthError
 		}
 
 		// The iat should be within the same interval as the generated state (10min)
 		tint := timePeriod(10)
 		if iatClaim, err := claimMap.GetIssuedAt(); err == nil{
-			if time.Now().After(iatClaim.Add(time.Second)){
-				return ProviderAuthError
+			if time.Now().After(iatClaim.Add(10 * time.Minute)){
+				logger.Debug().Time("issued_at", iatClaim.Time).Msg("Got stale id token")
+				return nil, ProviderAuthError
 			}
 			tint = timeToBytes(iatClaim.Truncate(10 * time.Minute))
 		}
 
 		nonce, err := base64.URLEncoding.DecodeString(nonceStr)
 		if err != nil {
-			return err
+			logger.Error().Err(err).Str("nonce", nonceStr).Msg("could not decode nonce")
+			return nil, err
 		}
-
-		if state != stateHash(o.StateSalt, nonce, []byte(addr), tint) {
-			return ProviderAuthError
-		}
-	} else {
-		// o.ClaimSource == USER_INFO, trust the provider to authenticate the user.
-		claimMap, err = o.getUserInfo(accessToken, ctx)
-		if err != nil {
-			return err
+		expectedState := stateHash(o.StateSalt, nonce, []byte(addr), tint) 
+		if state != expectedState {
+			logger.Debug().
+				Str("state", state).
+				Str("expected_state", expectedState).
+				Msg("State did not match expected")
+			return nil, ProviderAuthError
 		}
 	}
+
+	logger.Debug().
+		Interface("claim_map", claimMap).
+		Msg("Received/validated all claims")
 
 	return o.persistClaims(claimMap, ctx)
 }
@@ -342,13 +413,88 @@ func (o *oidcUserProvider) addParamsToAuthURL(req *http.Request, nonce []byte) *
 }
 
 // Translates/persists claims to the database from the given claimsString
-func (o *oidcUserProvider) persistClaims(claimMap jwt.MapClaims, ctx context.Context) error {
+func (o *oidcUserProvider) persistClaims(claimMap jwt.MapClaims, ctx context.Context) (*ent.User, error) {
 	logger := zerolog.Ctx(ctx).With().
-		Str("component", "OIDCProvider").
+		Str("component", "OIDCProvider.persistClaims").
 		Interface("provider_claims", claimMap).
 		Logger()
-	logger.Info().Msg("TODO: Pushing claims to database")
-	return nil
+
+	logger.Debug().Msg("Saving user claims")
+	u, err := o.getOrCreateUser(claimMap, ctx)
+	if err != nil {
+		return nil, err
+	}
+	db := ent.FromContext(ctx)
+
+	claimLinks := []predicate.GroupLink{}
+	
+	for cKey, cValue := range claimMap {
+		claimLinks = append(claimLinks, grouplink.ResourceSpecEQ(fmt.Sprintf("%s=%s", cKey, cValue)))
+	}
+
+	foundLinks, err := db.GroupLink.Query().
+		Where(
+			grouplink.And(
+				grouplink.TypeEQ(o.dbSourceName),
+				grouplink.Or(claimLinks...),
+			),
+		).
+		WithClaimGroup(func (q *ent.ClaimGroupQuery) {
+			q.WithClaims()
+		}).
+		All(ctx)
+	if err != nil {
+		return nil, err
+	} else if len(foundLinks) == 0 {
+		return nil, NoLinkedGroupsError
+	}
+
+	//TODO allow user claim passthrough with or without persistance?
+
+	add, del := findGroupChanges(u, foundLinks)
+	if err := applyGroupChanges(add, del, u, ctx) ; err != nil {
+		logger.Error().
+			Err(err).
+			Msg("Failed to update oidc groups to local user")
+	}
+
+	return u, nil
+}
+
+func (o *oidcUserProvider) getOrCreateUser(claimMap jwt.MapClaims, ctx context.Context) (*ent.User, error) {
+	fname := safeGetClaim(o.FNameClaim, claimMap)
+	lname := safeGetClaim(o.LNameClaim, claimMap)
+	email := safeGetClaim(o.EmailClaim, claimMap)
+
+	logger := zerolog.Ctx(ctx).With().
+		Str("component", "OIDCProvider.getOrCreateUser").
+		Str("fname", fname).
+		Str("lname", lname).
+		Str("email", email).
+		Logger()
+
+	if fname == "" || lname == "" || email == "" {
+		logger.Error().Msg("Could not determine first name, last name or email")
+		return nil, jwt.ErrTokenMalformed
+	}
+
+	db := ent.FromContext(ctx)
+
+	u, err := retreiveLocalUser(email, ctx)
+	if ent.IsNotFound(err) {
+		logger.Info().Msg("User not found, creating in database.")
+		u, _ := db.User.Create().
+			SetFname(fname).
+			SetLname(lname).
+			SetEmail(email).
+			SetUsername(email).
+			SetSource(o.dbSourceName).
+			Save(ctx)
+		return u, nil
+	}
+	logger.Debug().Msg("User found.")
+	return u, nil
+
 }
 
 // Gets user claims from the UserInfoURL
@@ -528,4 +674,13 @@ func requestHash(salt, nonce []byte, req *http.Request) string {
 func stateHash(salt, nonce, addr, tint []byte) string {
 	hash := sha256.Sum256(slices.Concat( addr, salt, tint, nonce ))
 	return base64.URLEncoding.EncodeToString(hash[:])
+}
+
+func safeGetClaim(key string, claims jwt.MapClaims) string {
+	if valInt, ok := claims[key]; ok {
+		if val, ok := valInt.(string); ok {
+			return val
+		}
+	}
+	return ""
 }
