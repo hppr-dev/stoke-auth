@@ -3,19 +3,40 @@
     <v-row>
       <v-select
         variant="solo-filled"
-        label="Type"
-        readonly
+        label="Provider Name"
         v-model="linkType"
-        :items="['LDAP']"
+        :items="store.availableProviders"
+        item-title="type_spec"
+        item-value="type_spec"
+        :rules="[require('Provider Name')]"
       ></v-select>
     </v-row>
-    <v-row>
+    <v-row v-if="selectedProviderType() == 'LDAP'" >
       <v-text-field
         variant="solo-filled"
         label="Group Name"
         no-resize
-        v-model="resourceSpec"
+        v-model="ldapGroup"
         :rules="[require('Group name')]"
+        @update:modelValue="updateScratchLink"
+      ></v-text-field>
+    </v-row>
+    <v-row v-if="selectedProviderType() == 'OIDC'" >
+      <v-text-field
+        variant="solo-filled"
+        label="Claim"
+        no-resize
+        v-model="oidcClaim"
+        :rules="[require('Claim')]"
+        @update:modelValue="updateScratchLink"
+      ></v-text-field>
+      <h1>=</h1>
+      <v-text-field
+        variant="solo-filled"
+        label="Value"
+        no-resize
+        v-model="oidcValue"
+        :rules="[require('Value')]"
         @update:modelValue="updateScratchLink"
       ></v-text-field>
     </v-row>
@@ -29,22 +50,40 @@
 
   const store = useAppStore()
 
-  const linkType = ref("LDAP")
-  const resourceSpec = ref("")
+  const linkType = ref("")
+
+  const ldapGroup = ref("")
+
+  const oidcClaim = ref("")
+  const oidcValue = ref("")
+
+  function selectedProviderType() {
+    let sel = store.availableProviders.find((p) => p.type_spec == linkType.value)
+    return sel? sel.provider_type : ""
+  }
 
   function updateScratchLink() {
+    let provType = selectedProviderType()
+    let resourceSpec = ""
+    if ( provType == "LDAP" ) {
+      resourceSpec = ldapGroup.value
+    } else if ( provType == "OIDC" ) {
+      resourceSpec = `${ oidcClaim.value }=${ oidcValue.value }`
+    }
     store.$patch({
       scratchLink: {
         ...store.scratchLink,
-        resource_spec: resourceSpec.value,
+        type: linkType.value,
+        resource_spec: resourceSpec,
       },
     })
   }
 
   onMounted(() => {
+    store.fetchAvailableProviders()
     store.$patch({
       scratchLink: {
-        type: "LDAP",
+        type: "",
         claim_group: store.currentGroup.id,
       },
     })

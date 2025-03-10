@@ -103,6 +103,19 @@ export const appActions = {
       this.capabilites = result.capabilities
     }
   },
+  fetchAvailableProviders: async function() {
+    const response = await fetch(`${this.api_url}/api/available_providers`, {
+      method: "GET",
+      headers: {
+        "Content-Type" : "application/json",
+      }
+    })
+
+    const result = await response.json();
+    if ( result.length > 0) {
+      this.availableProviders = result
+    }
+  },
   scheduleRefresh: function() {
     this.refreshTimeout = window.setTimeout(this.refreshSession, this.tokenExpiration.getTime() - Date.now() - 10000)
   },

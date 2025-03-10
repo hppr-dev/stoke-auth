@@ -63,42 +63,28 @@ type postRedirectData struct {
 }
 
 var (
+	// If xfer is set to window, next must be set to the original owners origin
+	// If xfer is set to local, next must match the same origin and share sessionStorage
+	// Not sure what happens when next is not set
 	POST_TEMPLATE = `
 <html>
 	<head>
 		<script lang="javascript">
 			window.onload = function() {
-				fetch("{{ .LoginURL }}", {
-					"method" : "POST",
-					"headers": { "Content-Type" : "application/json" },
-					"body" : JSON.stringify({
-						"username" : "{{ .IDToken }}",
-						"password" : "{{ .AccessToken}}",
+				{{ if .LocalStorage }}
+					window.sessionStorage.setItem("id_token", "{{ .IDToken }}")
+					window.sessionStorage.setItem("access_code", "{{ .AccessCode }}")
+					{{ if ne .NextURL "" }}
+						window.location = "{{ .NextURL }}"
+					{{ end }}
+				{{ else if .ChildWindow }}
+					var message = JSON.stringify({
+						id_token : "{{ .IDToken }}",
+						access_code : "{{ .AccessToken }}",
 					})
-				}).then(function(response) {
-					response.json().then(function(data) {
-						if ( data.token ) {
-							{{ if .LocalStorage }}
-								window.sessionStorage.setItem("token", data.token)
-								window.sessionStorage.setItem("refresh", data.refresh)
-								{{ if ne .NextURL "" }}
-									window.location = "{{ .NextURL }}"
-								{{ end }}
-							{{ else if .ChildWindow }}
-								window.opener.sessionStorage.setItem("token", data.token)
-								window.opener.sessionStorage.setItem("refresh", data.refresh)
-								window.close()
-							{{ end }}
-						} else {
-							console.error("Failed to login!")
-							{{ if ne .NextURL "" }}
-								window.location = "{{ .NextURL }}"
-							{{ else if .ChildWindow }}
-								window.close()
-							{{ end }}
-						}
-					})
-				})
+					window.opener.postMessage(message, "{{ .NextURL }}")
+					window.close()
+				{{ end }}
 			}
 		</script>
 	</head>
@@ -183,7 +169,7 @@ func NewOIDCUserProvider(
 		LNameClaim: lNameClaim,
 		EmailClaim: emailClaim,
 		postRedirectTempl: prt,
-		dbSourceName: "OIDC-" + name,
+		dbSourceName: "OIDC:" + name,
 	}
 
 	mux.Handle("/oidc/" + name, provider)

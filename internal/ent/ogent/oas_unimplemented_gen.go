@@ -13,6 +13,15 @@ type UnimplementedHandler struct{}
 
 var _ Handler = UnimplementedHandler{}
 
+// AvailableProviders implements available_providers operation.
+//
+// Get available providers.
+//
+// GET /available_providers
+func (UnimplementedHandler) AvailableProviders(ctx context.Context) (r []AvailableProvidersOKItem, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
 // Capabilities implements capabilities operation.
 //
 // Get server capabilities.

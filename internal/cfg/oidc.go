@@ -53,6 +53,10 @@ type OIDCProviderConfig struct {
 	StateSecret       string `json:"state_secret"`
 }
 
+func (o OIDCProviderConfig) TypeSpec() string {
+	return "OIDC:" + o.Name
+}
+
 func (o OIDCProviderConfig) CreateProvider(ctx context.Context) foreignProvider {
 	logger := zerolog.Ctx(ctx).With().
 		Str("provider_name", o.Name).

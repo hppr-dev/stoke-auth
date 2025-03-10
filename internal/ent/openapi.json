@@ -1858,6 +1858,46 @@
         ]
       }
     },
+    "/available_providers": {
+      "description": "Lists which providers are available",
+      "get": {
+        "summary": "Get available providers",
+        "operationId": "available_providers",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "description": "Name of provider",
+                        "type": "string"
+                      },
+                      "provider_type": {
+                        "description": "Type of provider",
+                        "type": "string"
+                      },
+                      "type_spec": {
+                        "description": "Type specification of provider",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "name",
+                      "provider_type",
+                      "type_spec"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/capabilities": {
       "description": "Server capabilities",
       "get": {

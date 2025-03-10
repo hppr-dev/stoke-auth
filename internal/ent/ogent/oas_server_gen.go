@@ -8,6 +8,12 @@ import (
 
 // Handler handles operations described by OpenAPI v3 specification.
 type Handler interface {
+	// AvailableProviders implements available_providers operation.
+	//
+	// Get available providers.
+	//
+	// GET /available_providers
+	AvailableProviders(ctx context.Context) ([]AvailableProvidersOKItem, error)
 	// Capabilities implements capabilities operation.
 	//
 	// Get server capabilities.

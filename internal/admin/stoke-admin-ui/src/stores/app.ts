@@ -19,6 +19,12 @@ interface EntityTotals {
   claim_groups: number
 }
 
+interface ProviderType {
+  name: string
+  provider_type: string
+  type_spec: string
+}
+
 export interface ChartDatasets {
   [k : string] : ChartData
 }
@@ -66,6 +72,8 @@ export const useAppStore = defineStore('app', {
 
     chartDatam: {} as ChartDatasets,
     logText: "",
+
+    availableProviders: [] as ProviderType[],
   }),
   getters: {
     authenticated: function() {

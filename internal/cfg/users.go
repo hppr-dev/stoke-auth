@@ -32,10 +32,12 @@ func (u Users) withContext(ctx context.Context) context.Context {
 type ProviderConfig struct {
 	providerConfig
 	ProviderType   string `json:"type"`
+	Name           string `json:"name"`
 }
 
 type providerConfig interface {
 	CreateProvider(context.Context) foreignProvider
+	TypeSpec() string
 }
 
 type foreignProvider interface {
@@ -45,6 +47,7 @@ type foreignProvider interface {
 func (pc *ProviderConfig) UnmarshalJSON(b []byte) error {
 	temp := struct {
 		ProviderType string `json:"type"`
+		Name         string `json:"name"`
 	}{}
 	err := json.Unmarshal(b, &temp)
 	if err != nil {
@@ -52,6 +55,7 @@ func (pc *ProviderConfig) UnmarshalJSON(b []byte) error {
 	}
 
 	pc.ProviderType = temp.ProviderType
+	pc.Name = temp.Name
 	switch(pc.ProviderType) {
 	case "ldap", "LDAP":
 		pc.providerConfig = &LDAPProviderConfig{}

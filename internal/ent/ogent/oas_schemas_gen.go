@@ -9,6 +9,45 @@ import (
 	"github.com/go-faster/jx"
 )
 
+type AvailableProvidersOKItem struct {
+	// Name of provider.
+	Name string `json:"name"`
+	// Type of provider.
+	ProviderType string `json:"provider_type"`
+	// Type specification of provider.
+	TypeSpec string `json:"type_spec"`
+}
+
+// GetName returns the value of Name.
+func (s *AvailableProvidersOKItem) GetName() string {
+	return s.Name
+}
+
+// GetProviderType returns the value of ProviderType.
+func (s *AvailableProvidersOKItem) GetProviderType() string {
+	return s.ProviderType
+}
+
+// GetTypeSpec returns the value of TypeSpec.
+func (s *AvailableProvidersOKItem) GetTypeSpec() string {
+	return s.TypeSpec
+}
+
+// SetName sets the value of Name.
+func (s *AvailableProvidersOKItem) SetName(val string) {
+	s.Name = val
+}
+
+// SetProviderType sets the value of ProviderType.
+func (s *AvailableProvidersOKItem) SetProviderType(val string) {
+	s.ProviderType = val
+}
+
+// SetTypeSpec sets the value of TypeSpec.
+func (s *AvailableProvidersOKItem) SetTypeSpec(val string) {
+	s.TypeSpec = val
+}
+
 type CapabilitiesOK struct {
 	// List of enabled capabilites.
 	Capabilities []string `json:"capabilities"`

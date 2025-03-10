@@ -15,6 +15,8 @@ import (
 )
 
 type LDAPProviderConfig struct {
+	// Name of this ldap provider
+	Name                  string
 	// URL (starting with ldap:// or ldaps://) of the ldap server
 	ServerURL             string `json:"server_url"`
 	// Readonly bind user distinguished name used to look up users in ldap
@@ -49,6 +51,10 @@ type LDAPProviderConfig struct {
 	LDAPCACert            string `json:"ldap_ca_cert"`
 	// Skip verifying the certificate
 	SkipCertificateVerify bool   `json:"skip_certificate_verify"`
+}
+
+func (l LDAPProviderConfig) TypeSpec() string {
+	return "LDAP:" + l.Name
 }
 
 func (l LDAPProviderConfig) CreateProvider(ctx context.Context) foreignProvider {
@@ -109,6 +115,7 @@ func (l LDAPProviderConfig) CreateProvider(ctx context.Context) foreignProvider 
 	}
 
 	return usr.NewLDAPUserProvider(
+		l.Name,
 		l.ServerURL,
 		l.BindUserDN,
 		l.BindUserPassword,

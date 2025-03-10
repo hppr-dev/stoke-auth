@@ -26,8 +26,8 @@
     </template>
   <template #row-icon="{ item }">
       <v-icon
-        :icon="item.source == 'LDAP'? icons.LINK: icons.LOCAL"
-        :color="item.source == 'LDAP'? 'success': 'warning'"
+        :icon="item.source == 'LOCAL'? icons.LOCAL: icons.LINK"
+        :color="item.source == 'LOCAL'? 'warning': 'success'"
       > </v-icon>
     </template>
   </EntityList>

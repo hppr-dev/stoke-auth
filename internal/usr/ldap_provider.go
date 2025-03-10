@@ -27,6 +27,7 @@ type LDAPConnector interface {
 }
 
 type ldapUserProvider struct {
+	Name                  string
 	ServerURL             string
 	BindUserDN            string
 	BindUserPassword      string
@@ -57,8 +58,9 @@ type templateValues struct {
 type ldapDialer struct {}
 
 // Creates a NewLDAPUserProvider
-func NewLDAPUserProvider(url, bindDN, bindPass, groupSearch, groupAttribute, userSearch, fnameField, lnameField, emailField string, searchTimeout int, groupFilter, userFilter *template.Template, dialOpts ...ldap.DialOpt) *ldapUserProvider {
+func NewLDAPUserProvider(name, url, bindDN, bindPass, groupSearch, groupAttribute, userSearch, fnameField, lnameField, emailField string, searchTimeout int, groupFilter, userFilter *template.Template, dialOpts ...ldap.DialOpt) *ldapUserProvider {
 	return &ldapUserProvider{
+		Name:             name,
 		ServerURL:        url,
 		BindUserDN:       bindDN,
 		BindUserPassword: bindPass,
@@ -174,13 +176,13 @@ func (l *ldapUserProvider) getOrCreateUser(username, password string, conn ldap.
 					user.UsernameEQ(username),
 					user.EmailEQ(username),
 				),
-				user.SourceEQ("LDAP"),
+				user.SourceEQ("LDAP:" + l.Name),
 			),
 		).
 		WithClaimGroups(func (q *ent.ClaimGroupQuery) {
 			q.Where(
 				claimgroup.HasGroupLinksWith(
-					grouplink.TypeEQ("LDAP"),
+					grouplink.TypeEQ("LDAP:" + l.Name),
 				),
 			)
 		}).
@@ -283,7 +285,7 @@ func (l *ldapUserProvider) getUserLDAPGroupLinks(username, userDN string, conn l
 	return ent.FromContext(ctx).GroupLink.Query().
 		Where(
 			grouplink.And(
-				grouplink.TypeEQ("LDAP"),
+				grouplink.TypeEQ("LDAP:" + l.Name),
 				grouplink.Or(resourceSpecMatchers...),
 			),
 		).
