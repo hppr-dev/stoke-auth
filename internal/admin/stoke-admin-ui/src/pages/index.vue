@@ -117,6 +117,7 @@ function openIDProviders() {
   return store.availableProviders.filter((p) => p.provider_type == "OIDC")
 }
 
+// TODO bring in provider type
 function handleOIDCLogin(prov) {
   let u = new URL(store.api_url + "/oidc/" + prov.name + "?xfer=window&next=" + window.location.origin)
   addEventListener("message", async (event: MessageEvent) => {
@@ -124,7 +125,7 @@ function handleOIDCLogin(prov) {
     let result = JSON.parse(event.data)
     try {
       if ( result.id_token && result.access_code ) {
-        await store.login(result.id_token, result.access_code, () => router.push("/user"))
+        await store.login(result.id_token, result.access_code, prov.name, () => router.push("/user"))
       }
     } catch (err) {
       console.error(err)
@@ -139,7 +140,7 @@ async function loginOrShowError(event : Promise<SubmitEvent>) {
   try {
     await event
     if ( ! formValid.value ) return
-    await store.login(username.value, password.value, () => router.push("/user"))
+    await store.login(username.value, password.value, "LOCAL", () => router.push("/user"))
   } catch (err) {
     console.error(err)
     loginError.value = true

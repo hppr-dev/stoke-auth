@@ -17,12 +17,12 @@ type provider interface {
 
 type ProviderList struct {
 	*localProvider
-	foreignProviders []provider
+	foreignProviders map[string]provider
 }
 
 func NewProviderList() *ProviderList {
 	return &ProviderList{
-		foreignProviders: []provider{},
+		foreignProviders: make(map[string]provider),
 		localProvider: &localProvider{},
 	}
 }
@@ -33,33 +33,38 @@ func NewProviderList() *ProviderList {
 // If the foreignProviders fail to produce claims, local claims are given, if and only if the user is a local user
 // Claims are tracked in the local database regardless of which provider the claims were derived from
 // Claims may only be pulled from a single provider at a time
-func (p *ProviderList) GetUserClaims(username, password string, ctx context.Context) (*ent.User, ent.Claims, error) {
+func (p *ProviderList) GetUserClaims(username, password, providerID string, ctx context.Context) (*ent.User, ent.Claims, error) {
 	logger := zerolog.Ctx(ctx).With().
 		Str("component", "usr.ProviderList").
+		Str("username", username).
+		Str("provider", providerID).
 		Logger()
 
 	var u *ent.User
 	var err error
-	for _, provider := range p.foreignProviders {
-		u, err = provider.UpdateUserClaims(username, password, ctx);
+
+	prov, found := p.foreignProviders[providerID]
+	if providerID == "" && len(p.foreignProviders) == 1 {
+		for _, v := range p.foreignProviders {
+			prov = v
+			found = true
+		}
+	}
+
+	if found {
+		u, err = prov.UpdateUserClaims(username, password, ctx);
 		logger.Debug().
 			Err(err).
 			Interface("user", u).
-			Msg("Checked Provider")
-		if err == nil {
-			break
-		} else if errors.Is(err, AuthenticationError) {
+			Msg("Done checking provider")
+		if errors.Is(err, AuthenticationError) {
 			return nil, nil, err
 		}
 	}
 
-	logger.Info().
-		Interface("user", u).
-		Msg("Checked all providers")
-
 	return p.localProvider.GetUserClaims(username, password, u, ctx)
 }
 
-func (p *ProviderList) AddForeignProvider(newProvider provider) {
-	p.foreignProviders = append(p.foreignProviders, newProvider)
+func (p *ProviderList) AddForeignProvider(name string, newProvider provider) {
+	p.foreignProviders[name] = newProvider
 }

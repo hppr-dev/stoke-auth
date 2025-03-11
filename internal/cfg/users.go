@@ -23,7 +23,7 @@ func (u Users) withContext(ctx context.Context) context.Context {
 	}
 
 	for _, prov := range u.Providers {
-		providerList.AddForeignProvider(prov.CreateProvider(ctx))
+		providerList.AddForeignProvider(prov.Name, prov.CreateProvider(ctx))
 	}
 
 	return providerList.WithContext(ctx)

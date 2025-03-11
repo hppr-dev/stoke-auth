@@ -4114,11 +4114,16 @@ func (s *LoginOK) encodeFields(e *jx.Encoder) {
 		e.FieldStart("refresh")
 		e.Str(s.Refresh)
 	}
+	{
+		e.FieldStart("username")
+		e.Str(s.Username)
+	}
 }
 
-var jsonFieldsNameOfLoginOK = [2]string{
+var jsonFieldsNameOfLoginOK = [3]string{
 	0: "token",
 	1: "refresh",
+	2: "username",
 }
 
 // Decode decodes LoginOK from json.
@@ -4154,6 +4159,18 @@ func (s *LoginOK) Decode(d *jx.Decoder) error {
 			}(); err != nil {
 				return errors.Wrap(err, "decode field \"refresh\"")
 			}
+		case "username":
+			requiredBitSet[0] |= 1 << 2
+			if err := func() error {
+				v, err := d.Str()
+				s.Username = string(v)
+				if err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"username\"")
+			}
 		default:
 			return d.Skip()
 		}
@@ -4164,7 +4181,7 @@ func (s *LoginOK) Decode(d *jx.Decoder) error {
 	// Validate required fields.
 	var failures []validate.FieldError
 	for i, mask := range [1]uint8{
-		0b00000011,
+		0b00000111,
 	} {
 		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
 			// Mask only required fields and check equality to mask using XOR.
@@ -4228,6 +4245,12 @@ func (s *LoginReq) encodeFields(e *jx.Encoder) {
 		e.Str(s.Password)
 	}
 	{
+		if s.Provider.Set {
+			e.FieldStart("provider")
+			s.Provider.Encode(e)
+		}
+	}
+	{
 		if s.RequiredClaims != nil {
 			e.FieldStart("required_claims")
 			e.ArrStart()
@@ -4249,11 +4272,12 @@ func (s *LoginReq) encodeFields(e *jx.Encoder) {
 	}
 }
 
-var jsonFieldsNameOfLoginReq = [4]string{
+var jsonFieldsNameOfLoginReq = [5]string{
 	0: "username",
 	1: "password",
-	2: "required_claims",
-	3: "filter_claims",
+	2: "provider",
+	3: "required_claims",
+	4: "filter_claims",
 }
 
 // Decode decodes LoginReq from json.
@@ -4288,6 +4312,16 @@ func (s *LoginReq) Decode(d *jx.Decoder) error {
 				return nil
 			}(); err != nil {
 				return errors.Wrap(err, "decode field \"password\"")
+			}
+		case "provider":
+			if err := func() error {
+				s.Provider.Reset()
+				if err := s.Provider.Decode(d); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"provider\"")
 			}
 		case "required_claims":
 			if err := func() error {

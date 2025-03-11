@@ -36,7 +36,7 @@ func (h *entityHandler) Login(ctx context.Context, req *ogent.LoginReq) (ogent.L
 	ctx, span := tel.GetTracer().Start(ctx, "LoginHandler")
 	defer span.End()
 
-	user, pvClaims, err := usr.ProviderFromCtx(ctx).GetUserClaims(req.Username, req.Password, ctx)
+	user, pvClaims, err := usr.ProviderFromCtx(ctx).GetUserClaims(req.Username, req.Password, req.Provider.Value, ctx)
 	if err != nil {
 		logger.Debug().
 			Func(otelzerolog.AddTracingContext(span)).
@@ -90,6 +90,7 @@ func (h *entityHandler) Login(ctx context.Context, req *ogent.LoginReq) (ogent.L
 	return &ogent.LoginOK{
 		Token: token,
 		Refresh: refresh,
+		Username: user.Username,
 	}, nil
 }
 

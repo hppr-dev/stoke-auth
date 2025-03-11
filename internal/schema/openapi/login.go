@@ -33,6 +33,11 @@ func addLoginEndpoint(spec *ogen.Spec) error {
 								SetDescription("User's password"),
 							),
 						*ogen.NewProperty().
+							SetName("provider").
+							SetSchema(ogen.String().
+								SetDescription("Provider to login try to login to. This is required when multiple foreign providers are defined."),
+							),
+						*ogen.NewProperty().
 							SetName("required_claims").
 							SetSchema(ogen.NewSchema().
 								SetType("array").
@@ -64,8 +69,13 @@ func addLoginEndpoint(spec *ogen.Spec) error {
 							SetSchema(ogen.String().
 								SetDescription("Token to get a new token with the same claims. Must be used before token expires"),
 							),
+						*ogen.NewProperty().
+							SetName("username").
+							SetSchema(ogen.String().
+								SetDescription("Username of the user who logged in"),
+							),
 					}).
-					SetRequired([]string{"token", "refresh"}),
+					SetRequired([]string{"username", "token", "refresh"}),
 				),
 			).
 			AddResponse("401", ogen.NewResponse().
