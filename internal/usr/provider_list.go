@@ -52,15 +52,16 @@ func (p *ProviderList) GetUserClaims(username, password, providerID string, ctx 
 	}
 
 	if found {
-		u, err = prov.UpdateUserClaims(username, password, ctx);
-		logger.Debug().
-			Err(err).
-			Interface("user", u).
-			Msg("Done checking provider")
+		u, err = prov.UpdateUserClaims(username, password, ctx)
 		if errors.Is(err, AuthenticationError) {
 			return nil, nil, err
 		}
 	}
+
+	logger.Debug().
+		Err(err).
+		Interface("user", u).
+		Msg("Checked foreign providers")
 
 	return p.localProvider.GetUserClaims(username, password, u, ctx)
 }

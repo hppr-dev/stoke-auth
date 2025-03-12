@@ -202,7 +202,7 @@ func (o *oidcUserProvider) ServeHTTP(res http.ResponseWriter, req *http.Request)
 		Stringer("flow_type", o.FlowType).
 		Logger()
 
-	ctx, span := tel.GetTracer().Start(ctx, "oidcUserProvider.UpdateUserClaims")
+	ctx, span := tel.GetTracer().Start(ctx, "oidcUserProvider.ServeHTTP")
 	defer span.End()
 
 	if urlError := urlParams.Get("error"); urlError != "" {
@@ -405,11 +405,12 @@ func (o *oidcUserProvider) persistClaims(claimMap jwt.MapClaims, ctx context.Con
 		Interface("provider_claims", claimMap).
 		Logger()
 
-	logger.Debug().Msg("Saving user claims")
 	u, err := o.getOrCreateUser(claimMap, ctx)
 	if err != nil {
 		return nil, err
 	}
+	logger.Debug().Interface("user", u).Msg("Saving user claims")
+
 	db := ent.FromContext(ctx)
 
 	claimLinks := []predicate.GroupLink{}
@@ -430,21 +431,27 @@ func (o *oidcUserProvider) persistClaims(claimMap jwt.MapClaims, ctx context.Con
 		}).
 		All(ctx)
 	if err != nil {
+		logger.Error().Err(err).Msg("Could not get group links.")
 		return nil, err
 	} else if len(foundLinks) == 0 {
+		logger.Error().Msg("No group links found")
 		return nil, NoLinkedGroupsError
 	}
 
-	//TODO allow user claim passthrough with or without persistance?
+	logger.Debug().Interface("found_links", foundLinks).Msg("Found group links")
 
+	//TODO allow user claim passthrough with or without persistance?
 	add, del := findGroupChanges(u, foundLinks)
-	if err := applyGroupChanges(add, del, u, ctx) ; err != nil {
+	if u, err = applyGroupChanges(add, del, u, ctx) ; err != nil {
 		logger.Error().
 			Err(err).
 			Msg("Failed to update oidc groups to local user")
+		return nil, err
 	}
 
-	return u, nil
+	logger.Debug().Interface("user", u).Msg("Updated user groups")
+
+	return retreiveLocalUser(u.Username, ctx)
 }
 
 func (o *oidcUserProvider) getOrCreateUser(claimMap jwt.MapClaims, ctx context.Context) (*ent.User, error) {
@@ -464,21 +471,18 @@ func (o *oidcUserProvider) getOrCreateUser(claimMap jwt.MapClaims, ctx context.C
 		return nil, jwt.ErrTokenMalformed
 	}
 
-	db := ent.FromContext(ctx)
-
 	u, err := retreiveLocalUser(email, ctx)
 	if ent.IsNotFound(err) {
 		logger.Info().Msg("User not found, creating in database.")
-		u, _ := db.User.Create().
+		return ent.FromContext(ctx).User.Create().
 			SetFname(fname).
 			SetLname(lname).
 			SetEmail(email).
 			SetUsername(email).
 			SetSource(o.dbSourceName).
 			Save(ctx)
-		return u, nil
 	}
-	logger.Debug().Msg("User found.")
+	logger.Debug().Interface("user", u).Msg("User found.")
 	return u, nil
 
 }

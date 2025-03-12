@@ -146,7 +146,7 @@ func (l *ldapUserProvider) UpdateUserClaims(username, password string, ctx conte
 	// LDAP user groups that the user already has
 	addClaimGroups, delClaimGroups := findGroupChanges(usr, groupLinks)
 
-	if err := applyGroupChanges(addClaimGroups, delClaimGroups, usr, ctx); err != nil {
+	if usr, err = applyGroupChanges(addClaimGroups, delClaimGroups, usr, ctx); err != nil {
 		logger.Error().
 			Func(otelzerolog.AddTracingContext(span)).
 			Err(err).

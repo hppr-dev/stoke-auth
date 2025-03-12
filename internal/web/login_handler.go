@@ -32,7 +32,6 @@ func (h *entityHandler) Login(ctx context.Context, req *ogent.LoginReq) (ogent.L
 		Strs("filter_claims", req.FilterClaims).
 		Logger()
 
-
 	ctx, span := tel.GetTracer().Start(ctx, "LoginHandler")
 	defer span.End()
 
@@ -44,6 +43,8 @@ func (h *entityHandler) Login(ctx context.Context, req *ogent.LoginReq) (ogent.L
 			Msg("Failed to get claims from provider")
 		return &ogent.LoginUnauthorized{}, nil
 	}
+
+	logger = logger.With().Str("username", user.Username).Logger()
 	
 	tokenMap := make(map[string]string)
 
@@ -69,7 +70,7 @@ func (h *entityHandler) Login(ctx context.Context, req *ogent.LoginReq) (ogent.L
 	if !matchedOne {
 		logger.Debug().
 			Interface("provider_claims", pvClaims).
-			Interface("required_claimes", req.RequiredClaims).
+			Interface("required_claims", req.RequiredClaims).
 			Msg("User did not have a required claimset.")
 		return &ogent.LoginUnauthorized{}, nil
 	}

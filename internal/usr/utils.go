@@ -60,25 +60,23 @@ func findGroupChanges(u *ent.User, groupLinks ent.GroupLinks) (ent.ClaimGroups, 
 	return addClaimGroups, delClaimGroups
 }
 
-func applyGroupChanges(add, del ent.ClaimGroups, u *ent.User, ctx context.Context) error {
-	var err error
-	if len(add) > 0 || len(del) > 0 {
-		_, err = u.Update().
-			AddClaimGroups(add...).
-			RemoveClaimGroups(del...).
-			Save(ctx)
+func applyGroupChanges(add, del ent.ClaimGroups, u *ent.User, ctx context.Context) (*ent.User, error) {
+	builder := u.Update()
+	if len(add) > 0 {
+		builder.AddClaimGroups(add...)
 	}
-	return err
+	if len(del) > 0 {
+		builder.RemoveClaimGroups(del...)
+	}
+	return builder.Save(ctx)
 }
 
 func retreiveLocalUser(username string, ctx context.Context) (*ent.User, error) {
 	return ent.FromContext(ctx).User.Query().
 		Where(
-			user.And(
-				user.Or(
-					user.UsernameEQ(username),
-					user.EmailEQ(username),
-				),
+			user.Or(
+				user.UsernameEQ(username),
+				user.EmailEQ(username),
 			),
 		).
 		WithClaimGroups(func (q *ent.ClaimGroupQuery) {
@@ -89,13 +87,15 @@ func retreiveLocalUser(username string, ctx context.Context) (*ent.User, error) 
 
 // retreives the user from the local database. If the user exists, it returns the claims that are associated
 func retreiveLocalClaims(username string, ctx context.Context) (*ent.User, ent.Claims, error) {
-	logger := zerolog.Ctx(ctx)
+	logger := zerolog.Ctx(ctx).With().
+		Str("component", "retreiveLocalClaims").
+		Str("username", username).
+		Logger()
 	ctx, span := tel.GetTracer().Start(ctx, "usr.retreiveLocalClaims")
 	defer span.End()
 
 	logger.Debug().
 		Func(otelzerolog.AddTracingContext(span)).
-		Str("username", username).
 		Msg("Getting user claims")
 
 	u, err := retreiveLocalUser(username, ctx)
@@ -103,14 +103,12 @@ func retreiveLocalClaims(username string, ctx context.Context) (*ent.User, ent.C
 		logger.Error().
 			Func(otelzerolog.AddTracingContext(span)).
 			Err(err).
-			Str("username", username).
 			Msg("Could not find user")
 		return nil, nil, err
 	}
 
 	allClaims := allUserClaims(u)
 	logger.Debug().
-		Str("username", username).
 		Func(otelzerolog.AddTracingContext(span)).
 		Interface("claims", allClaims).
 		Msg("Claims found")

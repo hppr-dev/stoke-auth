@@ -56,14 +56,17 @@ func (l *localProvider) GetUserClaims(username, password string, u *ent.User, ct
 	defer span.End()
 
 	logger := zerolog.Ctx(ctx).With().
-			Str("username", username).
-			Logger()
+		Str("component", "LocalUserProvider.GetUserClaims").
+		Logger()
 
 	var allClaims ent.Claims
 	var err error
 
+	logger.Debug().Interface("user", u).Msg("Getting local claims")
+
 	// Find the user if we haven't got one yet
 	if u == nil {
+		logger.Info().Msg("Finding local user")
 		u, err = retreiveLocalUser(username, ctx)
 		if err != nil {
 			logger.Error().
@@ -83,10 +86,11 @@ func (l *localProvider) GetUserClaims(username, password string, u *ent.User, ct
 			return nil, nil, fmt.Errorf("Bad Password")
 		}
 	}
-	allClaims = allUserClaims(u)
 
+	allClaims = allUserClaims(u)
 	logger.Debug().
 		Func(otelzerolog.AddTracingContext(span)).
+		Str("username", u.Username).
 		Interface("claims", allClaims).
 		Msg("Claims found")
 	return u, allClaims, nil
