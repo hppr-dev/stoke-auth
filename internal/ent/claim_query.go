@@ -5,6 +5,7 @@ package ent
 import (
 	"context"
 	"database/sql/driver"
+	"errors"
 	"fmt"
 	"math"
 	"stoke/internal/ent/claim"
@@ -362,6 +363,12 @@ func (cq *ClaimQuery) prepareQuery(ctx context.Context) error {
 			return err
 		}
 		cq.sql = prev
+	}
+	if claim.Policy == nil {
+		return errors.New("ent: uninitialized claim.Policy (forgotten import ent/runtime?)")
+	}
+	if err := claim.Policy.EvalQuery(ctx, cq); err != nil {
+		return err
 	}
 	return nil
 }

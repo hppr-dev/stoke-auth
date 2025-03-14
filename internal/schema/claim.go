@@ -1,6 +1,8 @@
 package schema
 
 import (
+	"stoke/internal/ent/privacy"
+
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
@@ -37,5 +39,17 @@ func (Claim) Indexes() []ent.Index {
 func (Claim) Mixins() []ent.Mixin {
 	return []ent.Mixin{
 		Common{},
+	}
+}
+
+func (Claim) Policy() ent.Policy {
+	return privacy.Policy {
+		Mutation: privacy.MutationPolicy{
+			RestrictUpdates{
+				EntityType: "claims",
+				FieldName: "short_name",
+			},
+			privacy.AlwaysAllowRule(),
+		},
 	}
 }

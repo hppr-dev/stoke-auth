@@ -4,6 +4,8 @@ package runtime
 
 import (
 	"context"
+	"stoke/internal/ent/claim"
+	"stoke/internal/ent/claimgroup"
 	"stoke/internal/ent/schema"
 	"stoke/internal/ent/user"
 	"time"
@@ -16,6 +18,24 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	claim.Policy = privacy.NewPolicies(schema.Claim{})
+	claim.Hooks[0] = func(next ent.Mutator) ent.Mutator {
+		return ent.MutateFunc(func(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+			if err := claim.Policy.EvalMutation(ctx, m); err != nil {
+				return nil, err
+			}
+			return next.Mutate(ctx, m)
+		})
+	}
+	claimgroup.Policy = privacy.NewPolicies(schema.ClaimGroup{})
+	claimgroup.Hooks[0] = func(next ent.Mutator) ent.Mutator {
+		return ent.MutateFunc(func(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+			if err := claimgroup.Policy.EvalMutation(ctx, m); err != nil {
+				return nil, err
+			}
+			return next.Mutate(ctx, m)
+		})
+	}
 	user.Policy = privacy.NewPolicies(schema.User{})
 	user.Hooks[0] = func(next ent.Mutator) ent.Mutator {
 		return ent.MutateFunc(func(ctx context.Context, m ent.Mutation) (ent.Value, error) {

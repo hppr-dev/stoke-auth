@@ -1,6 +1,8 @@
 package schema
 
 import (
+	"stoke/internal/ent/privacy"
+
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
@@ -34,5 +36,17 @@ func (ClaimGroup) Edges() []ent.Edge {
 func (ClaimGroup) Mixins() []ent.Mixin {
 	return []ent.Mixin{
 		Common{},
+	}
+}
+
+func (ClaimGroup) Policy() ent.Policy {
+	return privacy.Policy {
+		Mutation: privacy.MutationPolicy{
+			RestrictUpdates{
+				EntityType: "groups",
+				FieldName: "name",
+			},
+			privacy.AlwaysAllowRule(),
+		},
 	}
 }

@@ -63,6 +63,10 @@ func (User) Mixins() []ent.Mixin {
 func (User) Policy() ent.Policy {
 	return privacy.Policy {
 		Mutation: privacy.MutationPolicy{
+			RestrictUpdates{
+				EntityType: "users",
+				FieldName: "username",
+			},
 			superTokenOrSelf{},
 			privacy.AlwaysDenyRule(),
 		},

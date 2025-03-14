@@ -10,9 +10,24 @@ import (
 
 type Users struct {
 	// Enable checking/creating stoke admin per-operation claims
-	CreateStokeClaims bool             `json:"create_stoke_claims"`
+	CreateStokeClaims bool              `json:"create_stoke_claims"`
+	// Policy Configuration
+	PolicyConfig PolicyConfig           `json:"policy_config"`
 	// Configs for providers
 	Providers         []*ProviderConfig `json:"providers"`
+}
+
+type PolicyConfig struct {
+	// Allow superuser override protective policies
+	AllowSuperuserOverride bool  `json:"allow_superuser_override"`
+	// Whether to disallow any changes to the database after start up
+	ReadOnlyMode bool            `json:"read_only_mode"`
+	// Users that are not allowed to be changed
+	ProtectedUsers []string      `json:"protected_users"`
+	// Groups that are not allowed to be changed
+	ProtectedGroups []string     `json:"protected_groups"`
+	// Claims that are not allowed to be changed
+	ProtectedClaims []string     `json:"protected_claims"`
 }
 
 func (u Users) withContext(ctx context.Context) context.Context {
