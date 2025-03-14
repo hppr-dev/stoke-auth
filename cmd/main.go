@@ -9,6 +9,7 @@ import (
 	"stoke/internal/cfg"
 	"stoke/internal/usr"
 	"stoke/internal/web"
+	_ "stoke/internal/ent/runtime"
 
 	"github.com/rs/zerolog"
 )

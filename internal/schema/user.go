@@ -5,6 +5,7 @@ import (
 
 	"entgo.io/contrib/entoas"
 	"entgo.io/ent"
+	"entgo.io/ent/privacy"
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
@@ -56,5 +57,14 @@ func (User) Annotations() []schema.Annotation {
 func (User) Mixins() []ent.Mixin {
 	return []ent.Mixin{
 		Common{},
+	}
+}
+
+func (User) Policy() ent.Policy {
+	return privacy.Policy {
+		Mutation: privacy.MutationPolicy{
+			superTokenOrSelf{},
+			privacy.AlwaysDenyRule(),
+		},
 	}
 }
