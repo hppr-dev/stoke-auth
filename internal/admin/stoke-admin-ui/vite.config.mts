@@ -14,7 +14,16 @@ import { fileURLToPath, URL } from 'node:url'
 // https://vitejs.dev/config/
 export default defineConfig({
 	build: {
-		outDir: "../dist"
+		outDir: "../dist",
+		cssCodeSplit: false,
+		rollupOptions: {
+			output: {
+				manualChunks: false,
+				inlineDynamicImports: true,
+				entryFileNames: '[hash].js',
+				assetFileNames: '[hash].[ext]',
+			},
+		},
 	},
 	base: "/admin/",
   plugins: [
