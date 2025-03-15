@@ -1,9 +1,9 @@
 <template>
-  <v-icon :icon="mdiFireCircle" :size="props.size" color="red-lighten-1"></v-icon>
+  <v-icon :icon="icons.STOKE" :size="props.size" color="red-lighten-1"></v-icon>
 </template>
 
 <script setup lang="ts">
-import { mdiFireCircle } from "@mdi/js"
+import icons from '../util/icons'
 
 const props = defineProps<{
   size: string,
