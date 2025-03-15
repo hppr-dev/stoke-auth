@@ -80,7 +80,11 @@
         await hideDialog()
       } catch (err) {
         console.error(err)
-        errorMsg.value = err + ''
+        if ( err.cause ) {
+          errorMsg.value = err.cause
+        } else {
+          errorMsg.value = err + ''
+        }
       }
     } else {
       await hideDialog()

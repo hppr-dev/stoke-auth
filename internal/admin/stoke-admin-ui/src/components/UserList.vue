@@ -1,6 +1,6 @@
 <template>
   <EntityList
-    searchIcon="icons.USER_SEARCH"
+    :searchIcon="icons.USER_SEARCH"
     deleteItemKey="username"
     :items="store.allUsers"
     :headers="headers"
@@ -17,7 +17,7 @@
       <AddActivator
         v-if="props.addButton"
         buttonText="Add User"
-        titleIcon="mdi-account"
+        :titleIcon="icons.USER"
         :onSave="store.addScratchUser"
         :onCancel="store.resetScratchUser"
       >
