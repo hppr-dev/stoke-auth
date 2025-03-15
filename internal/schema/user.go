@@ -5,10 +5,12 @@ import (
 
 	"entgo.io/contrib/entoas"
 	"entgo.io/ent"
-	"entgo.io/ent/privacy"
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+
+	"stoke/internal/ent/privacy"
+	"stoke/internal/ent/schema/policy"
 )
 
 type User struct {
@@ -63,12 +65,7 @@ func (User) Mixins() []ent.Mixin {
 func (User) Policy() ent.Policy {
 	return privacy.Policy {
 		Mutation: privacy.MutationPolicy{
-			RestrictUpdates{
-				EntityType: "users",
-				FieldName: "username",
-			},
-			superTokenOrSelf{},
-			privacy.AlwaysDenyRule(),
+			policy.UserMutationPolicy{},
 		},
 	}
 }
