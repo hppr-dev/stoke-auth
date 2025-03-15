@@ -8,7 +8,7 @@
         variant="text"
         :icon="compProps.deleteIcon? compProps.deleteIcon: icons.DELETE"
         v-bind="props"
-        @click="dialogOpen = true"
+        @click.stop="dialogOpen = true"
       ></v-btn>
     </template>
   </v-tooltip>
