@@ -119,7 +119,8 @@ function openIDProviders() {
 
 // TODO bring in provider type
 function handleOIDCLogin(prov) {
-  let u = new URL(store.api_url + "/oidc/" + prov.name + "?xfer=window&next=" + window.location.origin)
+  let u = new URL(store.api_url + "/oidc/" + prov.name + "?xfer=window&next=" + window.location.origin, window.location.origin)
+  console.log(u)
   addEventListener("message", async (event: MessageEvent) => {
     if ( event.origin !== u.origin ) return;
     let result = JSON.parse(event.data)
