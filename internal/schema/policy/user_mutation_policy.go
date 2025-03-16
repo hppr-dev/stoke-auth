@@ -3,7 +3,6 @@ package policy
 import (
 	"context"
 	"slices"
-	"stoke/internal/cfg"
 	"stoke/internal/ent"
 
 	"stoke/internal/ent/privacy"
@@ -86,18 +85,14 @@ func (p UserMutationPolicy) getTargetUserOrDeny(ctx context.Context, m *ent.User
 }
 
 func (p UserMutationPolicy) denyChangesToProtectedEntities(ctx context.Context, user *ent.User) error {
-	if slices.Contains(cfg.Ctx(ctx).Users.PolicyConfig.ProtectedUsers, user.Username) {
+	if slices.Contains(policyFromCtx(ctx).protectedUsernames, user.Username) {
 		return privacy.Denyf("User %s is read-only", user.Username)
 	}
 	return nil
 }
 
 func (p UserMutationPolicy) allowChangesToSelf(ctx context.Context, user *ent.User, claims map[string]string) error {
-	usernameClaim, ok := cfg.Ctx(ctx).Tokens.UserInfo["username"]
-	if !ok {
-		return privacy.Denyf("Could not determine username")
-	}
-	username, _ := claims[usernameClaim]
+	username, _ := claims[policyFromCtx(ctx).usernameClaim]
 	if user.Username == username {
 		return privacy.Allow
 	}

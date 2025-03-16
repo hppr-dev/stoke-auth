@@ -25,13 +25,13 @@ type Server struct {
 	DisableAdmin bool     `json:"disable_admin"`
 }
 
-type serveMuxCtxKey struct {}
+var serveMuxCtxKey = struct{}{}
 
 func (s Server) WithContext(ctx context.Context) context.Context {
 	mux := http.NewServeMux()
-	return context.WithValue(ctx, serveMuxCtxKey{}, mux)
+	return context.WithValue(ctx, serveMuxCtxKey, mux)
 }
 
 func MuxFromContext(ctx context.Context) *http.ServeMux {
-	return ctx.Value(serveMuxCtxKey{}).(*http.ServeMux)
+	return ctx.Value(serveMuxCtxKey).(*http.ServeMux)
 }

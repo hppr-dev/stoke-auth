@@ -29,7 +29,7 @@ func TestLocalGetUserClaimsHappy(t *testing.T) {
 
 	localProvider := localProvider{}
 
-	user, claims, err := localProvider.GetUserClaims("gramsey", "thisdoesn'ttastegood", ctx)
+	user, claims, err := localProvider.GetUserClaims("gramsey", "thisdoesn'ttastegood", nil, ctx)
 	if err != nil {
 		t.Fatalf("GetUserClaims returned an error: %v", err)
 	}
@@ -69,7 +69,7 @@ func TestGetUserClaimsQueryFailure(t *testing.T) {
 
 	localProvider := localProvider{}
 
-	if _, _, err := localProvider.GetUserClaims("gramsey", "thisdoesn'ttastegood", ctx); err == nil {
+	if _, _, err := localProvider.GetUserClaims("gramsey", "thisdoesn'ttastegood", nil, ctx); err == nil {
 		t.Fatal("GetUserClaims did not return an error")
 	}
 }
@@ -96,7 +96,7 @@ func TestGetUserClaimsBadPassword(t *testing.T) {
 
 	localProvider := localProvider{}
 
-	if _, _, err := localProvider.GetUserClaims("gramsey", "yummyintummy", ctx); err == nil {
+	if _, _, err := localProvider.GetUserClaims("gramsey", "yummyintummy", nil, ctx); err == nil {
 		t.Fatal("GetUserClaims did not return an error")
 	}
 }

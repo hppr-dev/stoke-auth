@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"stoke/internal/ent"
+	"stoke/internal/schema/policy"
 	"stoke/internal/usr"
 )
 
@@ -31,6 +32,8 @@ type PolicyConfig struct {
 }
 
 func (u Users) withContext(ctx context.Context) context.Context {
+	ctx = u.PolicyConfig.withContext(ctx)
+
 	providerList := usr.NewProviderList()
 
 	if u.CreateStokeClaims {
@@ -42,6 +45,20 @@ func (u Users) withContext(ctx context.Context) context.Context {
 	}
 
 	return providerList.WithContext(ctx)
+}
+
+func (p PolicyConfig) withContext(ctx context.Context) context.Context {
+	conf := Ctx(ctx)
+	return policy.ConfigurePolicies(
+		p.ProtectedUsers,
+		p.ProtectedClaims,
+		p.ProtectedGroups,
+		conf.Tokens.UserInfo["username"],
+		p.ReadOnlyMode,
+		p.AllowSuperuserOverride,
+		ctx,
+	)
+
 }
 
 type ProviderConfig struct {

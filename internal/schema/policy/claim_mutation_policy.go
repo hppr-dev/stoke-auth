@@ -3,7 +3,6 @@ package policy
 import (
 	"context"
 	"slices"
-	"stoke/internal/cfg"
 	"stoke/internal/ent"
 
 	"stoke/internal/ent/claim"
@@ -79,7 +78,7 @@ func (p ClaimMutationPolicy) getTargetClaimsOrDeny(ctx context.Context, m *ent.C
 
 func (p ClaimMutationPolicy) denyChangesToProtectedEntities(ctx context.Context, claims ent.Claims) error {
 	for _, claim := range claims {
-		if slices.Contains(cfg.Ctx(ctx).Users.PolicyConfig.ProtectedClaims, claim.ShortName) {
+		if slices.Contains(policyFromCtx(ctx).protectedClaimShortNames, claim.ShortName) {
 			return privacy.Denyf("Claim %s is read-only", claim.ShortName)
 		}
 	}

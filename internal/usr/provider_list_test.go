@@ -31,7 +31,7 @@ func TestNoForeignProviders(t *testing.T) {
 
 	emptyProviderList := usr.NewProviderList()
 
-	user, claims, err := emptyProviderList.GetUserClaims("hello", "world", ctx)
+	user, claims, err := emptyProviderList.GetUserClaims("hello", "world", "", ctx)
 	if err != nil {
 		t.Fatalf("Failed to get user claims from local: %v", err)
 	}
@@ -57,25 +57,31 @@ type MockProvider struct {
 	ReturnValue error
 }
 
-func (m *MockProvider) UpdateUserClaims(username, _ string, ctx context.Context) error {
-	foundUser, _ := ent.FromContext(ctx).User.Query().
+func (m *MockProvider) UpdateUserClaims(username, _ string, ctx context.Context) (*ent.User, error) {
+	foundUser := ent.FromContext(ctx).User.Query().
 		Where(user.UsernameEQ(username)).
-		First(ctx)
+		FirstX(ctx)
 	if foundUser != nil {
 		if m.AddGroup != "" {
-			foundGroup, _ := ent.FromContext(ctx).ClaimGroup.Query().
+			foundGroup := ent.FromContext(ctx).ClaimGroup.Query().
 				Where(claimgroup.NameEQ(m.AddGroup)).
-				First(ctx)
+				OnlyX(ctx)
 			foundUser.Update().AddClaimGroups(foundGroup).SaveX(ctx)
 		}
 		if m.RemoveGroup != "" {
-			foundGroup, _ := ent.FromContext(ctx).ClaimGroup.Query().
+			foundGroup := ent.FromContext(ctx).ClaimGroup.Query().
 				Where(claimgroup.NameEQ(m.RemoveGroup)).
-				First(ctx)
+				OnlyX(ctx)
 			foundUser.Update().RemoveClaimGroups(foundGroup).SaveX(ctx)
 		}
+		foundUser = ent.FromContext(ctx).User.Query().
+			Where(user.UsernameEQ(username)).
+			WithClaimGroups(func(q *ent.ClaimGroupQuery) {
+				q.WithClaims()
+			}).
+			OnlyX(ctx)
 	}
-	return m.ReturnValue
+	return foundUser, m.ReturnValue
 }
 
 func TestReturnsForeignInfoWhenForeignDoesNotReturnAnError(t *testing.T) {
@@ -97,9 +103,9 @@ func TestReturnsForeignInfoWhenForeignDoesNotReturnAnError(t *testing.T) {
 	pl := usr.NewProviderList()
 
 	foreign := &MockProvider{}
-	pl.AddForeignProvider(foreign)
+	pl.AddForeignProvider("foreign", foreign)
 
-	user, claims, err := pl.GetUserClaims("user1", "chooch", ctx)
+	user, claims, err := pl.GetUserClaims("user1", "chooch", "foreign", ctx)
 	if err != nil {
 		t.Fatalf("GetUserClaims returned an error: %v", err)
 	}
@@ -144,9 +150,9 @@ func TestReturnsLocalInfoWhenForeignReturnsAuthSourceError(t *testing.T) {
 	foreign := &MockProvider{
 		ReturnValue: usr.AuthSourceError,
 	}
-	pl.AddForeignProvider(foreign)
+	pl.AddForeignProvider("foreign", foreign)
 
-	user, claims, err := pl.GetUserClaims("localuser", "plop", ctx)
+	user, claims, err := pl.GetUserClaims("localuser", "plop", "foreign", ctx)
 	if err != nil {
 		t.Fatalf("GetUserClaims returned an error: %v", err)
 	}
@@ -200,11 +206,11 @@ func TestReturnsForeignInfoWithMultipleForeignProviders(t *testing.T) {
 		AddGroup : "success group",
 	}
 
-	pl.AddForeignProvider(foreignFail)
-	pl.AddForeignProvider(foreignSuccess)
+	pl.AddForeignProvider("fail", foreignFail)
+	pl.AddForeignProvider("success", foreignSuccess)
 
 
-	user, claims, err := pl.GetUserClaims("user1", "somepass", ctx)
+	user, claims, err := pl.GetUserClaims("user1", "somepass", "success", ctx)
 	if err != nil {
 		t.Fatalf("GetUserClaims returned an error: %v", err)
 	}
@@ -243,9 +249,9 @@ func TestReturnsBadPasswordWhenAProviderReturnsAuthenticationError(t *testing.T)
 	foreignFail := &MockProvider{
 		ReturnValue: usr.AuthenticationError,
 	}
-	pl.AddForeignProvider(foreignFail)
+	pl.AddForeignProvider("fail", foreignFail)
 
-	_, _, err := pl.GetUserClaims("user1", "somepass", ctx)
+	_, _, err := pl.GetUserClaims("user1", "somepass", "fail", ctx)
 	if err == nil {
 		t.Fatal("GetUserClaims did not return an error")
 	}

@@ -14,10 +14,10 @@ import (
 	"hppr.dev/stoke"
 )
 
-type issuerCtxKey struct {}
+var issuerCtxKey = struct{}{}
 
 func IssuerFromCtx(ctx context.Context) TokenIssuer {
-	return ctx.Value(issuerCtxKey{}).(TokenIssuer)
+	return ctx.Value(issuerCtxKey).(TokenIssuer)
 }
 
 type TokenIssuer interface {
@@ -37,7 +37,7 @@ type AsymetricTokenIssuer[P PrivateKey]  struct {
 }
 
 func (a *AsymetricTokenIssuer[P]) WithContext(ctx context.Context) context.Context {
-	return context.WithValue(ctx, issuerCtxKey{}, a)
+	return context.WithValue(ctx, issuerCtxKey, a)
 }
 
 func (a *AsymetricTokenIssuer[P]) IssueToken(claims *stoke.Claims, ctx context.Context) (string, string, error) {

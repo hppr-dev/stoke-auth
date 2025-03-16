@@ -54,6 +54,7 @@ func (p *ProviderList) GetUserClaims(username, password, providerID string, ctx 
 	if found {
 		u, err = prov.UpdateUserClaims(username, password, ctx)
 		if errors.Is(err, AuthenticationError) {
+			logger.Debug().Err(err).Msg("Provider returned an error")
 			return nil, nil, err
 		}
 	}

@@ -7,7 +7,6 @@ import (
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"html/template"
 	"io"
@@ -47,11 +46,6 @@ import (
 // Depending on the AuthFlowType and the ClaimSource, some steps may be skipped.
 // The ClaimSource defines the goal of the process, so once it has been obtained no additional steps are needed
 
-
-var (
-	TokenRetrievalError = errors.New("Could not retrieve token from token url")
-	ProviderAuthError = errors.New("Could not authenticate user")
-)
 
 type postRedirectData struct {
 	IDToken string
@@ -337,7 +331,7 @@ func (o *oidcUserProvider) UpdateUserClaims(idToken, accessToken string, ctx con
 		accessParts := strings.Split(accessToken, "$")
 		if len(accessParts) != 3 {
 			logger.Debug().Str("token", accessToken).Msg("Received bad access token")
-			return nil, ProviderAuthError
+			return nil, AuthenticationError
 		}
 		state := accessParts[0]
 		addr := accessParts[1]
@@ -345,7 +339,7 @@ func (o *oidcUserProvider) UpdateUserClaims(idToken, accessToken string, ctx con
 
 		if nonceClaim, ok := claimMap["nonce"]; ok && nonceClaim != nonceStr {
 			logger.Debug().Interface("nonce", nonceClaim).Msg("Received bad nonce")
-			return nil, ProviderAuthError
+			return nil, AuthenticationError
 		}
 
 		// The iat should be within the same interval as the generated state (10min)
@@ -353,7 +347,7 @@ func (o *oidcUserProvider) UpdateUserClaims(idToken, accessToken string, ctx con
 		if iatClaim, err := claimMap.GetIssuedAt(); err == nil{
 			if time.Now().After(iatClaim.Add(10 * time.Minute)){
 				logger.Debug().Time("issued_at", iatClaim.Time).Msg("Got stale id token")
-				return nil, ProviderAuthError
+				return nil, AuthenticationError
 			}
 			tint = timeToBytes(iatClaim.Truncate(10 * time.Minute))
 		}
@@ -369,7 +363,7 @@ func (o *oidcUserProvider) UpdateUserClaims(idToken, accessToken string, ctx con
 				Str("state", state).
 				Str("expected_state", expectedState).
 				Msg("State did not match expected")
-			return nil, ProviderAuthError
+			return nil, AuthenticationError
 		}
 	}
 
@@ -603,11 +597,11 @@ func (o *oidcUserProvider) getTokens(idToken, accessToken, authCode string, ctx 
 			Bytes("response_bytes", bodyBytes).
 			Str("response_error", errStr).
 			Msg("Received an error from the token endpoint")
-		return "", "", TokenRetrievalError
+		return "", "", OIDCTokenRetrievalError
 	}
 
 	if ( idToken == "" && o.ClaimSource == IDENTITY_TOKEN ) || ( accessToken == "" && o.ClaimSource == USER_INFO ) {
-		return "", "", TokenRetrievalError
+		return "", "", OIDCTokenRetrievalError
 	}
 
 	logger.Debug().

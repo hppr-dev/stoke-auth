@@ -6,10 +6,10 @@ import (
 	"github.com/rs/zerolog"
 )
 
-type configCtxKey struct{}
+var configCtxKey = struct{}{}
 
 func Ctx(ctx context.Context) *Config {
-	return ctx.Value(configCtxKey{}).(*Config)
+	return ctx.Value(configCtxKey).(*Config)
 }
 
 func augmentContext(ctx context.Context, componentName string) context.Context {

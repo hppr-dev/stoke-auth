@@ -8,6 +8,7 @@ import (
 	"stoke/internal/ent/claim"
 	"stoke/internal/ent/claimgroup"
 	"stoke/internal/ent/enttest"
+	"stoke/internal/schema/policy"
 	"testing"
 	"time"
 
@@ -15,6 +16,7 @@ import (
 	"golang.org/x/crypto/argon2"
 )
 
+var bypassCtx = policy.BypassDatabasePolicies(context.Background())
 
 type DatabaseMutation func(*ent.Client)
 
@@ -40,7 +42,7 @@ func KeyWithExpires(exp time.Time) DatabaseMutation {
 		client.PrivateKey.Create().
 			SetExpires(exp).
 			SetText("DHGQKw0oDDcMcZArDSgMNwxxkCsNKAw3DHGQKw0oDDe1-1s-xW4vzlPSPGN3OTEStdBKaW3SHjMRGJL5rk6IAA==").
-			SaveX(context.Background())
+			SaveX(bypassCtx)
 	}
 }
 
@@ -50,7 +52,7 @@ func ForeverKeyWithText(text string) DatabaseMutation {
 		client.PrivateKey.Create().
 			SetExpires(time.Date(5000, time.January, 10, 10, 10, 10, 10, time.UTC)).
 			SetText(text).
-			SaveX(context.Background())
+			SaveX(bypassCtx)
 	}
 }
 
@@ -87,7 +89,7 @@ func User(opts ...UserOption) DatabaseMutation {
 		for _, opt := range opts {
 			opt(userCreate)
 		}
-		userCreate.SaveX(context.Background())
+		userCreate.SaveX(bypassCtx)
 	}
 }
 
@@ -119,7 +121,7 @@ func Password(pass string) UserOption {
 // Lookup a group by name and add it to the user. The group should already be created
 func GroupFromName(name string) UserOption {
 	return func(u *ent.UserCreate) {
-		group := u.Mutation().Client().ClaimGroup.Query().Where(claimgroup.NameEQ(name)).FirstX(context.Background())
+		group := u.Mutation().Client().ClaimGroup.Query().Where(claimgroup.NameEQ(name)).FirstX(bypassCtx)
 		u.AddClaimGroups(group)
 	}
 }
@@ -134,7 +136,7 @@ func Group(opts ...GroupOption) UserOption {
 		for _, opt := range opts {
 			opt(groupCreate)
 		}
-		group := groupCreate.SaveX(context.Background())
+		group := groupCreate.SaveX(bypassCtx)
 		u.AddClaimGroups(group)
 	}
 }
@@ -148,12 +150,12 @@ func GroupInfo(name, desc string) GroupOption {
 }
 
 // Creates an LDAP group link and adds it to the group
-func LDAPLink(rSpec string) GroupOption {
+func LDAPLink(providerName, groupName string) GroupOption {
 	return func(c *ent.ClaimGroupCreate) {
 		link := c.Mutation().Client().GroupLink.Create().
-			SetResourceSpec(rSpec).
-			SetType("LDAP").
-			SaveX(context.Background())
+			SetResourceSpec(groupName).
+			SetType("LDAP:" + providerName).
+			SaveX(bypassCtx)
 		c.AddGroupLinks(link)
 	}
 }
@@ -161,7 +163,7 @@ func LDAPLink(rSpec string) GroupOption {
 // Add a claim to the group using a name to look up. The claim should be created before calling this.
 func ClaimFromName(name string) GroupOption {
 	return func(c *ent.ClaimGroupCreate) {
-		claim := c.Mutation().Client().Claim.Query().Where(claim.NameEQ(name)).FirstX(context.Background())
+		claim := c.Mutation().Client().Claim.Query().Where(claim.NameEQ(name)).FirstX(bypassCtx)
 		c.AddClaims(claim)
 	}
 }
@@ -175,7 +177,7 @@ func Claim(opts ...ClaimOption) GroupOption {
 		for _, opt := range opts {
 			opt(claimCreate)
 		}
-		claim := claimCreate.SaveX(context.Background())
+		claim := claimCreate.SaveX(bypassCtx)
 		c.AddClaims(claim)
 	}
 }

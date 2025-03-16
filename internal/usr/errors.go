@@ -7,4 +7,5 @@ var (
 	NoLinkedGroupsError = errors.New("No linked groups associated with user")
 	UserNotFoundError   = errors.New("User not found")
 	AuthSourceError     = errors.New("An error occured with the authentication source")
+	OIDCTokenRetrievalError = errors.New("Could not retrieve token from token url")
 )
