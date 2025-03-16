@@ -6,7 +6,11 @@ import (
 	"github.com/rs/zerolog"
 )
 
-var configCtxKey = struct{}{}
+type ctxKey byte
+const (
+	configCtxKey ctxKey = iota
+	serveMuxCtxKey
+)
 
 func Ctx(ctx context.Context) *Config {
 	return ctx.Value(configCtxKey).(*Config)

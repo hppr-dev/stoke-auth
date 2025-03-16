@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"stoke/internal/ent"
-	"stoke/internal/schema/policy"
+	"stoke/internal/ent/schema/policy"
 	"stoke/internal/usr"
 )
 

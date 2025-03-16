@@ -16,6 +16,7 @@ import (
 	"stoke/internal/ent"
 	"stoke/internal/ent/grouplink"
 	"stoke/internal/ent/predicate"
+	"stoke/internal/ent/schema/policy"
 	"stoke/internal/tel"
 	"strings"
 	"time"
@@ -436,7 +437,7 @@ func (o *oidcUserProvider) persistClaims(claimMap jwt.MapClaims, ctx context.Con
 
 	//TODO allow user claim passthrough with or without persistance?
 	add, del := findGroupChanges(u, foundLinks)
-	if u, err = applyGroupChanges(add, del, u, ctx) ; err != nil {
+	if u, err = applyGroupChanges(add, del, u, policy.BypassDatabasePolicies(ctx)) ; err != nil {
 		logger.Error().
 			Err(err).
 			Msg("Failed to update oidc groups to local user")

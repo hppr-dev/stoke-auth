@@ -5,6 +5,7 @@ import (
 	"slices"
 	"stoke/internal/ent"
 
+	"stoke/internal/ent/claimgroup"
 	"stoke/internal/ent/privacy"
 
 	"github.com/rs/zerolog"
@@ -18,6 +19,7 @@ type UserMutationPolicy struct {}
 //   * Disallows changes to multiple users at once
 //   * Allows the logged in user to modify themselves
 //   * Allows superusers to modify anyone else
+//   * Disallows assigning superuser priviledges from non-superusers
 func (p UserMutationPolicy) EvalMutation(ctx context.Context, m ent.Mutation) error {
 	userM := m.(*ent.UserMutation)
 
@@ -36,6 +38,11 @@ func (p UserMutationPolicy) EvalMutation(ctx context.Context, m ent.Mutation) er
 		return privacy.Denyf("Server is running in read-only mode")
 	}
 
+	if userM.Op().Is(ent.OpCreate) {
+		logger.Debug().Msg("Allowing user creation")
+		return privacy.Allow
+	}
+
 	user, err := p.getTargetUserOrDeny(ctx, userM)
 	if err != nil {
 		logger.Warn().Err(err).Msg("Could not get target user")
@@ -50,6 +57,11 @@ func (p UserMutationPolicy) EvalMutation(ctx context.Context, m ent.Mutation) er
 	claims, err := getClaimsOrDeny(ctx)
 	if err != nil {
 		logger.Warn().Err(err).Msg("Could not get user claims")
+		return err
+	}
+
+	if err := p.denyAssigningSuperuserFromNonSuperuser(ctx, userM, claims); err != nil {
+		logger.Warn().Err(err).Msg("Non-superuser trying to assign super priviledges")
 		return err
 	}
 
@@ -95,6 +107,31 @@ func (p UserMutationPolicy) allowChangesToSelf(ctx context.Context, user *ent.Us
 	username, _ := claims[policyFromCtx(ctx).usernameClaim]
 	if user.Username == username {
 		return privacy.Allow
+	}
+	return nil
+}
+
+func (p UserMutationPolicy) denyAssigningSuperuserFromNonSuperuser(ctx context.Context, userM *ent.UserMutation, claims map[string]string) error {
+	if slices.Contains(userM.AddedEdges(), "claim_groups") {
+		groupIDs := userM.ClaimGroupsIDs()
+		mutGroups, err := userM.Client().ClaimGroup.Query().
+			Where(
+				claimgroup.IDIn(groupIDs...),
+			).
+			WithClaims().
+			All(ctx)
+		if err != nil {
+			return privacy.Denyf("Could not determine assigned groups")
+		}
+
+		userIsNotSuper := claims["stk"] != "S"
+		for _, group := range mutGroups {
+			for _, claim := range group.Edges.Claims {
+				if userIsNotSuper && claim.ShortName == "stk" && claim.Value == "S" {
+					return privacy.Denyf("Cannot assign superuser claim from non superuser")
+				}
+			}
+		}
 	}
 	return nil
 }

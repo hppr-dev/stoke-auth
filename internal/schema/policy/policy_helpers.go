@@ -7,9 +7,10 @@ import (
 	"hppr.dev/stoke"
 )
 
-var (
-	policyConfigCtxKey = struct{}{}
-	allowDBInitKey = struct{}{}
+type ctxKey byte
+const (
+	policyConfigCtxKey ctxKey = iota
+	allowDBInitKey
 )
 
 type policyConfig struct {
