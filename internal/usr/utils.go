@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"stoke/internal/ent"
+	"stoke/internal/ent/schema/policy"
 	"stoke/internal/ent/user"
 	"stoke/internal/tel"
 
@@ -61,6 +62,7 @@ func findGroupChanges(u *ent.User, groupLinks ent.GroupLinks) (ent.ClaimGroups, 
 }
 
 func applyGroupChanges(add, del ent.ClaimGroups, u *ent.User, ctx context.Context) (*ent.User, error) {
+	ctx = policy.BypassDatabasePolicies(ctx)
 	builder := u.Update()
 	if len(add) > 0 {
 		builder.AddClaimGroups(add...)

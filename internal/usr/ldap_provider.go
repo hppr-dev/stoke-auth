@@ -4,10 +4,8 @@ import (
 	"context"
 	"errors"
 	"stoke/internal/ent"
-	"stoke/internal/ent/claimgroup"
 	"stoke/internal/ent/grouplink"
 	"stoke/internal/ent/predicate"
-	"stoke/internal/ent/user"
 	"stoke/internal/tel"
 	"strings"
 	"text/template"
@@ -154,7 +152,11 @@ func (l *ldapUserProvider) UpdateUserClaims(username, password string, ctx conte
 		return nil, err
 	}
 
-	return usr, nil
+	usr, err = retreiveLocalUser(usr.Username, ctx)
+	if len(usr.Edges.ClaimGroups) == 0 {
+		return nil, NoLinkedGroupsError
+	} 
+	return usr, err
 }
 
 // Creates the user if it exists in LDAP
@@ -169,26 +171,20 @@ func (l *ldapUserProvider) getOrCreateUser(username, password string, conn ldap.
 		return nil, nil, err
 	}
 
-	usr, dbErr := ent.FromContext(ctx).User.Query().
-		Where(
-			user.And(
-				user.Or(
-					user.UsernameEQ(username),
-					user.EmailEQ(username),
-				),
-				user.SourceEQ("LDAP:" + l.Name),
-			),
-		).
-		WithClaimGroups(func (q *ent.ClaimGroupQuery) {
-			q.Where(
-				claimgroup.HasGroupLinksWith(
-					grouplink.TypeEQ("LDAP:" + l.Name),
-				),
-			)
-		}).
-		Only(ctx)
+	usr, dbErr := retreiveLocalUser(username, ctx)
 	if dbErr != nil && !ent.IsNotFound(dbErr) {
 		return nil, nil, dbErr
+	}
+
+	if ent.IsNotFound(dbErr) {
+		usr, err = l.createLocalUser(username, userEntry, ctx)
+		if err != nil {
+			logger.Error().
+				Err(err).
+				Str("userDN", userEntry.DN).
+				Msg("Could not create local user")
+			return nil, nil, err
+		}
 	}
 
 	groupLinks, err := l.getUserLDAPGroupLinks(username, userEntry.DN, conn, ctx)
@@ -205,18 +201,7 @@ func (l *ldapUserProvider) getOrCreateUser(username, password string, conn ldap.
 			Err(err).
 			Str("userDN", userEntry.DN).
 			Msg("User has no linked groups")
-		return usr, groupLinks, NoLinkedGroupsError
-	}
-
-	if ent.IsNotFound(dbErr) {
-		usr, err = l.createLocalUser(username, userEntry, ctx)
-		if err != nil {
-			logger.Error().
-				Err(err).
-				Str("userDN", userEntry.DN).
-				Msg("Could not create local user")
-			return nil, nil, err
-		}
+		return usr, nil, NoLinkedGroupsError
 	}
 
 	logger.Debug().

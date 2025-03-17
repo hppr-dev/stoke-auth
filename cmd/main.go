@@ -8,7 +8,6 @@ import (
 	"os"
 	"stoke/internal/cfg"
 	_ "stoke/internal/ent/runtime"
-	"stoke/internal/ent/schema/policy"
 	"stoke/internal/usr"
 	"stoke/internal/web"
 
@@ -60,9 +59,8 @@ func main() {
 		Interface("config", config).
 		Msg("Config Loaded")
 
-	policyBypassCtx := policy.BypassDatabasePolicies(rootCtx)
 	if *dbInitFile != "" {
-		if err := cfg.InitializeDatabaseFromFile(*dbInitFile, policyBypassCtx); err != nil {
+		if err := cfg.InitializeDatabaseFromFile(*dbInitFile, rootCtx); err != nil {
 			logger.Error().
 				Err(err).
 				Str("initFile", *dbInitFile).
@@ -70,7 +68,7 @@ func main() {
 		}
 	}
 
-	if err := usr.ProviderFromCtx(rootCtx).CheckCreateForSuperUser(policyBypassCtx); err != nil {
+	if err := usr.ProviderFromCtx(rootCtx).CheckCreateForSuperUser(rootCtx); err != nil {
 		logger.Error().
 			Err(err).
 			Msg("Could not check/create super user")

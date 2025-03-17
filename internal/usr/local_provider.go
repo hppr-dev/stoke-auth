@@ -6,6 +6,7 @@ import (
 	"stoke/internal/ent"
 	"stoke/internal/ent/claim"
 	"stoke/internal/ent/claimgroup"
+	"stoke/internal/ent/schema/policy"
 	"stoke/internal/ent/user"
 	"stoke/internal/tel"
 
@@ -143,6 +144,7 @@ func (l *localProvider) getOrCreateSuperGroup(ctx context.Context) (*ent.ClaimGr
 }
 
 func (l *localProvider) CheckCreateForSuperUser(ctx context.Context) error {
+	ctx = policy.BypassDatabasePolicies(ctx)
 	superGroup, err := l.getOrCreateSuperGroup(ctx)
 	if err != nil {
 		return err
@@ -192,6 +194,7 @@ func (l *localProvider) UpdateUserPassword(username, oldPassword, newPassword st
 
 func (l *localProvider) CheckCreateForStokeClaims(ctx context.Context) error {
 	logger := zerolog.Ctx(ctx)
+	ctx = policy.BypassDatabasePolicies(ctx)
 	if err := l.checkCreateClaim("Read Claims", "Grants read access to claims", "c", ctx); err != nil {
 		logger.Warn().Err(err).Msg("Could not create read claims claim")
 	}

@@ -141,7 +141,7 @@ async function loginOrShowError(event : Promise<SubmitEvent>) {
   try {
     await event
     if ( ! formValid.value ) return
-    await store.login(username.value, password.value, "LOCAL", () => router.push("/user"))
+    await store.login(username.value, password.value, "", () => router.push("/user"))
   } catch (err) {
     console.error(err)
     loginError.value = true

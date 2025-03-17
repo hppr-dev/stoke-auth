@@ -115,8 +115,8 @@ func TestLDAPUpdateUserClaimsNoLinkedGroups(t *testing.T) {
 	ldapProvider := createLDAPProvider()
 	ldapProvider.SetConnector(conn)
 
-	if _, err := ldapProvider.UpdateUserClaims("ldapuser", "luserpass", ctx); err == nil {
-		t.Fatalf("Was able to get claims for user with no linked groups")
+	if u, err := ldapProvider.UpdateUserClaims("ldapuser", "luserpass", ctx); err == nil {
+		t.Fatalf("Was able to get claims for user with no linked groups: %v", u)
 	}
 }
 
@@ -298,8 +298,8 @@ func TestLDAPUpdateUserClaimsRemovedAllGroups(t *testing.T) {
 	ldapProvider.SetConnector(conn)
 
 	_, err := ldapProvider.UpdateUserClaims("ldapuser", "luserpass", ctx)
-	if err != nil {
-		t.Fatalf("UpdateUserClaims returned an error: %v", err)
+	if err == nil {
+		t.Fatalf("UpdateUserClaims did not return an error")
 	}
 
 	user, claims := getUserAndClaims("ldapuser", ctx)
@@ -366,15 +366,17 @@ func TestLDAPUpdateUserClaimsRemovedAllGroupsWithRemainingLocal(t *testing.T) {
 	ldapProvider.SetConnector(conn)
 
 	_, err := ldapProvider.UpdateUserClaims("ldapuser", "luserpass", ctx)
-	if err != nil {
-		t.Fatalf("An error occurred getting user claims: %v", err)
+	if err == nil {
+		t.Fatal("An error did not occurred getting user claims")
+	}
+	if errors.Is(usr.AuthenticationError, err) {
+		t.Fatal("An authentication error was returned by update user claims, this will stop local look ups.")
 	}
 
 	user, claims := getUserAndClaims("ldapuser", ctx)
 
 	if len(claims) != 1 {
-		t.Logf("Claims length did not match: %v", claims)
-		t.Fail()
+		t.Fatalf("Claims length did not match: %v", claims)
 	}
 
 	c := claims[0]

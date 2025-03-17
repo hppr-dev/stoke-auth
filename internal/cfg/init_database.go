@@ -7,6 +7,7 @@ import (
 	"stoke/internal/ent"
 	"stoke/internal/ent/claim"
 	"stoke/internal/ent/claimgroup"
+	"stoke/internal/ent/schema/policy"
 	"strings"
 
 	"github.com/ghodss/yaml"
@@ -15,6 +16,7 @@ import (
 
 func InitializeDatabaseFromFile(filename string, ctx context.Context) error {
 	logger := zerolog.Ctx(ctx).With().Str("filename", filename).Logger()
+	ctx = policy.BypassDatabasePolicies(ctx)
 
 	content, err := os.ReadFile(filename)
 	if err != nil {
@@ -87,7 +89,7 @@ func InitializeDatabaseFromFile(filename string, ctx context.Context) error {
 type databaseInitFile struct {
 	Claims []initClaim `json:"claims"`
 	Groups []initGroup `json:"groups"`
-	Users []initUser   `json:"users"`
+	Users  []initUser  `json:"users"`
 }
 
 func (d *databaseInitFile) validate() error {
@@ -138,14 +140,14 @@ type initUser struct {
 	PasswordSalt string  `json:"password_salt"`
 	Groups []string      `json:"groups"`
 
-	UserString string    `json:"user_string"`
+	UserString string    `json:"user"`
 }
 
 func (u *initUser) parseShortHand() error {
 	if u.UserString != "" {
 		splitStr := strings.Split(u.UserString, ",")
 		if len(splitStr) != 4 {
-			return fmt.Errorf("Bad user_string format. Got %s but expected value like username,first_name,last_name,email", u.UserString)
+			return fmt.Errorf("Bad user short hand format. Got %s but expected value like username,first_name,last_name,email", u.UserString)
 		}
 		u.Username = strings.Trim(splitStr[0], " ")
 		u.FName = strings.Trim(splitStr[1], " ")
@@ -180,22 +182,54 @@ func (u initUser) writeToDB(tx *ent.Tx, ctx context.Context) error {
 }
 
 type initGroup struct {
-	Name string        `json:"name"`
-	Description string `json:"description"`
-	Claims []string    `json:"claims"`
-	Links []string     `json:"links"`
+	Name        string     `json:"name"`
+	Description string     `json:"description"`
+	Claims      []string   `json:"claims"`
+	Links       []initLink `json:"links"`
 
-	GroupString string `json:"group_string"`
+	GroupString string `json:"group"`
+}
+
+type initLink struct {
+	LinkType string `json:"type"`
+	Provider string `json:"provider"`
+	Resource string `json:"resource"`
+
+	LinkString string `json:"link"`
 }
 
 func (g *initGroup) parseShortHand() error {
 	if g.GroupString != "" {
 		splitStr := strings.Split(g.GroupString, ",")
 		if len(splitStr) != 2 {
-			return fmt.Errorf("Bad claim_string format. Got %s but expected value like name,description", g.GroupString)
+			return fmt.Errorf("Bad group short hand format. Got %s but expected value like name,description", g.GroupString)
 		}
 		g.Name = strings.Trim(splitStr[0], " ")
 		g.Description = strings.Trim(splitStr[1], " ")
+	}
+	for _, l := range g.Links {
+		if err := l.parseShortHand() ; err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (l *initLink) parseShortHand() error {
+	if l.LinkString != "" {
+		splitStr := strings.Split(l.LinkString, ",")
+		switch len(splitStr) {
+		case 2:
+			l.LinkType = strings.Trim(splitStr[0], " ")
+			l.Resource = strings.Trim(splitStr[1], " ")
+		case 3:
+			l.LinkType = strings.Trim(splitStr[0], " ")
+			l.Provider = strings.Trim(splitStr[1], " ")
+			l.Resource = strings.Trim(splitStr[2], " ")
+		default:
+			return fmt.Errorf("Bad link short hand format. Got %s but expected value like type,name,resource or type,resource.", l.LinkString)
+		}
+
 	}
 	return nil
 }
@@ -223,8 +257,8 @@ func (g initGroup) writeToDB(tx *ent.Tx, ctx context.Context) error {
 		for _, link := range g.Links {
 			_, err = tx.GroupLink.Create().
 				SetClaimGroup(group).
-				SetType("LDAP").
-				SetResourceSpec(link).
+				SetType(strings.ToUpper(link.LinkType) + ":" + link.Provider).
+				SetResourceSpec(link.Resource).
 				Save(ctx)
 			if err != nil {
 				return err
@@ -240,14 +274,15 @@ type initClaim struct {
 	Description string `json:"description"`
 	ShortName string   `json:"short_name"`
 	Value string       `json:"value"`
-	ClaimString string `json:"claim_string"`
+
+	ClaimString string `json:"claim"`
 }
 
 func (c *initClaim) parseShortHand() error {
 	if c.ClaimString != "" {
 		splitStr := strings.Split(c.ClaimString, ",")
 		if len(splitStr) != 4 {
-			return fmt.Errorf("Bad claim_string format. Got %s but expected value like name,description,short_name,value", c.ClaimString)
+			return fmt.Errorf("Bad claim short hand format. Got %s but expected value like name,description,short_name,value", c.ClaimString)
 		}
 		c.Name = strings.Trim(splitStr[0], " ")
 		c.Description = strings.Trim(splitStr[1], " ")
@@ -258,7 +293,6 @@ func (c *initClaim) parseShortHand() error {
 }
 
 func (c initClaim) writeToDB(tx *ent.Tx, ctx context.Context) error {
-
 	_, err := tx.Claim.Create().
 		SetDescription(c.Description).
 		SetName(c.Name).

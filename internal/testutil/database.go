@@ -8,7 +8,7 @@ import (
 	"stoke/internal/ent/claim"
 	"stoke/internal/ent/claimgroup"
 	"stoke/internal/ent/enttest"
-	"stoke/internal/schema/policy"
+	"stoke/internal/ent/schema/policy"
 	"testing"
 	"time"
 
@@ -23,6 +23,7 @@ type DatabaseMutation func(*ent.Client)
 // Adds a mock database to the context
 func WithDatabase(t *testing.T, mutations ...DatabaseMutation) ContextOption {
 	return func(ctx context.Context) context.Context {
+		ctx = policy.BypassDatabasePolicies(ctx)
 		client := enttest.Open(t, "sqlite3", "file:ent?mode=memory&_fk=1")
 		for _, mut := range mutations {
 			mut(client)
