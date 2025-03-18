@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/base64"
+	"slices"
 	"stoke/internal/ent"
 	"stoke/internal/ent/schema/policy"
 	"stoke/internal/ent/user"
@@ -25,38 +26,49 @@ func GenSalt() string {
 	return base64.StdEncoding.EncodeToString(saltBytes)
 }
 
-func findGroupChanges(u *ent.User, groupLinks ent.GroupLinks) (ent.ClaimGroups, ent.ClaimGroups) {
-	userGroups := u.Edges.ClaimGroups
+func findGroupChanges(u *ent.User, groupLinks ent.GroupLinks, groupType string) (ent.ClaimGroups, ent.ClaimGroups) {
+	userGroups := slices.DeleteFunc(
+		slices.Clone(u.Edges.ClaimGroups),
+		func (g *ent.ClaimGroup) bool {
+			return !slices.ContainsFunc(
+				g.Edges.GroupLinks,
+				func(l *ent.GroupLink) bool {
+					return l.Type == groupType
+				},
+			)
+		},
+	)
+	linkedGroups := make(ent.ClaimGroups, len(groupLinks))
 
-	var addClaimGroups ent.ClaimGroups
-	var found bool
-	for _, grouplink := range groupLinks {
-		linkGroup := grouplink.Edges.ClaimGroup
-		found = false
-		for _, userGroup := range userGroups {
-			if userGroup.ID == linkGroup.ID {
-				found = true
-				break
-			}
-		}
-		if !found {
-			addClaimGroups = append(addClaimGroups, linkGroup)
-		}
+	for i, link := range groupLinks {
+		linkedGroups[i] = link.Edges.ClaimGroup
 	}
 
-	var delClaimGroups ent.ClaimGroups
-	for _, userGroup := range userGroups {
-		found = false
-		for _, groupLink := range groupLinks {
-			if groupLink.Edges.ClaimGroup.ID == userGroup.ID {
-				found = true
-				break
-			}
-		}
-		if !found {
-			delClaimGroups = append(delClaimGroups, userGroup)
-		}
-	}
+
+	// Need to add all groups that are in linkedGroups and not in userGroups
+	addClaimGroups := slices.DeleteFunc(
+		slices.Clone(linkedGroups),
+		func (g1 *ent.ClaimGroup) bool {
+			return slices.ContainsFunc(
+				userGroups,
+				func (g2 *ent.ClaimGroup) bool {
+					return g1.ID == g2.ID
+				},
+			)
+		},
+	)
+	// Need to remove all groups that are in userGroups, but not in linked groups
+	delClaimGroups := slices.DeleteFunc(
+		slices.Clone(userGroups),
+		func (g1 *ent.ClaimGroup) bool {
+			return slices.ContainsFunc(
+				linkedGroups,
+				func (g2 *ent.ClaimGroup) bool {
+					return g1.ID == g2.ID
+				},
+			)
+		},
+	)
 
 	return addClaimGroups, delClaimGroups
 }
@@ -83,6 +95,7 @@ func retreiveLocalUser(username string, ctx context.Context) (*ent.User, error) 
 		).
 		WithClaimGroups(func (q *ent.ClaimGroupQuery) {
 			q.WithClaims()
+			q.WithGroupLinks()
 		}).
 		Only(ctx)
 }

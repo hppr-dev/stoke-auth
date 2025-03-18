@@ -120,43 +120,45 @@ func (l *ldapUserProvider) UpdateUserClaims(username, password string, ctx conte
 		return nil, AuthSourceError
 	}
 
-	usr, groupLinks, err := l.getOrCreateUser(username, password, conn, ctx)
-	if errors.Is(LDAPNotFoundError, err) || errors.Is(LDAPError, err) {
+	usr, groupLinks, getErr := l.getOrCreateUser(username, password, conn, ctx)
+	if errors.Is(LDAPNotFoundError, getErr) || errors.Is(LDAPError, getErr) {
 		logger.Debug().
 			Func(otelzerolog.AddTracingContext(span)).
 			Err(err).
 			Msg("Could not find User in ldap")
 		return nil, UserNotFoundError
 
-	} else if errors.Is(NoLinkedGroupsError, err) {
+	} else if errors.Is(NoLinkedGroupsError, getErr) {
 		if usr == nil {
 			return nil, AuthenticationError
 		}
-	} else if err != nil {
+	} else if getErr != nil {
 		logger.Debug().
 			Func(otelzerolog.AddTracingContext(span)).
 			Err(err).
 			Msg("Could not get or create user")
-		return nil, err
+		return nil, getErr
 	}
 
-	// Update local database with claims that the user has
-	// LDAP user groups that the user already has
-	addClaimGroups, delClaimGroups := findGroupChanges(usr, groupLinks)
+	addClaimGroups, delClaimGroups := findGroupChanges(usr, groupLinks, "LDAP:" + l.Name)
+
+	logger.Debug().
+		Interface("addGroups", addClaimGroups).
+		Interface("delGroups", delClaimGroups).
+		Msg("found group changes")
 
 	if usr, err = applyGroupChanges(addClaimGroups, delClaimGroups, usr, ctx); err != nil {
 		logger.Error().
 			Func(otelzerolog.AddTracingContext(span)).
 			Err(err).
-			Msg("Failed to add LDAP groups to local user")
+			Msg("Failed to update LDAP groups to local user")
 		return nil, err
 	}
 
-	usr, err = retreiveLocalUser(usr.Username, ctx)
-	if len(usr.Edges.ClaimGroups) == 0 {
+	if errors.Is(NoLinkedGroupsError, getErr) {
 		return nil, NoLinkedGroupsError
-	} 
-	return usr, err
+	}
+	return retreiveLocalUser(usr.Username, ctx)
 }
 
 // Creates the user if it exists in LDAP

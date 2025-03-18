@@ -31,7 +31,8 @@ groups:
   - name: Ship Crew
     description: Crew of the ship
     links:
-      - ship_crew
+      - type: LDAP
+        resource: ship_crew
     claims:
       - Ship Access
       - Inventory
@@ -39,7 +40,8 @@ groups:
   - name: Ship Admin Staff
     description: Ship Administrive staff
     links:
-      - admin_staff
+      - type: LDAP
+        resource: admin_staff
     claims:
       - Ship Access
       - Stoke Super User

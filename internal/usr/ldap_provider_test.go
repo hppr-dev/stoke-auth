@@ -352,6 +352,7 @@ func TestLDAPUpdateUserClaimsRemovedAllGroupsWithRemainingLocal(t *testing.T) {
 				),
 			),
 		),
+		tu.StdLogger(),
 	)
 
 	conn := NewMockLDAPServer(

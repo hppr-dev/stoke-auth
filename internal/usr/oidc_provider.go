@@ -435,7 +435,7 @@ func (o *oidcUserProvider) persistClaims(claimMap jwt.MapClaims, ctx context.Con
 	logger.Debug().Interface("found_links", foundLinks).Msg("Found group links")
 
 	//TODO allow user claim passthrough with or without persistance?
-	add, del := findGroupChanges(u, foundLinks)
+	add, del := findGroupChanges(u, foundLinks, "OIDC:" + o.Name)
 	if u, err = applyGroupChanges(add, del, u, ctx) ; err != nil {
 		logger.Error().
 			Err(err).
