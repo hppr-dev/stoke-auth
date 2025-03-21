@@ -8,10 +8,6 @@ import (
 	"stoke/internal/ent"
 	"stoke/internal/ent/schema/policy"
 	"stoke/internal/ent/user"
-	"stoke/internal/tel"
-
-	"github.com/rs/zerolog"
-	"github.com/vincentfree/opentelemetry/otelzerolog"
 	"golang.org/x/crypto/argon2"
 )
 
@@ -22,7 +18,7 @@ func HashPass(pass, salt string) string {
 
 func GenSalt() string {
 	saltBytes := make([]byte, 32)
-	rand.Read(saltBytes)
+	_, _ = rand.Read(saltBytes)
 	return base64.StdEncoding.EncodeToString(saltBytes)
 }
 
@@ -98,36 +94,6 @@ func retreiveLocalUser(username string, ctx context.Context) (*ent.User, error) 
 			q.WithGroupLinks()
 		}).
 		Only(ctx)
-}
-
-// retreives the user from the local database. If the user exists, it returns the claims that are associated
-func retreiveLocalClaims(username string, ctx context.Context) (*ent.User, ent.Claims, error) {
-	logger := zerolog.Ctx(ctx).With().
-		Str("component", "retreiveLocalClaims").
-		Str("username", username).
-		Logger()
-	ctx, span := tel.GetTracer().Start(ctx, "usr.retreiveLocalClaims")
-	defer span.End()
-
-	logger.Debug().
-		Func(otelzerolog.AddTracingContext(span)).
-		Msg("Getting user claims")
-
-	u, err := retreiveLocalUser(username, ctx)
-	if err != nil {
-		logger.Error().
-			Func(otelzerolog.AddTracingContext(span)).
-			Err(err).
-			Msg("Could not find user")
-		return nil, nil, err
-	}
-
-	allClaims := allUserClaims(u)
-	logger.Debug().
-		Func(otelzerolog.AddTracingContext(span)).
-		Interface("claims", allClaims).
-		Msg("Claims found")
-	return u, allClaims, nil
 }
 
 func allUserClaims(u *ent.User) ent.Claims {

@@ -14,10 +14,10 @@ import (
 	"hppr.dev/stoke"
 )
 
-var issuerCtxKey = struct{}{}
+type issuerCtxKey struct{}
 
 func IssuerFromCtx(ctx context.Context) TokenIssuer {
-	return ctx.Value(issuerCtxKey).(TokenIssuer)
+	return ctx.Value(issuerCtxKey{}).(TokenIssuer)
 }
 
 type TokenIssuer interface {
@@ -37,12 +37,12 @@ type AsymetricTokenIssuer[P PrivateKey]  struct {
 }
 
 func (a *AsymetricTokenIssuer[P]) WithContext(ctx context.Context) context.Context {
-	return context.WithValue(ctx, issuerCtxKey, a)
+	return context.WithValue(ctx, issuerCtxKey{}, a)
 }
 
 func (a *AsymetricTokenIssuer[P]) IssueToken(claims *stoke.Claims, ctx context.Context) (string, string, error) {
 	logger := zerolog.Ctx(ctx).With().Str("function", "AsymetricTokenIssuer.IssueToken").Logger()
-	ctx, span := tel.GetTracer().Start(ctx, "AsymetricTokenIssuer.IssueToken")
+	_, span := tel.GetTracer().Start(ctx, "AsymetricTokenIssuer.IssueToken")
 	defer span.End()
 
 	if err := a.setJWTID(claims); err != nil {
@@ -132,14 +132,17 @@ func (a *AsymetricTokenIssuer[P]) setJWTID(claims *stoke.Claims) error {
 		if a.TokenRefreshCountKey == "" {
 			oldJwtID = claims.ID
 		} else {
-			oldJwtID, _ = claims.StokeClaims[a.TokenRefreshCountKey]
+			oldJwtID = claims.StokeClaims[a.TokenRefreshCountKey]
 		}
 		
 		if oldJwtID == "" {
 			jwtID = fmt.Sprintf(jwtFormat, a.TokenRefreshLimit)
 		} else {
 			var gen int
-			fmt.Sscanf(oldJwtID, jwtFormat, &gen)
+			_, err := fmt.Sscanf(oldJwtID, jwtFormat, &gen)
+			if err != nil {
+				return err
+			}
 			if gen == 0 {
 				return fmt.Errorf("Token refresh limit reached.")
 			}

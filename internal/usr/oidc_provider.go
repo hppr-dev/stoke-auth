@@ -140,7 +140,7 @@ func NewOIDCUserProvider(
 	stateSalt := []byte(stateSecret)
 	if stateSecret == "" {
 		stateSalt = make([]byte, 16)
-		rand.Read(stateSalt)
+		_, _ = rand.Read(stateSalt)
 	}
 	prt, _ := template.New("postRedirect").Parse(POST_TEMPLATE)
 	provider := &oidcUserProvider{
@@ -623,7 +623,7 @@ func (o *oidcUserProvider) hasValidState(req *http.Request) bool {
 	if err != nil {
 		return false
 	}
-	nonce, err := base64.URLEncoding.DecodeString(nonceB64.Value)
+	nonce, _ := base64.URLEncoding.DecodeString(nonceB64.Value)
 	return req.URL.Query().Get("state") == requestHash(o.StateSalt, nonce, req)
 }
 
@@ -634,7 +634,7 @@ func (o *oidcUserProvider) cookieName(c string) string {
 // Creates a new random 32 byte string
 func newNonce() []byte {
 	nonce := make([]byte, 32)
-	rand.Read(nonce)
+	_, _ = rand.Read(nonce)
 	return nonce
 }
 

@@ -146,17 +146,27 @@ func (l *localProvider) getOrCreateSuperGroup(ctx context.Context) (*ent.ClaimGr
 func (l *localProvider) CheckCreateForSuperUser(ctx context.Context) error {
 	ctx = policy.BypassDatabasePolicies(ctx)
 	superGroup, err := l.getOrCreateSuperGroup(ctx)
+	logger := zerolog.Ctx(ctx).With().
+		Str("component", "CheckCreateForSuperUser").
+		Logger()
+
 	if err != nil {
 		return err
 	}
+
 	if len(superGroup.Edges.Users) == 0 {
 		randomPass := GenSalt()
-		l.AddUser("Stoke", "Admin", "sadmin@localhost", "sadmin", randomPass, ctx)
+		if err := l.AddUser("Stoke", "Admin", "sadmin@localhost", "sadmin", randomPass, ctx); err != nil {
+			logger.Error().
+				Err(err).
+				Msg("Error while creating user")
+		}
+
 		ent.FromContext(ctx).User.Update().
 			Where(user.UsernameEQ("sadmin")).
 			AddClaimGroups(superGroup).
 			SaveX(ctx)
-		zerolog.Ctx(ctx).Info().
+		logger.Info().
 			Str("password", randomPass).
 			Msg("Created superuser 'sadmin'")
 	}

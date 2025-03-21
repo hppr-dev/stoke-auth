@@ -104,7 +104,7 @@ func (p UserMutationPolicy) denyChangesToProtectedEntities(ctx context.Context, 
 }
 
 func (p UserMutationPolicy) allowChangesToSelf(ctx context.Context, user *ent.User, claims map[string]string) error {
-	username, _ := claims[policyFromCtx(ctx).usernameClaim]
+	username := claims[policyFromCtx(ctx).usernameClaim]
 	if user.Username == username {
 		return privacy.Allow
 	}

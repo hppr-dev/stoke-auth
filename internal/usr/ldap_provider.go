@@ -320,7 +320,7 @@ func (l *ldapUserProvider) ldapSearch(searchRoot string, fillTemplate templateVa
 		Str("template", filterTemplate.Root.String()).
 		Logger()
 
-	ctx, span := tel.GetTracer().Start(ctx, "ldapUserProvider.ldapSearch")
+	_, span := tel.GetTracer().Start(ctx, "ldapUserProvider.ldapSearch")
 	defer span.End()
 
 	filterBuilder := &strings.Builder{}

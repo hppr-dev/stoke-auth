@@ -7,6 +7,8 @@ import (
 	"stoke/internal/ent"
 	"stoke/internal/ent/schema/policy"
 	"stoke/internal/usr"
+
+	"github.com/rs/zerolog"
 )
 
 type Users struct {
@@ -37,7 +39,11 @@ func (u Users) withContext(ctx context.Context) context.Context {
 	providerList := usr.NewProviderList()
 
 	if u.CreateStokeClaims {
-		providerList.CheckCreateForStokeClaims(ctx)
+		if err := providerList.CheckCreateForStokeClaims(ctx); err != nil {
+			zerolog.Ctx(ctx).Error().
+				Err(err).
+				Msg("Error while creating stoke claims")
+		}
 	}
 
 	for _, prov := range u.Providers {

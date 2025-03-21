@@ -370,7 +370,7 @@ func TestLDAPUpdateUserClaimsRemovedAllGroupsWithRemainingLocal(t *testing.T) {
 	if err == nil {
 		t.Fatal("An error did not occurred getting user claims")
 	}
-	if errors.Is(usr.AuthenticationError, err) {
+	if errors.Is(err, usr.AuthenticationError) {
 		t.Fatal("An authentication error was returned by update user claims, this will stop local look ups.")
 	}
 

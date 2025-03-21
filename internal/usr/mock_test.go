@@ -173,13 +173,13 @@ func (m *MockLDAPClient) Search(req *ldap.SearchRequest) (*ldap.SearchResult, er
 
 	var result MockSearchResult
 	if group != "group:"  {
-		result, _ = m.searchDB[group]
+		result = m.searchDB[group]
 		if m.groupSearchError != nil {
 			return nil, m.groupSearchError
 		}
 	}
 	if user != "user:" {
-		result, _ = m.searchDB[user]
+		result = m.searchDB[user]
 		if m.userSearchError != nil {
 			return nil, m.userSearchError
 		}

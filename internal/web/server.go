@@ -108,7 +108,9 @@ func NewServer(ctx context.Context) *http.Server {
 			}
 
 			res.WriteHeader(http.StatusOK)
-			res.Write(content)
+			if _, err := res.Write(content); err != nil {
+				logger.Error().Err(err).Msg("Could not write log")
+			}
 		}
 
 		if telConf.RequirePrometheusAuthentication {

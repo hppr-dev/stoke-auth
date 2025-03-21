@@ -49,9 +49,9 @@ func NewPrivateKeyCache[P PrivateKey](tokenDur, keyDur time.Duration, persistKey
 		KeyDuration: keyDur,
 		PersistKeys: persistKeys,
 	}
-	c.Bootstrap(ctx, keyPair)
+  err := c.Bootstrap(ctx, keyPair)
 	go c.goManage(ctx)
-	return c, nil
+	return c, err
 }
 
 const (
@@ -69,7 +69,7 @@ func (c *PrivateKeyCache[P]) goManage(ctx context.Context) {
 	var span trace.Span
 	var sLogger zerolog.Logger
 	state := CERT_IN_USE
-	nextUpdateIn := c.CurrentKey().ExpiresAt().Sub(time.Now()) - ( c.TokenDuration * 2 )
+	nextUpdateIn := time.Until(c.CurrentKey().ExpiresAt()) - ( c.TokenDuration * 2 )
 
 	logger.Info().Msg("Starting key cache management...")
 	for {
@@ -84,7 +84,9 @@ func (c *PrivateKeyCache[P]) goManage(ctx context.Context) {
 				sLogger = logger.Hook(tel.LogHook{ Ctx : sCtx } )
 				sCtx = sLogger.WithContext(sCtx)
 
-				c.Generate(sCtx)
+				if err := c.Generate(sCtx) ; err != nil {
+				  sLogger.Error().Err(err).Msg("An error occured while starting renewal")
+				}
 
 				state = CERT_RENEW_START
 				nextUpdateIn = c.TokenDuration
@@ -104,7 +106,7 @@ func (c *PrivateKeyCache[P]) goManage(ctx context.Context) {
 				span.End()
 
 				state = CERT_IN_USE
-				nextUpdateIn = c.CurrentKey().ExpiresAt().Sub(time.Now()) - ( c.TokenDuration * 2 )
+				nextUpdateIn = time.Until(c.CurrentKey().ExpiresAt()) - ( c.TokenDuration * 2 )
 			}
 		}
 	}
@@ -118,7 +120,7 @@ func (c *PrivateKeyCache[P]) ReadUnlock() { c.keyPairsMutex.RUnlock() }
 
 // Marshalls the current key's public parts into a JWKSet
 func (c *PrivateKeyCache[P]) PublicKeys(ctx context.Context) ([]byte, error) {
-	ctx, span := tel.GetTracer().Start(ctx, "PrivateKeyCache.PublicKeys")
+	_, span := tel.GetTracer().Start(ctx, "PrivateKeyCache.PublicKeys")
 	defer span.End()
 
 	now := time.Now()
@@ -182,15 +184,27 @@ func (c *PrivateKeyCache[P]) Generate(ctx context.Context) error {
 
 	if c.PersistKeys {
 		tx, err := ent.FromContext(ctx).Tx(ctx)
-		tx.PrivateKey.Create().
+		if err != nil {
+			logger.Error().
+				Err(err).
+				Msg("Could not start database transaction")
+		}
+
+		_, err = tx.PrivateKey.Create().
 			SetText(newKey.Encode()).
 			SetExpires(newKey.ExpiresAt()).
 			Save(ctx)
+		if err != nil {
+			logger.Error().
+				Err(err).
+				Msg("Could not create private key in db")
+		}
 		if tx.Commit() != nil {
-			tx.Rollback()
+			rbErr := tx.Rollback()
 			logger.Error().
 				Func(otelzerolog.AddTracingContext(span)).
 				Err(err).
+				AnErr("rollbackErr", rbErr).
 				Time("expires", expires).
 				Str("publicKey", newKey.PublicString()).
 				Msg("Could not save new key")
@@ -204,7 +218,7 @@ func (c *PrivateKeyCache[P]) Generate(ctx context.Context) error {
 // Bootstraps the keycache by pulling persisted keys from the database, if they exist
 func (c *PrivateKeyCache[P]) Bootstrap(ctx context.Context, pair KeyPair[P]) error {
 	logger := zerolog.Ctx(ctx)
-	ctx, span := tel.GetTracer().Start(ctx, "PrivateKeyCache.Bootstrap")
+	_, span := tel.GetTracer().Start(ctx, "PrivateKeyCache.Bootstrap")
 	defer span.End()
 
 	logger.Info().
@@ -305,7 +319,7 @@ func (c *PrivateKeyCache[P]) Clean(ctx context.Context) {
 // Parses and validates a given string token
 func (c *PrivateKeyCache[P]) ParseClaims(ctx context.Context, token string, claims *stoke.Claims, parserOpts ...jwt.ParserOption) (*jwt.Token, error) {
 	logger := zerolog.Ctx(ctx)
-	ctx, span := tel.GetTracer().Start(ctx, "PrivateKeyCache.ParseClaims")
+	_, span := tel.GetTracer().Start(ctx, "PrivateKeyCache.ParseClaims")
 	defer span.End()
 
 	jwtToken, err := jwt.ParseWithClaims(token, claims.New(), c.publicKeys, parserOpts...)
