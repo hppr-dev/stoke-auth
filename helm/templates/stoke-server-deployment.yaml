@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stoke-server-{{ .Release.Name }}
+  labels:
+    app.kubernetes.io/name: stoke
+    app.kubernetes.io/component: server
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: stoke
+      app.kubernetes.io/component: server
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: stoke-server
+        app.kubernetes.io/name: stoke
+        app.kubernetes.io/component: server
+        helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+        app.kubernetes.io/managed-by: {{ .Release.Service }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      {{ if ne .Values.server.pullSecret "" }}
+      imagePullSecrets:
+        - {{ .Values.server.pullSecret }}
+      {{ end }}
+      volumes:
+        - name: server-config
+          configMap:
+            name: stoke-config
+      containers:
+      - name: server
+        image: {{ .Values.server.image }}
+        imagePullPolicy: {{ .Values.server.pullPolicy }}
+        volumeMounts:
+          - name: server-config
+            mountPath: /etc/stoke/
+        ports:
+          - containerPort: {{ .Values.server.port }}
+        livenessProbe:
+          initialDelaySeconds: 3
+          periodSeconds: 3
+          httpGet:
+            path: /api/pkeys
+            port: {{ .Values.server.port }}

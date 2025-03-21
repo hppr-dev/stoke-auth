@@ -1,0 +1,105 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: stoke-config-{{ .Release.Name }}
+  labels:
+    app.kubernetes.io/name: stoke
+    app.kubernetes.io/component: config
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+data:
+  config.yaml: |
+    server:
+      address: {{ .Values.server.address | quote }}
+      port: {{ .Values.server.port }}
+      timeout: {{ .Values.server.timeout }}
+      tls_private_key: {{ .Values.server.tls.privateKey | quote }}
+      tls_public_cert: {{ .Values.server.tls.publicCert | quote }}
+      disable_admin: {{ not .Values.server.admin.enabled }}
+      allowed_hosts: {{ .Values.server.admin.allowedHosts | toJson }}
+
+    database:
+      {{ if .Values.postgresql.enabled }}
+      type: postgres
+      postgres:
+        host: {{ .Release.Name }}-postgresql-hl
+        port: {{ .Values.postgresql.containerPorts.postgresql | int }}
+        database: {{ .Values.postgresql.auth.database }}
+        user: {{ .Values.postgresql.auth.username }}
+        password: {{ .Values.postgresql.auth.password }}
+        {{ if not .Values.postgresql.tls.enabled }}
+        extra_args: "sslmode=disable"
+        {{ end }}
+
+      {{ else if .Values.mysql.enabled }}
+      type: mysql
+      mysql:
+        host: {{ .Release.Name }}-mysql-headless
+        port: {{ .Values.mysql.primary.containerPorts.mysql | int }}
+        database: {{ .Values.mysql.auth.database }}
+        user: {{ .Values.mysql.auth.username }}
+        password: {{ .Values.mysql.auth.password }}
+
+      {{ else }}
+      type: sqlite
+      sqlite:
+        file: "stoke.db"
+        flags: "cache=shared&_fk=1"
+      {{ end }}
+
+    logging:
+      level: {{ .Values.logging.level | quote }}
+      pretty_stdout: {{ .Values.logging.pretty }}
+      write_to_stdout: true
+
+    tokens:
+      algorithm: {{ .Values.algorithm | quote }}
+      num_bits: {{ .Values.numBits }}
+
+      persist_keys: {{ .Values.persistKeys }}
+      key_duration: {{ .Values.expiration.key | quote }}
+      token_duration: {{ .Values.expiration.token | quote }}
+
+      issuer: {{ .Values.claims.issuer | quote }}
+      subject: {{ .Values.claims.subject | quote }}
+      audience: {{ .Values.claims.audience | toJson }}
+      include_issued_at: {{ .Values.claims.includeIssuedAt }}
+      include_not_before: {{ .Values.claims.includeNotBefore }}
+
+      token_refresh_limit: {{ .Values.tokenRefreshLimit }}
+      token_refresh_count_key: {{ .Values.claims.refreshCount | quote }}
+
+      user_info:
+        full_name: {{ .Values.userInfo.fullName | quote }}
+        username: {{ .Values.userInfo.username | quote }}
+        email: {{ .Values.userInfo.email | quote }}
+        first_name: {{ .Values.userInfo.firstName | quote }}
+        last_name: {{ .Values.userInfo.lastName | quote }}
+
+    # TODO OpenTelemetry Configuration
+    telemetry:
+      trace_provider: grpc                      # Type of trace provider. (http or grpc)
+      trace_export_url: https://localhost:4317  # Where to publish traces
+      trace_insecure: true                      # Whether to use insecure transport to export traces
+
+      metric_provider: none                     # Type of metric provider. (http, grpc, or none)
+      metric_export_url: https://localhost:4317 # Where to publish traces
+      metric_insecure: false                    # Whether to use insecure transport to export metrics
+
+      disable_monitoring: true                 # Whether to disable the default /metrics and /metrics/logs endpoints
+      require_prometheus_authentication: false  # Whether to require authentication to reach default prometheus metrics
+
+    # User Provider configuration
+    users:
+      create_stoke_claims: {{ .Values.createStokeClaims }}
+      policy_config:
+        allow_superuser_override: {{ .Values.policy.allowSuperuserOverride }}
+        read_only_mode: {{ .Values.policy.readOnlyMode }}
+        protected_users: {{ .Values.policy.protectedUsers | toJson }}
+        protected_claims: {{ .Values.policy.protectedClaims | toJson }}
+        protected_groups: {{ .Values.policy.protectedGroups | toJson }}
+      providers:
+{{ .Values.providers | toYaml | indent 6 }}
+  
+  

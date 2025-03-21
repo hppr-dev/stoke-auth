@@ -1,0 +1,121 @@
+# Database subchart configurations
+postgresql:
+  enabled: true
+  auth:
+    database: stoke
+    username: stoke_user
+    password: secret
+
+mysql:
+  enabled: false
+
+# Parent chart config
+server:
+  image: hpprdev/stoke-auth:v0.1.0
+  pullPolicy: IfNotPresent
+  pullSecret: ""
+  address: ""
+  port: 8080
+  timeout: 1000
+  admin:
+    enabled: true
+    allowedHosts: ["*"]
+  tls:
+    privateKey: ""
+    publicCert: ""
+
+logging:
+  level: info
+  pretty: true
+
+algorithm: "ECDSA"
+numBits: 256
+persistKeys: true
+tokenRefreshLimit: 0
+
+expiration:
+  key: 3h
+  token: 30m
+
+claims:
+  issuer: "stk"
+  subject: ""
+  audience: []
+  includeIssuedAt: false
+  includeNotBefore: false
+  refreshCount: ""
+
+userInfo:
+  fullName: "n"
+  username: "u"
+  email: "e"
+  firstName: ""
+  lastName: ""
+
+createStokeClaims: false
+policy:
+  allowSuperuserOverride: false
+  readOnlyMode: false
+  protectedUsers: ["sadmin"]
+  protectedClaims: ["stk"]
+  protectedGroups: ["Stoke Superusers"]
+
+providers:
+  - type: ldap
+    name: local_ldap
+    server_url: "ldap://localhost:10389"
+
+    bind_user_dn: "cn=admin,dc=planetexpress,dc=com"
+    bind_user_password: GoodNewsEveryone
+
+    group_search_root: "ou=people,dc=planetexpress,dc=com"
+    group_filter_template: "(&(objectClass=group)(member={{ .UserDN }}))"
+
+    user_search_root: "ou=people,dc=planetexpress,dc=com"
+    user_filter_template: "(&(objectClass=inetOrgPerson)(uid={{ .Username }}))"
+
+    ldap_group_name_field: "cn"
+    ldap_first_name_field: "givenName"
+    ldap_last_name_field:  "sn"
+    ldap_email_field: "mail"
+
+    search_timeout: 0
+    ldap_ca_cert: ""
+    skip_certificate_verification: true
+
+  - type: oidc
+    name: google
+    discovery_url: "https://accounts.google.com/.well-known/openid-configuration"
+    auth_url: ""
+    token_url: ""
+    user_info_url: ""
+    auth_flow_type: code
+    claims_source: endpoint
+    client_id: CLIENT_ID
+    client_secret: CLIENT_SECRET
+    redirect_uri: "http://localhost:8080/oidc/google"
+    first_name_claim: "given_name"
+    last_name_claim: "family_name"
+    email_claim: "email"
+    scopes:
+      - profile
+      - email
+
+# TODO have an opentelemetry subchart
+config:
+  # OpenTelemetry Configuration
+  telemetry:
+    trace_provider: grpc                      # Type of trace provider. (http or grpc)
+    trace_export_url: https://localhost:4317  # Where to publish traces
+    trace_insecure: true                      # Whether to use insecure transport to export traces
+
+    metric_provider: none                     # Type of metric provider. (http, grpc, or none)
+    metric_export_url: https://localhost:4317 # Where to publish traces
+    metric_insecure: false                    # Whether to use insecure transport to export metrics
+
+    disable_monitoring: true                 # Whether to disable the default /metrics and /metrics/logs endpoints
+    require_prometheus_authentication: false  # Whether to require authentication to reach default prometheus metrics
+
+  # User Provider configuration
+  users:
+    providers:
