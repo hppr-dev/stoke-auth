@@ -5,7 +5,7 @@ WORKDIR /build
 COPY internal/admin/stoke-admin-ui ./
 RUN npm install && npm run build --emptyOutDir
 
-FROM golang:1.22.5-alpine3.20 AS go-builder
+FROM golang:1.23.7-alpine3.20 AS go-builder
 RUN apk add build-base
 
 RUN mkdir -p /build
