@@ -1,6 +1,6 @@
 <template>
   <EntityList
-    searchIcon="icons.USER_SEARCH"
+    :searchIcon="icons.USER_SEARCH"
     deleteItemKey="username"
     :items="store.allUsers"
     :headers="headers"
@@ -17,7 +17,7 @@
       <AddActivator
         v-if="props.addButton"
         buttonText="Add User"
-        titleIcon="mdi-account"
+        :titleIcon="icons.USER"
         :onSave="store.addScratchUser"
         :onCancel="store.resetScratchUser"
       >
@@ -26,8 +26,8 @@
     </template>
   <template #row-icon="{ item }">
       <v-icon
-        :icon="item.source == 'LDAP'? icons.LINK: icons.LOCAL"
-        :color="item.source == 'LDAP'? 'success': 'warning'"
+        :icon="item.source == 'LOCAL'? icons.LOCAL: icons.LINK"
+        :color="item.source == 'LOCAL'? 'warning': 'success'"
       > </v-icon>
     </template>
   </EntityList>

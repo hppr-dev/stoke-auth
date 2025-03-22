@@ -1858,6 +1858,46 @@
         ]
       }
     },
+    "/available_providers": {
+      "description": "Lists which providers are available",
+      "get": {
+        "summary": "Get available providers",
+        "operationId": "available_providers",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "description": "Name of provider",
+                        "type": "string"
+                      },
+                      "provider_type": {
+                        "description": "Type of provider",
+                        "type": "string"
+                      },
+                      "type_spec": {
+                        "description": "Type specification of provider",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "name",
+                      "provider_type",
+                      "type_spec"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/capabilities": {
       "description": "Server capabilities",
       "get": {
@@ -1913,6 +1953,10 @@
                     "description": "User's password",
                     "type": "string"
                   },
+                  "provider": {
+                    "description": "Provider to login try to login to. This is required when multiple foreign providers are defined.",
+                    "type": "string"
+                  },
                   "required_claims": {
                     "description": "Claims required to receive a token. A token is issued if a user matches all given claims of one entry in the list.",
                     "type": "array",
@@ -1955,9 +1999,14 @@
                     "refresh": {
                       "description": "Token to get a new token with the same claims. Must be used before token expires",
                       "type": "string"
+                    },
+                    "username": {
+                      "description": "Username of the user who logged in",
+                      "type": "string"
                     }
                   },
                   "required": [
+                    "username",
                     "token",
                     "refresh"
                   ]

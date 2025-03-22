@@ -82,24 +82,53 @@ telemetry:
 # User Provider configuration
 users:
   create_stoke_claims: true                 # Whether to create stoke administration claims for reading/writing claims/groups/users. Checked every start up.
-  enable_ldap: true                         # Whether to use LDAP
-  server_url: ldap://localhost:10389        # LDAP Server URL. Must begin with ldap://, ldaps:// or ldapi://
+  policy_config:
+    allow_superuser_override: false         # Whether a superuser can override protection policies
+    read_only_mode: false                   # Whether to prevent all updates to users, claims and groups
+    protected_users:                        # Disallow changes to the listed users by username
+      - sadmin
+    protected_claims:                       # Disallow changes to the listed claims by short name
+      - stk
+    protected_groups:                       # Disallow changes to the listed groups by group name
+      - Stoke Superusers
+  providers:
+    - type: ldap
+      name: local_ldap
+      server_url: ldap://localhost:10389        # LDAP Server URL. Must begin with ldap://, ldaps:// or ldapi://
 
-  bind_user_dn: "cn=admin,dc=planetexpress,dc=com" # Bind user distinguished name. Should only have read permissions
-  bind_user_password: GoodNewsEveryone             # Password for user specified in bind_user_dn
+      bind_user_dn: "cn=admin,dc=planetexpress,dc=com" # Bind user distinguished name. Should only have read permissions
+      bind_user_password: GoodNewsEveryone             # Password for user specified in bind_user_dn
 
-  group_search_root: "ou=people,dc=planetexpress,dc=com"                 # Where to search in LDAP for groups
-  group_filter_template: "(&(objectClass=group)(member={{ .UserDN }}))"  # Filter template to select groups. May use {{.UserDN}} or {{.Username}} to inject user info
+      group_search_root: "ou=people,dc=planetexpress,dc=com"                 # Where to search in LDAP for groups
+      group_filter_template: "(&(objectClass=group)(member={{ .UserDN }}))"  # Filter template to select groups. May use {{.UserDN}} or {{.Username}} to inject user info
 
-  user_search_root: "ou=people,dc=planetexpress,dc=com"                       # Where to search in LDAP for users
-  user_filter_template: "(&(objectClass=inetOrgPerson)(uid={{ .Username }}))" # Filter template to select users. Must return only one entry. May use {{.Username}} to inject user supplied username
+      user_search_root: "ou=people,dc=planetexpress,dc=com"                       # Where to search in LDAP for users
+      user_filter_template: "(&(objectClass=inetOrgPerson)(uid={{ .Username }}))" # Filter template to select users. Must return only one entry. May use {{.Username}} to inject user supplied username
 
-  ldap_group_name_field: "cn"        # Field in LDAP groups which determines the group's name
-  ldap_first_name_field: "givenName" # Field in LDAP user which determines the user's first name
-  ldap_last_name_field:  "sn"        # Field in LDAP user which determines the user's last name
-  ldap_email_field: "mail"           # Field in LDAP user which determines the user's email
+      ldap_group_name_field: "cn"        # Field in LDAP groups which determines the group's name
+      ldap_first_name_field: "givenName" # Field in LDAP user which determines the user's first name
+      ldap_last_name_field:  "sn"        # Field in LDAP user which determines the user's last name
+      ldap_email_field: "mail"           # Field in LDAP user which determines the user's email
 
-  search_timeout: 0                   # LDAP search timeout. Set to 0 for unlimited.
-  ldap_ca_cert: ""                    # Certificate to use when verifying connections to LDAP
-  skip_certificate_verification: true # Whether to skip certificate verification for secure LDAP server
+      search_timeout: 0                   # LDAP search timeout. Set to 0 for unlimited.
+      ldap_ca_cert: ""                    # Certificate to use when verifying connections to LDAP
+      skip_certificate_verification: true # Whether to skip certificate verification for secure LDAP server
+
+    - type: oidc
+      name: google                                                                        # Name of the oidc provider. Used as an endpoint
+      discovery_url: "https://accounts.google.com/.well-known/openid-configuration"       # Url to pull openid configuration information from
+      auth_url: ""                                                                        # Where to authorize with the provider. (pulled from discovery_url automatically)
+      token_url: ""                                                                       # Where to get tokens from the provider. (pulled from discovery_url automatically)
+      user_info_url: ""                                                                   # Where to get user info from the provider. (pulled from discovery_url automatically)
+      auth_flow_type: code                                                                # OpenID flow type to use. Must be code, implicit or hybrid
+      claims_source: endpoint                                                             # Main source for claims to map in stoke. Must be token or endpoint
+      client_id: YOUR CLIENT ID                                                           # Client ID from the provider
+      client_secret: YOUR CLIENT SECRET                                                   # Client Secret from the provider
+      redirect_uri: "http://localhost:8080/oidc/google"                                   # Must match what is registered with the provider
+      first_name_claim: "given_name"                                                      # Claim to use as the user's first name
+      last_name_claim: "family_name"                                                      # Claim to use as the user's last name
+      email_claim: "email"                                                                # Claim to use as the user's email
+      scopes:                                                                             # Scopes to request from the provider (openid is automatically added if not present)
+        - profile
+        - email
 

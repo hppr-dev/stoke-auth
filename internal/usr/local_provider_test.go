@@ -1,23 +1,11 @@
-package usr_test
+package usr
 
 import (
-	"context"
 	"stoke/internal/ent"
 	"stoke/internal/ent/user"
 	tu "stoke/internal/testutil"
-	"stoke/internal/usr"
 	"testing"
 )
-
-func TestLocalProviderInContext(t *testing.T) {
-	localProvider := usr.LocalProvider{}
-
-	ctx := localProvider.WithContext(context.Background())
-
-	if localProvider != usr.ProviderFromCtx(ctx) {
-		t.Fatal("Pulled provider did not match inserted provider")
-	}
-}
 
 func TestLocalGetUserClaimsHappy(t *testing.T) {
 	ctx := tu.NewMockContext(
@@ -39,9 +27,9 @@ func TestLocalGetUserClaimsHappy(t *testing.T) {
 		),
 	)
 
-	localProvider := usr.LocalProvider{}
+	localProvider := localProvider{}
 
-	user, claims, err := localProvider.GetUserClaims("gramsey", "thisdoesn'ttastegood", true, ctx)
+	user, claims, err := localProvider.GetUserClaims("gramsey", "thisdoesn'ttastegood", nil, ctx)
 	if err != nil {
 		t.Fatalf("GetUserClaims returned an error: %v", err)
 	}
@@ -79,9 +67,9 @@ func TestLocalGetUserClaimsHappy(t *testing.T) {
 func TestGetUserClaimsQueryFailure(t *testing.T) {
 	ctx := tu.NewMockContext(tu.WithDatabase(t, tu.ReturnsReadErrors()))
 
-	localProvider := usr.LocalProvider{}
+	localProvider := localProvider{}
 
-	if _, _, err := localProvider.GetUserClaims("gramsey", "thisdoesn'ttastegood", true, ctx); err == nil {
+	if _, _, err := localProvider.GetUserClaims("gramsey", "thisdoesn'ttastegood", nil, ctx); err == nil {
 		t.Fatal("GetUserClaims did not return an error")
 	}
 }
@@ -106,9 +94,9 @@ func TestGetUserClaimsBadPassword(t *testing.T) {
 		),
 	)
 
-	localProvider := usr.LocalProvider{}
+	localProvider := localProvider{}
 
-	if _, _, err := localProvider.GetUserClaims("gramsey", "yummyintummy", true, ctx); err == nil {
+	if _, _, err := localProvider.GetUserClaims("gramsey", "yummyintummy", nil, ctx); err == nil {
 		t.Fatal("GetUserClaims did not return an error")
 	}
 }
@@ -116,9 +104,9 @@ func TestGetUserClaimsBadPassword(t *testing.T) {
 func TestLocalAddUserHappy(t *testing.T) {
 	ctx := tu.NewMockContext(tu.WithDatabase(t))
 
-	localProvider := usr.LocalProvider{}
+	localProvider := localProvider{}
 
-	if err := localProvider.AddUser("Lucas", "Sky", "lsky@hppr.dev", "lsky", "fortsbe", false, ctx); err != nil {
+	if err := localProvider.AddUser("Lucas", "Sky", "lsky@hppr.dev", "lsky", "fortsbe", ctx); err != nil {
 		t.Fatalf("AddUser returned an error: %v", err)
 	}
 
@@ -142,9 +130,9 @@ func TestLocalAddUserHappy(t *testing.T) {
 func TestAddUserReturnsErrorWhenDatabaseFails(t *testing.T) {
 	ctx := tu.NewMockContext(tu.WithDatabase(t, tu.ReturnsMutateErrors()))
 
-	localProvider := usr.LocalProvider{}
+	localProvider := localProvider{}
 
-	if err := localProvider.AddUser("Lucas", "Sky", "lsky@hppr.dev", "lsky", "fortsbe", false, ctx); err == nil {
+	if err := localProvider.AddUser("Lucas", "Sky", "lsky@hppr.dev", "lsky", "fortsbe", ctx); err == nil {
 		t.Fatalf("AddUser did not return an error: %v", err)
 	}
 }
@@ -168,7 +156,7 @@ func TestLocalUpdateUserPasswordHappy(t *testing.T) {
 			),
 		),
 	)
-	localProvider := usr.LocalProvider{}
+	localProvider := localProvider{}
 
 	if err := localProvider.UpdateUserPassword("gramsey", "changeme", "somethingelse", false, ctx); err != nil {
 		t.Fatalf("Failed to UpdateUserPassword: %v", err)
@@ -207,7 +195,7 @@ func TestLocalUpdateUserPasswordBadPassword(t *testing.T) {
 			),
 		),
 	)
-	localProvider := usr.LocalProvider{}
+	localProvider := localProvider{}
 
 	if err := localProvider.UpdateUserPassword("gramsey", "dontchangeme", "somethingelse", false, ctx); err == nil {
 		t.Log("Did not return error")
@@ -231,7 +219,7 @@ func TestLocalUpdateUserPasswordBadPassword(t *testing.T) {
 
 func TestLocalUpdateUserPasswordDatabaseFailure(t *testing.T) {
 	ctx := tu.NewMockContext(tu.WithDatabase(t, tu.ReturnsReadErrors()))
-	localProvider := usr.LocalProvider{}
+	localProvider := localProvider{}
 
 	if err := localProvider.UpdateUserPassword("gramsey", "dontchangeme", "somethingelse", false, ctx); err == nil {
 		t.Log("Did not return error")
@@ -242,7 +230,7 @@ func TestLocalUpdateUserPasswordDatabaseFailure(t *testing.T) {
 func TestLocalCheckCreateForSuperUserHappy(t *testing.T) {
 	ctx := tu.NewMockContext(tu.WithDatabase(t))
 
-	localProvider := usr.LocalProvider{}
+	localProvider := localProvider{}
 
 	if err := localProvider.CheckCreateForSuperUser(ctx); err != nil {
 		t.Fatalf("Failed to CheckCreateForSuperUser: %v", err)
@@ -289,7 +277,7 @@ func TestLocalCheckCreateForSuperUserHappy(t *testing.T) {
 func TestLocalCheckCreateForSuperUserDatabaseClaimFailure(t *testing.T) {
 	ctx := tu.NewMockContext(tu.WithDatabase(t, tu.ReturnsMutateErrors("claim")))
 
-	localProvider := usr.LocalProvider{}
+	localProvider := localProvider{}
 
 	if err := localProvider.CheckCreateForSuperUser(ctx); err == nil {
 		t.Fatalf("Did not return error: %v", err)
@@ -299,7 +287,7 @@ func TestLocalCheckCreateForSuperUserDatabaseClaimFailure(t *testing.T) {
 func TestLocalCheckCreateForSuperUserDatabaseGroupWriteFailure(t *testing.T) {
 	ctx := tu.NewMockContext(tu.WithDatabase(t, tu.ReturnsMutateErrors("claimgroup")))
 
-	localProvider := usr.LocalProvider{}
+	localProvider := localProvider{}
 
 	if err := localProvider.CheckCreateForSuperUser(ctx); err == nil {
 		t.Fatalf("Did not return error: %v", err)
@@ -309,7 +297,7 @@ func TestLocalCheckCreateForSuperUserDatabaseGroupWriteFailure(t *testing.T) {
 func TestLocalCheckCreateForSuperUserDatabaseGroupReadFailure(t *testing.T) {
 	ctx := tu.NewMockContext(tu.WithDatabase(t, tu.ReturnsReadErrors("claimgroup")))
 
-	localProvider := usr.LocalProvider{}
+	localProvider := localProvider{}
 
 	if err := localProvider.CheckCreateForSuperUser(ctx); err == nil {
 		t.Fatalf("Did not return error: %v", err)

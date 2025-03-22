@@ -8,7 +8,7 @@
         variant="text"
         :icon="compProps.deleteIcon? compProps.deleteIcon: icons.DELETE"
         v-bind="props"
-        @click="dialogOpen = true"
+        @click.stop="dialogOpen = true"
       ></v-btn>
     </template>
   </v-tooltip>
@@ -87,7 +87,11 @@
         dialogOpen.value = false
       } catch (err) {
         console.error(err)
-        errorMsg.value = err
+        if ( err.cause ) {
+          errorMsg.value = err.cause
+        } else {
+          errorMsg.value = err + ''
+        }
       }
     } else {
       dialogOpen.value = false

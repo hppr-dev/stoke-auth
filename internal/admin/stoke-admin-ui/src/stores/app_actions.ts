@@ -1,5 +1,5 @@
 export const appActions = {
-  login: async function(username : string, password : string, callback : () => void) {
+  login: async function(username : string, password : string, provider : string, callback : () => void) {
     try {
       const response = await fetch(`${this.api_url}/api/login`, {
         method: "POST",
@@ -9,6 +9,7 @@ export const appActions = {
         body: JSON.stringify({
           username: username,
           password: password,
+          provider: provider,
           // Match any stk claim
           required_claims: [ { "stk": "" } ],
           // Only return stk claims
@@ -31,12 +32,12 @@ export const appActions = {
 
       callback()
 
-      this.username = username
+      this.username = result.username
       this.token = result.token
       this.refreshToken = result.refresh
       sessionStorage.setItem("token", result.token)
       sessionStorage.setItem("refresh", result.refresh)
-      sessionStorage.setItem("username", username)
+      sessionStorage.setItem("username", result.username)
 
       this.scheduleRefresh()
 
@@ -101,6 +102,19 @@ export const appActions = {
     const result = await response.json();
     if ( result.capabilities ) {
       this.capabilites = result.capabilities
+    }
+  },
+  fetchAvailableProviders: async function() {
+    const response = await fetch(`${this.api_url}/api/available_providers`, {
+      method: "GET",
+      headers: {
+        "Content-Type" : "application/json",
+      }
+    })
+
+    const result = await response.json();
+    if ( result.length > 0) {
+      this.availableProviders = result
     }
   },
   scheduleRefresh: function() {

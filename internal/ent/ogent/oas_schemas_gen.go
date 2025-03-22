@@ -9,6 +9,45 @@ import (
 	"github.com/go-faster/jx"
 )
 
+type AvailableProvidersOKItem struct {
+	// Name of provider.
+	Name string `json:"name"`
+	// Type of provider.
+	ProviderType string `json:"provider_type"`
+	// Type specification of provider.
+	TypeSpec string `json:"type_spec"`
+}
+
+// GetName returns the value of Name.
+func (s *AvailableProvidersOKItem) GetName() string {
+	return s.Name
+}
+
+// GetProviderType returns the value of ProviderType.
+func (s *AvailableProvidersOKItem) GetProviderType() string {
+	return s.ProviderType
+}
+
+// GetTypeSpec returns the value of TypeSpec.
+func (s *AvailableProvidersOKItem) GetTypeSpec() string {
+	return s.TypeSpec
+}
+
+// SetName sets the value of Name.
+func (s *AvailableProvidersOKItem) SetName(val string) {
+	s.Name = val
+}
+
+// SetProviderType sets the value of ProviderType.
+func (s *AvailableProvidersOKItem) SetProviderType(val string) {
+	s.ProviderType = val
+}
+
+// SetTypeSpec sets the value of TypeSpec.
+func (s *AvailableProvidersOKItem) SetTypeSpec(val string) {
+	s.TypeSpec = val
+}
+
 type CapabilitiesOK struct {
 	// List of enabled capabilites.
 	Capabilities []string `json:"capabilities"`
@@ -1158,6 +1197,8 @@ type LoginOK struct {
 	Token string `json:"token"`
 	// Token to get a new token with the same claims. Must be used before token expires.
 	Refresh string `json:"refresh"`
+	// Username of the user who logged in.
+	Username string `json:"username"`
 }
 
 // GetToken returns the value of Token.
@@ -1170,6 +1211,11 @@ func (s *LoginOK) GetRefresh() string {
 	return s.Refresh
 }
 
+// GetUsername returns the value of Username.
+func (s *LoginOK) GetUsername() string {
+	return s.Username
+}
+
 // SetToken sets the value of Token.
 func (s *LoginOK) SetToken(val string) {
 	s.Token = val
@@ -1180,6 +1226,11 @@ func (s *LoginOK) SetRefresh(val string) {
 	s.Refresh = val
 }
 
+// SetUsername sets the value of Username.
+func (s *LoginOK) SetUsername(val string) {
+	s.Username = val
+}
+
 func (*LoginOK) loginRes() {}
 
 // User credentials.
@@ -1188,6 +1239,8 @@ type LoginReq struct {
 	Username string `json:"username"`
 	// User's password.
 	Password string `json:"password"`
+	// Provider to login try to login to. This is required when multiple foreign providers are defined.
+	Provider OptString `json:"provider"`
 	// Claims required to receive a token. A token is issued if a user matches all given claims of one
 	// entry in the list.
 	RequiredClaims []LoginReqRequiredClaimsItem `json:"required_claims"`
@@ -1203,6 +1256,11 @@ func (s *LoginReq) GetUsername() string {
 // GetPassword returns the value of Password.
 func (s *LoginReq) GetPassword() string {
 	return s.Password
+}
+
+// GetProvider returns the value of Provider.
+func (s *LoginReq) GetProvider() OptString {
+	return s.Provider
 }
 
 // GetRequiredClaims returns the value of RequiredClaims.
@@ -1223,6 +1281,11 @@ func (s *LoginReq) SetUsername(val string) {
 // SetPassword sets the value of Password.
 func (s *LoginReq) SetPassword(val string) {
 	s.Password = val
+}
+
+// SetProvider sets the value of Provider.
+func (s *LoginReq) SetProvider(val OptString) {
+	s.Provider = val
 }
 
 // SetRequiredClaims sets the value of RequiredClaims.

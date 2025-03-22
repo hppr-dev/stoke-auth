@@ -2,152 +2,105 @@ package cfg
 
 import (
 	"context"
-	"crypto/tls"
-	"crypto/x509"
-	"io"
-	"os"
+	"encoding/json"
+	"fmt"
+	"stoke/internal/ent"
+	"stoke/internal/ent/schema/policy"
 	"stoke/internal/usr"
-	"strings"
-	"text/template"
 
-	"github.com/go-ldap/ldap/v3"
 	"github.com/rs/zerolog"
 )
 
 type Users struct {
 	// Enable checking/creating stoke admin per-operation claims
-	CreateStokeClaims     bool   `json:"create_stoke_claims"`
-	// Enable authenticating with an LDAP server
-	EnableLDAP            bool   `json:"enable_ldap"`
-	// URL (starting with ldap:// or ldaps://) of the ldap server
-	ServerURL             string `json:"server_url"`
-	// Readonly bind user distinguished name used to look up users in ldap
-	BindUserDN            string `json:"bind_user_dn"`
-	// Read-only bind user password
-	BindUserPassword      string `json:"bind_user_password"`
+	CreateStokeClaims bool              `json:"create_stoke_claims"`
+	// Policy Configuration
+	PolicyConfig PolicyConfig           `json:"policy_config"`
+	// Configs for providers
+	Providers         []*ProviderConfig `json:"providers"`
+}
 
-
-	// LDAP root group search query
-	GroupSearchRoot       string `json:"group_search_root"`
-	// LDAP group filter template string. Use {{ .Username }} or {{ .Email }} to fill in username or email.
-	GroupFilter           string `json:"group_filter_template"`
-	// LDAP group name attribute used to match groups
-	GroupNameField        string `json:"ldap_group_name_field"`
-
-	// LDAP root user search query
-	UserSearchRoot        string `json:"user_search_root"`
-	// LDAP user filter template string. Use {{ .Username }} to fill in the the username
-	UserFilter            string `json:"user_filter_template"`
-
-	// LDAP field to pull from ldap as the first name
-	FirstNameField        string `json:"ldap_first_name_field"`
-	// LDAP field to pull from ldap as the last name
-	LastNameField         string `json:"ldap_last_name_field"`
-	// LDAP field to pull from ldap as the email
-	EmailField            string `json:"ldap_email_field"`
-
-	// Timeout for LDAP searches
-	SearchTimeout         int    `json:"search_timeout"`
-
-	// LDAP public ca certificate file
-	LDAPCACert        string `json:"ldap_ca_cert"`
-	// Skip verifying the certificate
-	SkipCertificateVerify bool   `json:"skip_certificate_verify"`
+type PolicyConfig struct {
+	// Allow superuser override protective policies
+	AllowSuperuserOverride bool  `json:"allow_superuser_override"`
+	// Whether to disallow any changes to the database after start up
+	ReadOnlyMode bool            `json:"read_only_mode"`
+	// Users that are not allowed to be changed
+	ProtectedUsers []string      `json:"protected_users"`
+	// Groups that are not allowed to be changed
+	ProtectedGroups []string     `json:"protected_groups"`
+	// Claims that are not allowed to be changed
+	ProtectedClaims []string     `json:"protected_claims"`
 }
 
 func (u Users) withContext(ctx context.Context) context.Context {
-	logger := zerolog.Ctx(ctx)
-	var provider usr.Provider
+	ctx = u.PolicyConfig.withContext(ctx)
 
-	if u.EnableLDAP {
-		groupFilterTemplate := template.New("group-filter")
-		groupFilterTemplate, err := groupFilterTemplate.Parse(u.GroupFilter)
-		if err != nil {
-			logger.Fatal().
-				Err(err).
-				Str("groupFilterTemplate", u.GroupFilter).
-				Msg("Could not parse group filter template")
-		}
-
-		userFilterTemplate := template.New("user-filter")
-		userFilterTemplate, err = userFilterTemplate.Parse(u.UserFilter)
-		if err != nil {
-			logger.Fatal().
-				Err(err).
-				Str("userFilterTemplate", u.UserFilter).
-				Msg("Could not parse user filter template")
-		}
-
-		var dialOpts []ldap.DialOpt
-
-		if strings.HasPrefix(u.ServerURL, "ldaps://") {
-			certPool, err := x509.SystemCertPool()
-			if err != nil {
-				logger.Error().
-					Err(err).
-					Str("serverUrl", u.ServerURL).
-					Str("ldapCert", u.LDAPCACert).
-					Msg("Could not load system cert pool. Using new empty pool.")
-				certPool = x509.NewCertPool()
-			}
-			if u.LDAPCACert != "" {
-				publicCerts, err := readPublicCertFile(u.LDAPCACert)
-				if err != nil {
-					logger.Fatal().
-						Err(err).
-						Str("ldapCert", u.LDAPCACert).
-						Msg("Could not read ldap cert file")
-				}
-				for _, cert := range publicCerts {
-					certPool.AddCert(cert)
-				}
-			}
-			dialOpts = append(dialOpts,
-				ldap.DialWithTLSConfig(
-					&tls.Config{
-						ClientCAs: certPool,
-						InsecureSkipVerify: u.SkipCertificateVerify,
-					},
-				),
-			)
-		}
-
-		provider = usr.NewLDAPUserProvider(
-			u.ServerURL,
-			u.BindUserDN,
-			u.BindUserPassword,
-			u.GroupSearchRoot,
-			u.GroupNameField,
-			u.UserSearchRoot,
-			u.FirstNameField,
-			u.LastNameField,
-			u.EmailField,
-			u.SearchTimeout,
-			groupFilterTemplate,
-			userFilterTemplate,
-			dialOpts...,
-		)
-	} else {
-		provider = usr.LocalProvider{}
-	}
+	providerList := usr.NewProviderList()
 
 	if u.CreateStokeClaims {
-		provider.CheckCreateForStokeClaims(ctx)
+		if err := providerList.CheckCreateForStokeClaims(ctx); err != nil {
+			zerolog.Ctx(ctx).Error().
+				Err(err).
+				Msg("Error while creating stoke claims")
+		}
 	}
 
-	return provider.WithContext(ctx)
+	for _, prov := range u.Providers {
+		providerList.AddForeignProvider(prov.Name, prov.CreateProvider(ctx))
+	}
+
+	return providerList.WithContext(ctx)
 }
 
-func readPublicCertFile(name string) ([]*x509.Certificate, error) {
-	certFile, err := os.Open(name)
+func (p PolicyConfig) withContext(ctx context.Context) context.Context {
+	conf := Ctx(ctx)
+	return policy.ConfigurePolicies(
+		p.ProtectedUsers,
+		p.ProtectedClaims,
+		p.ProtectedGroups,
+		conf.Tokens.UserInfo["username"],
+		p.ReadOnlyMode,
+		p.AllowSuperuserOverride,
+		ctx,
+	)
+
+}
+
+type ProviderConfig struct {
+	providerConfig
+	ProviderType   string `json:"type"`
+	Name           string `json:"name"`
+}
+
+type providerConfig interface {
+	CreateProvider(context.Context) foreignProvider
+	TypeSpec() string
+}
+
+type foreignProvider interface {
+	UpdateUserClaims(username, password string, ctx context.Context) (*ent.User, error)
+}
+
+func (pc *ProviderConfig) UnmarshalJSON(b []byte) error {
+	temp := struct {
+		ProviderType string `json:"type"`
+		Name         string `json:"name"`
+	}{}
+	err := json.Unmarshal(b, &temp)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	certBytes, err := io.ReadAll(certFile)
-	if err != nil {
-		return nil, err
+	pc.ProviderType = temp.ProviderType
+	pc.Name = temp.Name
+	switch(pc.ProviderType) {
+	case "ldap", "LDAP":
+		pc.providerConfig = &LDAPProviderConfig{}
+		return json.Unmarshal(b, pc.providerConfig)
+	case "oidc", "OIDC":
+		pc.providerConfig = &OIDCProviderConfig{}
+		return json.Unmarshal(b, pc.providerConfig)
 	}
-
-	return x509.ParseCertificates(certBytes)
+	return fmt.Errorf("Provider type not supported: %s", temp.ProviderType)
 }

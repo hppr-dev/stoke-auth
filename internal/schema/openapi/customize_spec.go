@@ -25,5 +25,6 @@ func CustomizeSpec(g *gen.Graph, spec *ogen.Spec) error {
 	
 	addLoginEndpoint(spec)
 	addPkeysEndpoint(spec)
+	addAvailableProvidersEndpoint(spec)
 	return nil
 }

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"stoke/internal/cfg"
+	_ "stoke/internal/ent/runtime"
 	"stoke/internal/usr"
 	"stoke/internal/web"
 
@@ -40,7 +41,10 @@ func main() {
 		return
 	}
 
-	flagSet.Parse(allFlags)
+	if err := flagSet.Parse(allFlags); err != nil {
+		fmt.Printf("Failed to parse flags: %v\n", err)
+		os.Exit(1)
+	}
 
 	config := cfg.FromFile(*configFile) 
 
@@ -103,7 +107,7 @@ func main() {
 
 	err = nil
 	for _, f := range shutdownFuncs {
-		errors.Join(err, f(rootCtx))
+		err = errors.Join(err, f(rootCtx))
 	}
 
 	logger.Info().Err(err).Msg("Stoke Server Terminated.")
@@ -113,7 +117,10 @@ func getAndHashPassword() {
 	var pass string
 	fmt.Println("Creating password hash for db-init file...")
 	fmt.Print("password:\033[8m")
-	fmt.Scanln(&pass)
+	if _, err := fmt.Scanln(&pass) ; err != nil {
+		fmt.Printf("Could not read password: %v", err)
+		os.Exit(1)
+	}
 	salt := usr.GenSalt()
 	hash := usr.HashPass(pass, salt)
 	fmt.Println("\033[28mAdd the following to the db-init yaml file:")

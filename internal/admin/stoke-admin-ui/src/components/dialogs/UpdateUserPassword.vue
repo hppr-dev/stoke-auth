@@ -45,7 +45,7 @@
                   :rules="[requireIfNotForce]"
                   :disabled="force"
                   :type="showOldPass? 'text' : 'password'"
-                  :append-inner-icon="showOldPass ? 'mdi-eye' : 'mdi-eye-off'"
+                  :append-inner-icon="showOldPass ? icons.SHOW : icons.HIDE"
                   @click:append-inner="showOldPass = !showOldPass"
                   @update:modelValue="updatePasswordForm"
                 ></v-text-field>

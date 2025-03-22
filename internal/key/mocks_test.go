@@ -64,8 +64,8 @@ func (*MockKeyCache) CurrentID() int { return 0 }
 func (*MockKeyCache) PublicKeys(context.Context) ([]byte, error) { return edKeyPair.PrivateKey.Public().([]byte), nil }
 func (*MockKeyCache) Bootstrap(context.Context, key.KeyPair[ed25519.PrivateKey]) error { return nil }
 func (*MockKeyCache) Generate(context.Context) error { return nil }
-func (*MockKeyCache) ReadLock() { return }
-func (*MockKeyCache) ReadUnlock() { return }
+func (*MockKeyCache) ReadLock() { }
+func (*MockKeyCache) ReadUnlock() { }
 
 type BadKeyPair struct {}
 var badKeyPairErr = errors.New("Bad Key Pair")

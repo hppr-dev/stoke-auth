@@ -20,7 +20,8 @@ groups:
   - name: Ship Crew
     description: Planet express ship crew
     links:
-      - ship_crew
+      - type: LDAP
+        resource_spec: ship_crew
     claims:
       - Engineer Role
       - Ship Access
@@ -28,7 +29,8 @@ groups:
   - name: Ship Staff
     description: Planet express ship staff
     links:
-      - ship_staff
+      - type: LDAP
+        resource_spec: ship_staff
     claims:
       - Engineer Role
 
@@ -36,8 +38,8 @@ groups:
 claims:
   - name: Stoke Super User
     description: Grants stoke admin super user priviledges
-    short_name: srol
-    value: spr
+    short_name: stk
+    value: S
 
   - name: Ship Access
     description:  Grants crew ability to access ship

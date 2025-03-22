@@ -8,6 +8,9 @@ import (
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+
+	"stoke/internal/ent/privacy"
+	"stoke/internal/ent/schema/policy"
 )
 
 type User struct {
@@ -56,5 +59,13 @@ func (User) Annotations() []schema.Annotation {
 func (User) Mixins() []ent.Mixin {
 	return []ent.Mixin{
 		Common{},
+	}
+}
+
+func (User) Policy() ent.Policy {
+	return privacy.Policy {
+		Mutation: privacy.MutationPolicy{
+			policy.UserMutationPolicy{},
+		},
 	}
 }

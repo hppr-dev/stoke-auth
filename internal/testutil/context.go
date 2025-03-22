@@ -3,6 +3,7 @@ package testutil
 import (
 	"context"
 	"os"
+	"stoke/internal/schema/policy"
 
 	"github.com/rs/zerolog"
 )
@@ -10,7 +11,7 @@ import (
 type ContextOption func(context.Context) context.Context
 
 func NewMockContext(opts ...ContextOption) context.Context {
-	ctx := context.Background()
+	ctx := policy.ConfigurePolicies([]string{}, []string{}, []string{}, "u", false, true, context.Background())
 	for _, opt := range opts {
 		ctx = opt(ctx)
 	}

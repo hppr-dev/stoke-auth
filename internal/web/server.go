@@ -36,7 +36,7 @@ func NewServer(ctx context.Context) *http.Server {
 	telConf := cfg.Ctx(ctx).Telemetry
 	issuer := key.IssuerFromCtx(ctx)
 
-	mux := http.NewServeMux()
+	mux := cfg.MuxFromContext(ctx)
 
 	dLogger := debugLogger{ logger: logger.With().Str("component", "http.Server").Logger() }
 
@@ -108,7 +108,9 @@ func NewServer(ctx context.Context) *http.Server {
 			}
 
 			res.WriteHeader(http.StatusOK)
-			res.Write(content)
+			if _, err := res.Write(content); err != nil {
+				logger.Error().Err(err).Msg("Could not write log")
+			}
 		}
 
 		if telConf.RequirePrometheusAuthentication {

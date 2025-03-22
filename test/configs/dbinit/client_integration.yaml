@@ -28,7 +28,8 @@ groups:
   - name: Ship All Access
     description: All claims to access example example
     links:
-      - ship_crew
+      - type: LDAP
+        resource: ship_crew
     claims:
       - Ship Access
       - Requester
@@ -40,7 +41,8 @@ groups:
   - name: Ship No Access
     description: A group with no claims to access to example endpoints
     links:
-      - admin_staff
+      - type: LDAP
+        resource: admin_staff
     claims:
       - Stoke Super User
       

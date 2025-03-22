@@ -1,0 +1,80 @@
+name: Push to main checks
+
+on:
+  push:
+    branches: [ "main" ]
+    tags: ["v*"]
+
+env:
+  APP_VERSION: ${{ github.commit }}
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-go@v5.4.0
+      with:
+        go-version-file: go.mod
+    - name: golangci-lint
+      uses: golangci/golangci-lint-action@v6
+      with:
+        version: v1.64
+
+  test:
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-go@v5.4.0
+      with:
+        go-version-file: go.mod
+    - name: Run unit tests
+      run: go test ./...
+
+  build-and-push:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Login to docker registry
+      uses: docker/login-action@v3
+      with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Extract metadata (tags, labels) for Docker
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ghcr.io/hppr-dev/stoke-auth
+
+    - name: Build and push Docker image
+      id: push
+      uses: docker/build-push-action@v6
+      with:
+        context: .
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+
+    - name: Generate artifact attestation
+      uses: actions/attest-build-provenance@v2
+      with:
+        subject-name: ghcr.io/hppr-dev/stoke-auth
+        subject-digest: ${{ steps.push.outputs.digest }}
+        push-to-registry: true
+
+    - name: Setup helm
+      uses: azure/setup-helm@v4.3.0
+
+    - name: Build and push Helm OCI image
+      id: push
+      run: |
+        echo '${{ secrets.PGP_PRIVATE_KEY }}' | base64 -d | gpg --batch --import
+        gpg --pinentry-mode loopback --passphrase '${{ secrets.PGP_PASSPHRASE }}' --export-secret-keys > secring.gpg
+        helm registry login ghcr.io -u '${{ github.actor }}' -p '${{ secrets.GITHUB_TOKEN }}'
+        echo '${{ secrets.PGP_PASSPHRASE }}' | helm package --passphrase-file '-' --sign --key hppr.dev --keyring secring.gpg ./helm
+        helm push stoke-auth*.tgz oci://ghcr.io/hppr-dev

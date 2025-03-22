@@ -1,5 +1,10 @@
 package cfg
 
+import (
+	"context"
+	"net/http"
+)
+
 type Server struct {
 	// Address to serve the application on
 	Address string `json:"address"`
@@ -18,4 +23,13 @@ type Server struct {
 
 	// Disable the admin UI
 	DisableAdmin bool     `json:"disable_admin"`
+}
+
+func (s Server) WithContext(ctx context.Context) context.Context {
+	mux := http.NewServeMux()
+	return context.WithValue(ctx, serveMuxCtxKey, mux)
+}
+
+func MuxFromContext(ctx context.Context) *http.ServeMux {
+	return ctx.Value(serveMuxCtxKey).(*http.ServeMux)
 }

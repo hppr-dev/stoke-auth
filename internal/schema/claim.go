@@ -1,6 +1,9 @@
 package schema
 
 import (
+	"stoke/internal/ent/privacy"
+	"stoke/internal/ent/schema/policy"
+
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
@@ -37,5 +40,13 @@ func (Claim) Indexes() []ent.Index {
 func (Claim) Mixins() []ent.Mixin {
 	return []ent.Mixin{
 		Common{},
+	}
+}
+
+func (Claim) Policy() ent.Policy {
+	return privacy.Policy {
+		Mutation: privacy.MutationPolicy{
+			policy.ClaimMutationPolicy{},
+		},
 	}
 }

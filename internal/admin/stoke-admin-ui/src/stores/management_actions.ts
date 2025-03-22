@@ -14,7 +14,8 @@ export const managementActions = {
     })
 
     if ( !response.ok ){
-      throw new Error(response.statusText)
+      let cause = await response.json()
+      throw new Error(response.statusText, { cause : cause.error_message })
     }
 
     const jres = await response.json()
@@ -61,27 +62,34 @@ export const managementActions = {
     })
 
     if ( !response.ok ){
-      throw new Error(response.statusText)
+      let cause = await response.json()
+      throw new Error(response.statusText, { cause : cause.error_message })
     }
   },
   saveScratchUser: function() {
-    this.currentUser = { ...this.scratchUser }
-    this.currentGroups = [ ...this.scratchGroups ]
     this.scratchUser.claim_groups = this.scratchGroups.map((g : Group) => g.id)
     return this.simplePatch("/api/admin/users", "scratchUser")
-      .then(() => this.scratchUser = {})
+      .then(() => {
+        this.currentUser = { ...this.scratchUser }
+        this.currentGroups = [ ...this.scratchGroups ]
+        this.scratchUser = {}
+      })
   },
   saveScratchGroup: function() {
-    this.currentGroup = { ...this.scratchGroup }
-    this.currentClaims = [ ...this.scratchClaims ]
     this.scratchGroup.claims = this.scratchClaims.map((c : Claim) => c.id)
     return this.simplePatch("/api/admin/claim-groups", "scratchGroup")
-      .then(() => this.scratchGroup = {})
+      .then(() => {
+        this.currentGroup = { ...this.scratchGroup }
+        this.currentClaims = [ ...this.scratchClaims ]
+        this.scratchGroup = {}
+      })
   },
   saveScratchClaim: function() {
-    this.currentClaim = this.scratchClaim
     return this.simplePatch("/api/admin/claims", "scratchClaim")
-      .then(() => this.scratchClaim = {})
+      .then(() => {
+        this.currentClaim = this.scratchClaim
+        this.scratchClaim = {}
+      })
   },
   savePasswordForm: async function() {
     const response = await fetch(`${this.api_url}/api/admin/localuser`, {
@@ -93,7 +101,8 @@ export const managementActions = {
       body : JSON.stringify(this.passwordForm),
     })
     if ( !response.ok ){
-      throw new Error(response.statusText)
+      let cause = await response.json()
+      throw new Error(response.statusText, { cause : cause.error_message })
     }
   },
   simplePost: async function(endpoint : string, stateToSend : string) {
@@ -106,24 +115,25 @@ export const managementActions = {
       body : JSON.stringify(this[stateToSend]),
     })
     if ( !response.ok ){
-      throw new Error(response.statusText)
+      let cause = await response.json()
+      throw new Error(response.statusText, { cause : cause.error_message })
     }
   },
   addScratchUser: function() {
     return this.simplePost("/api/admin/localuser", "scratchUser")
       .then( () => this.scratchUser = {} )
-      .then(this.fetchAllUsers)
+      .finally(this.fetchAllUsers)
   },
   addScratchGroup: function() {
     this.scratchGroup.claims = this.scratchClaims.map((c : Claim) => c.id)
     return this.simplePost("/api/admin/claim-groups", "scratchGroup")
       .then( () => this.scratchGroup = {} )
-      .then(this.fetchAllGroups)
+      .finally(this.fetchAllGroups)
   },
   addScratchClaim: function() {
     return this.simplePost("/api/admin/claims", "scratchClaim")
       .then( () => this.scratchClaim = {} )
-      .then(this.fetchAllClaims)
+      .finally(this.fetchAllClaims)
   },
   addScratchLink: function() {
     return this.simplePost("/api/admin/group-links", "scratchLink")
@@ -143,23 +153,24 @@ export const managementActions = {
     })
 
     if ( !response.ok ){
-      throw new Error(response.statusText)
+      let cause = await response.json()
+      throw new Error(response.statusText, { cause : cause.error_message })
     }
   },
   deleteUser: function() {
     return this.simpleDelete("/api/admin/users", this.currentUser)
       .then(() => this.currentUser = {})
-      .then(this.fetchAllUsers)
+      .finally(this.fetchAllUsers)
   },
   deleteGroup: function() {
     return this.simpleDelete("/api/admin/claim-groups", this.currentGroup)
       .then(() => this.currentGroup = {})
-      .then(this.fetchAllGroups)
+      .finally(this.fetchAllGroups)
   },
   deleteClaim: function() {
     return this.simpleDelete("/api/admin/claims", this.currentClaim)
       .then(() => this.currentClaim = {})
-      .then(this.fetchAllClaims)
+      .finally(this.fetchAllClaims)
   },
   deleteLink: function(link: GroupLink) {
     return this.simpleDelete("/api/admin/group-links", link)

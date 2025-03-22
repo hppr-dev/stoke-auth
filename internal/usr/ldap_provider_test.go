@@ -2,16 +2,24 @@ package usr_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"stoke/internal/ent"
+	"stoke/internal/ent/user"
 	tu "stoke/internal/testutil"
 	"stoke/internal/usr"
 	"testing"
 	"text/template"
 )
 
+type LDAPUserProvider interface {
+	SetConnector(usr.LDAPConnector)
+	UpdateUserClaims(username, password string, ctx context.Context) (*ent.User, error)
+}
+
 // User does not exist in the local database yet
 // User has claims from linked groups
-func TestLDAPGetUserClaimsHappy(t *testing.T) {
+func TestLDAPUpdateUserClaimsHappy(t *testing.T) {
 	ctx := tu.NewMockContext(
 		tu.WithDatabase(t,
 			tu.User(
@@ -19,7 +27,7 @@ func TestLDAPGetUserClaimsHappy(t *testing.T) {
 				tu.Source("LOCAL"),
 				tu.Group(
 					tu.GroupInfo("admin group", "administrator group"),
-					tu.LDAPLink("ldap_group"),
+					tu.LDAPLink("main_ldap", "ldap_group"),
 					tu.Claim(
 						tu.ClaimInfo("admin", "adm", "yes", "Grants admin"),
 					),
@@ -29,6 +37,7 @@ func TestLDAPGetUserClaimsHappy(t *testing.T) {
 				),
 			),
 		),
+		tu.WithToken(t),
 	)
 
 	conn := NewMockLDAPServer(
@@ -42,10 +51,11 @@ func TestLDAPGetUserClaimsHappy(t *testing.T) {
 	ldapProvider := createLDAPProvider()
 	ldapProvider.SetConnector(conn)
 
-	user, claims, err := ldapProvider.GetUserClaims("ldapuser", "luserpass", true, ctx)
-	if err != nil {
+	if _, err := ldapProvider.UpdateUserClaims("ldapuser", "luserpass", ctx); err != nil {
 		t.Fatalf("Failed to get user claims: %v", err)
 	}
+
+	user, claims := getUserAndClaims("ldapuser", ctx)
 
 	if len(claims) != 2 {
 		t.Logf("Claims did not match: %v", claims)
@@ -78,7 +88,7 @@ func TestLDAPGetUserClaimsHappy(t *testing.T) {
 }
 
 // User is not in the database and has no linked groups
-func TestLDAPGetUserClaimsNoLinkedGroups(t *testing.T) {
+func TestLDAPUpdateUserClaimsNoLinkedGroups(t *testing.T) {
 	ctx := tu.NewMockContext(
 		tu.WithDatabase(t,
 			tu.User(
@@ -105,29 +115,28 @@ func TestLDAPGetUserClaimsNoLinkedGroups(t *testing.T) {
 	ldapProvider := createLDAPProvider()
 	ldapProvider.SetConnector(conn)
 
-	_, _, err := ldapProvider.GetUserClaims("ldapuser", "luserpass", true, ctx)
-	if err == nil {
-		t.Fatalf("Was able to get claims for user with no linked groups")
+	if u, err := ldapProvider.UpdateUserClaims("ldapuser", "luserpass", ctx); err == nil {
+		t.Fatalf("Was able to get claims for user with no linked groups: %v", u)
 	}
 }
 
 // User is in the database but they have a linked group that is no longer linked to their LDAP groups
-func TestLDAPGetUserClaimsRemovedGroups(t *testing.T) {
+func TestLDAPUpdateUserClaimsRemovedGroups(t *testing.T) {
 	ctx := tu.NewMockContext(
 		tu.WithDatabase(t,
 			tu.User(
 				tu.UserInfo("ldap", "user", "ldapuser", "luser@hppr.dev"),
-				tu.Source("LDAP"),
+				tu.Source("LDAP:main_ldap"),
 				tu.Group(
 					tu.GroupInfo("admin group", "administrator group"),
-					tu.LDAPLink("ldap_group"),
+					tu.LDAPLink("main_ldap", "ldap_group"),
 					tu.Claim(
 						tu.ClaimInfo("admin", "adm", "yes", "Grants admin"),
 					),
 				),
 				tu.Group(
 					tu.GroupInfo("other group", "other group"),
-					tu.LDAPLink("other_ldap_group"),
+					tu.LDAPLink("main_ldap", "other_ldap_group"),
 					tu.Claim(
 						tu.ClaimInfo("user", "usr", "yes", "Grants user"),
 					),
@@ -147,10 +156,12 @@ func TestLDAPGetUserClaimsRemovedGroups(t *testing.T) {
 	ldapProvider := createLDAPProvider()
 	ldapProvider.SetConnector(conn)
 
-	user, claims, err := ldapProvider.GetUserClaims("ldapuser", "luserpass", true, ctx)
+	_, err := ldapProvider.UpdateUserClaims("ldapuser", "luserpass", ctx)
 	if err != nil {
 		t.Fatalf("Failed to get user claims: %v", err)
 	}
+
+	user, claims := getUserAndClaims("ldapuser", ctx)
 
 	if len(claims) != 1 {
 		t.Logf("Claims length did not match: %v", claims)
@@ -166,7 +177,7 @@ func TestLDAPGetUserClaimsRemovedGroups(t *testing.T) {
 
 	if user.Username != "ldapuser" || user.Fname != "ldap" ||
 			user.Lname != "user" || user.Email != "luser@hppr.dev" ||
-			user.Source != "LDAP" || user.Password != "" || user.Salt != "" {
+			user.Source != "LDAP:main_ldap" || user.Password != "" || user.Salt != "" {
 		t.Logf("User did not match: %v", user)
 		t.Fail()
 	}
@@ -174,22 +185,22 @@ func TestLDAPGetUserClaimsRemovedGroups(t *testing.T) {
 
 // User is in the database but they have a linked group that is no longer linked to their LDAP groups
 // But the database cannot be updated
-func TestLDAPGetUserClaimsRemovedGroupsReturnsErrorDatabaseFailure(t *testing.T) {
+func TestLDAPUpdateUserClaimsRemovedGroupsReturnsErrorDatabaseFailure(t *testing.T) {
 	ctx := tu.NewMockContext(
 		tu.WithDatabase(t,
 			tu.User(
 				tu.UserInfo("ldap", "user", "ldapuser", "luser@hppr.dev"),
-				tu.Source("LDAP"),
+				tu.Source("LDAP:main_ldap"),
 				tu.Group(
 					tu.GroupInfo("admin group", "administrator group"),
-					tu.LDAPLink("ldap_group"),
+					tu.LDAPLink("main_ldap", "ldap_group"),
 					tu.Claim(
 						tu.ClaimInfo("admin", "adm", "yes", "Grants admin"),
 					),
 				),
 				tu.Group(
 					tu.GroupInfo("other group", "other group"),
-					tu.LDAPLink("other_ldap_group"),
+					tu.LDAPLink("main_ldap", "other_ldap_group"),
 					tu.Claim(
 						tu.ClaimInfo("user", "usr", "yes", "Grants user"),
 					),
@@ -210,21 +221,21 @@ func TestLDAPGetUserClaimsRemovedGroupsReturnsErrorDatabaseFailure(t *testing.T)
 	ldapProvider := createLDAPProvider()
 	ldapProvider.SetConnector(conn)
 
-	if _, _, err := ldapProvider.GetUserClaims("ldapuser", "luserpass", true, ctx); err == nil {
+	if _, err := ldapProvider.UpdateUserClaims("ldapuser", "luserpass", ctx); err == nil {
 		t.Fatal("Did not return an error")
 	}
 }
 
 // User is in the database but the database cannot be read
-func TestLDAPGetUserClaimsReturnsErrorDatabaseFailure(t *testing.T) {
+func TestLDAPUpdateUserClaimsReturnsErrorDatabaseFailure(t *testing.T) {
 	ctx := tu.NewMockContext(
 		tu.WithDatabase(t,
 			tu.User(
 				tu.UserInfo("ldap", "user", "ldapuser", "luser@hppr.dev"),
-				tu.Source("LDAP"),
+				tu.Source("LDAP:main_ldap"),
 				tu.Group(
 					tu.GroupInfo("admin group", "administrator group"),
-					tu.LDAPLink("ldap_group"),
+					tu.LDAPLink("main_ldap", "ldap_group"),
 					tu.Claim(
 						tu.ClaimInfo("admin", "adm", "yes", "Grants admin"),
 					),
@@ -245,28 +256,28 @@ func TestLDAPGetUserClaimsReturnsErrorDatabaseFailure(t *testing.T) {
 	ldapProvider := createLDAPProvider()
 	ldapProvider.SetConnector(conn)
 
-	if _, _, err := ldapProvider.GetUserClaims("ldapuser", "luserpass", true, ctx); err == nil {
+	if _, err := ldapProvider.UpdateUserClaims("ldapuser", "luserpass", ctx); err == nil {
 		t.Fatal("Did not return an error")
 	}
 }
 
 // User is in the database but all linked groups were removed
-func TestLDAPGetUserClaimsRemovedAllGroups(t *testing.T) {
+func TestLDAPUpdateUserClaimsRemovedAllGroups(t *testing.T) {
 	ctx := tu.NewMockContext(
 		tu.WithDatabase(t,
 			tu.User(
 				tu.UserInfo("ldap", "user", "ldapuser", "luser@hppr.dev"),
-				tu.Source("LDAP"),
+				tu.Source("LDAP:main_ldap"),
 				tu.Group(
 					tu.GroupInfo("admin group", "administrator group"),
-					tu.LDAPLink("deleted_group"),
+					tu.LDAPLink("main_ldap", "deleted_group"),
 					tu.Claim(
 						tu.ClaimInfo("admin", "adm", "yes", "Grants admin"),
 					),
 				),
 				tu.Group(
 					tu.GroupInfo("other group", "other group"),
-					tu.LDAPLink("deleted_group"),
+					tu.LDAPLink("main_ldap", "deleted_group"),
 					tu.Claim(
 						tu.ClaimInfo("user", "usr", "yes", "Grants user"),
 					),
@@ -286,10 +297,12 @@ func TestLDAPGetUserClaimsRemovedAllGroups(t *testing.T) {
 	ldapProvider := createLDAPProvider()
 	ldapProvider.SetConnector(conn)
 
-	user, claims, err := ldapProvider.GetUserClaims("ldapuser", "luserpass", true, ctx)
-	if err != nil {
-		t.Fatalf("GetUserClaims returned an error: %v", err)
+	_, err := ldapProvider.UpdateUserClaims("ldapuser", "luserpass", ctx)
+	if err == nil {
+		t.Fatalf("UpdateUserClaims did not return an error")
 	}
+
+	user, claims := getUserAndClaims("ldapuser", ctx)
 
 	if len(claims) != 0 {
 		t.Logf("User still has claims: %v", claims)
@@ -303,7 +316,7 @@ func TestLDAPGetUserClaimsRemovedAllGroups(t *testing.T) {
 
 	if user.Username != "ldapuser" || user.Fname != "ldap" ||
 			user.Lname != "user" || user.Email != "luser@hppr.dev" ||
-			user.Source != "LDAP" || user.Password != "" || user.Salt != "" {
+			user.Source != "LDAP:main_ldap" || user.Password != "" || user.Salt != "" {
 		t.Logf("User did not match: %v", user)
 		t.Fail()
 	}
@@ -311,22 +324,22 @@ func TestLDAPGetUserClaimsRemovedAllGroups(t *testing.T) {
 
 
 // User is in the database, all linked groups were removed, but has a local group assigned
-func TestLDAPGetUserClaimsRemovedAllGroupsWithRemainingLocal(t *testing.T) {
+func TestLDAPUpdateUserClaimsRemovedAllGroupsWithRemainingLocal(t *testing.T) {
 	ctx := tu.NewMockContext(
 		tu.WithDatabase(t,
 			tu.User(
 				tu.UserInfo("ldap", "user", "ldapuser", "luser@hppr.dev"),
-				tu.Source("LDAP"),
+				tu.Source("LDAP:main_ldap"),
 				tu.Group(
 					tu.GroupInfo("admin group", "administrator group"),
-					tu.LDAPLink("deleted_group"),
+					tu.LDAPLink("main_ldap", "deleted_group"),
 					tu.Claim(
 						tu.ClaimInfo("admin", "adm", "yes", "Grants admin"),
 					),
 				),
 				tu.Group(
 					tu.GroupInfo("other group", "other group"),
-					tu.LDAPLink("deleted_group"),
+					tu.LDAPLink("main_ldap", "deleted_group"),
 					tu.Claim(
 						tu.ClaimInfo("user", "usr", "yes", "Grants user"),
 					),
@@ -339,6 +352,7 @@ func TestLDAPGetUserClaimsRemovedAllGroupsWithRemainingLocal(t *testing.T) {
 				),
 			),
 		),
+		tu.StdLogger(),
 	)
 
 	conn := NewMockLDAPServer(
@@ -352,14 +366,18 @@ func TestLDAPGetUserClaimsRemovedAllGroupsWithRemainingLocal(t *testing.T) {
 	ldapProvider := createLDAPProvider()
 	ldapProvider.SetConnector(conn)
 
-	user, claims, err := ldapProvider.GetUserClaims("ldapuser", "luserpass", true, ctx)
-	if err != nil {
-		t.Fatalf("An error occurred getting user claims: %v", err)
+	_, err := ldapProvider.UpdateUserClaims("ldapuser", "luserpass", ctx)
+	if err == nil {
+		t.Fatal("An error did not occurred getting user claims")
+	}
+	if errors.Is(err, usr.AuthenticationError) {
+		t.Fatal("An authentication error was returned by update user claims, this will stop local look ups.")
 	}
 
+	user, claims := getUserAndClaims("ldapuser", ctx)
+
 	if len(claims) != 1 {
-		t.Logf("Claims length did not match: %v", claims)
-		t.Fail()
+		t.Fatalf("Claims length did not match: %v", claims)
 	}
 
 	c := claims[0]
@@ -371,14 +389,14 @@ func TestLDAPGetUserClaimsRemovedAllGroupsWithRemainingLocal(t *testing.T) {
 
 	if user.Username != "ldapuser" || user.Fname != "ldap" ||
 			user.Lname != "user" || user.Email != "luser@hppr.dev" ||
-			user.Source != "LDAP" || user.Password != "" || user.Salt != "" {
+			user.Source != "LDAP:main_ldap" || user.Password != "" || user.Salt != "" {
 		t.Logf("User did not match: %v", user)
 		t.Fail()
 	}
 }
 
 // Should return an authentication error when an ldap user tries to login, but the connection is unavailable
-func TestLDAPGetUserClaimsReturnsAnErrorForLDAPUserWhenLDAPConnectionError(t *testing.T) {
+func TestLDAPUpdateUserClaimsReturnsAnErrorForLDAPUserWhenLDAPConnectionError(t *testing.T) {
 	ctx := tu.NewMockContext(
 		tu.WithDatabase(t,
 			tu.User(
@@ -386,7 +404,7 @@ func TestLDAPGetUserClaimsReturnsAnErrorForLDAPUserWhenLDAPConnectionError(t *te
 				tu.Source("LDAP"),
 				tu.Group(
 					tu.GroupInfo("ldap user group", "ldap group"),
-					tu.LDAPLink("ldap_group"),
+					tu.LDAPLink("main_ldap", "ldap_group"),
 					tu.Claim(
 						tu.ClaimInfo("user", "usr", "yes", "Grants user"),
 					),
@@ -408,13 +426,13 @@ func TestLDAPGetUserClaimsReturnsAnErrorForLDAPUserWhenLDAPConnectionError(t *te
 	ldapProvider := createLDAPProvider()
 	ldapProvider.SetConnector(conn)
 
-	if _, _, err := ldapProvider.GetUserClaims("ldapuser", "luserpass", true, ctx); err == nil {
+	if _, err := ldapProvider.UpdateUserClaims("ldapuser", "luserpass", ctx); err == nil {
 		t.Fatal("An error did not occur")
 	}
 }
 
 // Should give claims to local users when ldap is unavailable
-func TestLDAPGetUserClaimsReturnsClaimsForLocalUserWhenLDAPConnectionError(t *testing.T) {
+func TestLDAPUpdateUserClaimsReturnsAuthSourceError(t *testing.T) {
 	ctx := tu.NewMockContext(
 		tu.WithDatabase(t,
 			tu.User(
@@ -438,31 +456,16 @@ func TestLDAPGetUserClaimsReturnsClaimsForLocalUserWhenLDAPConnectionError(t *te
 	ldapProvider := createLDAPProvider()
 	ldapProvider.SetConnector(conn)
 
-	user, claims, err := ldapProvider.GetUserClaims("localuser", "imalocal", true, ctx)
-	if err != nil {
-		t.Fatalf("An error occured: %v", err)
+	_, err := ldapProvider.UpdateUserClaims("localuser", "imalocal", ctx)
+	if err == nil {
+		t.Fatalf("An error did not occur: %v", err)
+	} else if !errors.Is(err, usr.AuthSourceError) {
+		t.Fatalf("Ldap did not return an AuthSourceError: %v", err)
 	}
-
-	if len(claims) != 1 {
-		t.Fatalf("Claims length did not match: %v", claims)
-	}
-
-	c := claims[0]
-	if c.Name != "user" || c.ShortName != "usr" || c.Value != "yes" {
-		t.Logf("Claim did not match: %v", c)
-		t.Fail()
-	}
-
-	if user.Username != "localuser" || user.Fname != "local" ||
-			user.Lname != "user" || user.Email != "local@hppr.dev" {
-		t.Logf("User did not match: %v", user)
-		t.Fail()
-	}
-
 }
 
 // Should return local user claims when the user is not in LDAP
-func TestLDAPGetUserClaimsReturnsLocalClaimsWhenUserNotFoundInLDAP(t *testing.T) {
+func TestLDAPUpdateUserClaimsReturnsUserNotFoundErrorWhenUserDoesNotExistInLDAP(t *testing.T) {
 	ctx := tu.NewMockContext(
 		tu.WithDatabase(t,
 			tu.User(
@@ -487,38 +490,24 @@ func TestLDAPGetUserClaimsReturnsLocalClaimsWhenUserNotFoundInLDAP(t *testing.T)
 	ldapProvider := createLDAPProvider()
 	ldapProvider.SetConnector(conn)
 
-	user, claims, err := ldapProvider.GetUserClaims("localuser", "imalocal", true, ctx)
-	if err != nil {
+	_, err := ldapProvider.UpdateUserClaims("localuser", "imalocal", ctx)
+	if err == nil {
 		t.Fatalf("An error occured: %v", err)
-	}
-
-	if len(claims) != 1 {
-		t.Fatalf("Claims length did not match: %v", claims)
-	}
-
-	c := claims[0]
-	if c.Name != "user" || c.ShortName != "usr" || c.Value != "yes" {
-		t.Logf("Claim did not match: %v", c)
-		t.Fail()
-	}
-
-	if user.Username != "localuser" || user.Fname != "local" ||
-			user.Lname != "user" || user.Email != "local@hppr.dev" {
-		t.Logf("User did not match: %v", user)
-		t.Fail()
+	} else if !errors.Is(err, usr.UserNotFoundError) {
+		t.Fatalf("An unexpected error occurred when expecting UserNotFoundError: %v", err)
 	}
 }
 
 // Should return error when user exists in ldap, but bad password is given
-func TestLDAPGetUserClaimsReturnsErrorWithBadLDAPUserPassword(t *testing.T) {
+func TestLDAPUpdateUserClaimsReturnsErrorWithBadLDAPUserPassword(t *testing.T) {
 	ctx := tu.NewMockContext(
 		tu.WithDatabase(t,
 			tu.User(
 				tu.UserInfo("ldap", "user", "ldapuser", "luser@hppr.dev"),
-				tu.Source("LDAP"),
+				tu.Source("LDAP:main_ldap"),
 				tu.Group(
 					tu.GroupInfo("ldap user group", "ldap group"),
-					tu.LDAPLink("ldap_group"),
+					tu.LDAPLink("main_ldap", "ldap_group"),
 					tu.Claim(
 						tu.ClaimInfo("user", "usr", "yes", "Grants user"),
 					),
@@ -544,21 +533,21 @@ func TestLDAPGetUserClaimsReturnsErrorWithBadLDAPUserPassword(t *testing.T) {
 	ldapProvider := createLDAPProvider()
 	ldapProvider.SetConnector(conn)
 
-	if _, _, err := ldapProvider.GetUserClaims("ldapuser", "whoopsy", true, ctx); err == nil {
+	if _, err := ldapProvider.UpdateUserClaims("ldapuser", "whoopsy", ctx); err == nil {
 		t.Fatal("An error did not occur")
 	}
 }
 
 // Should return error when bad bind user
-func TestLDAPGetUserClaimsReturnsErrorWithBadLDAPBindUserPassword(t *testing.T) {
+func TestLDAPUpdateUserClaimsReturnsErrorWithBadLDAPBindUserPassword(t *testing.T) {
 	ctx := tu.NewMockContext(
 		tu.WithDatabase(t,
 			tu.User(
 				tu.UserInfo("ldap", "user", "ldapuser", "luser@hppr.dev"),
-				tu.Source("LDAP"),
+				tu.Source("LDAP:main_ldap"),
 				tu.Group(
 					tu.GroupInfo("ldap user group", "ldap group"),
-					tu.LDAPLink("ldap_group"),
+					tu.LDAPLink("main_ldap", "ldap_group"),
 					tu.Claim(
 						tu.ClaimInfo("user", "usr", "yes", "Grants user"),
 					),
@@ -581,17 +570,25 @@ func TestLDAPGetUserClaimsReturnsErrorWithBadLDAPBindUserPassword(t *testing.T) 
 		LDAPGroup("ldapuser", "ldap_group"),
 	)
 
-	ldapProvider := createLDAPProvider()
+	groupTemplate, userTemplate := createTemplates()
+	ldapProvider := usr.NewLDAPUserProvider(
+		"some ldap",
+		"ldap://someldap.server",
+		"adminuser", "adminpass", "", "group_name", "", "first_name", "last_name", "email",
+		0,
+		groupTemplate, userTemplate,
+	)
+
 	ldapProvider.SetConnector(conn)
 	ldapProvider.BindUserPassword = "bad"
 
-	if _, _, err := ldapProvider.GetUserClaims("ldapuser", "luserpass", true, ctx); err == nil {
+	if _, err := ldapProvider.UpdateUserClaims("ldapuser", "luserpass", ctx); err == nil {
 		t.Fatal("An error did not occur")
 	}
 }
 
 // Should return an error when user templates are configured badly
-func TestLDAPGetUserClaimsReturnsErrorWithMalformedUserFilterTemplate(t *testing.T) {
+func TestLDAPUpdateUserClaimsReturnsErrorWithMalformedUserFilterTemplate(t *testing.T) {
 	ctx := tu.NewMockContext(
 		tu.WithDatabase(t),
 	)
@@ -601,18 +598,26 @@ func TestLDAPGetUserClaimsReturnsErrorWithMalformedUserFilterTemplate(t *testing
 		LDAPUser("adminuser", "admin", "user", "admin@hppr.dev", "adminpass"),
 	)
 
-	ldapProvider := createLDAPProvider()
+	groupTemplate, userTemplate := createTemplates()
+	ldapProvider := usr.NewLDAPUserProvider(
+		"some ldap",
+		"ldap://someldap.server",
+		"adminuser", "adminpass", "", "group_name", "", "first_name", "last_name", "email",
+		0,
+		groupTemplate, userTemplate,
+	)
+
 	ldapProvider.SetConnector(conn)
 
 	ldapProvider.UserFilter.Parse("bad:{{ .NOTEXIST }}")
 
-	if _, _, err := ldapProvider.GetUserClaims("foo", "bar", true, ctx); err == nil {
+	if _, err := ldapProvider.UpdateUserClaims("foo", "bar", ctx); err == nil {
 		t.Fatal("An error did not occur")
 	}
 }
 
 // Should return an error when group templates are configured badly
-func TestLDAPGetUserClaimsReturnsErrorWithMalformedGroupFilterTemplate(t *testing.T) {
+func TestLDAPUpdateUserClaimsReturnsErrorWithMalformedGroupFilterTemplate(t *testing.T) {
 	ctx := tu.NewMockContext(
 		tu.WithDatabase(t),
 	)
@@ -622,27 +627,34 @@ func TestLDAPGetUserClaimsReturnsErrorWithMalformedGroupFilterTemplate(t *testin
 		LDAPUser("adminuser", "admin", "user", "admin@hppr.dev", "adminpass"),
 	)
 
-	ldapProvider := createLDAPProvider()
+	groupTemplate, userTemplate := createTemplates()
+	ldapProvider := usr.NewLDAPUserProvider(
+		"some ldap",
+		"ldap://someldap.server",
+		"adminuser", "adminpass", "", "group_name", "", "first_name", "last_name", "email",
+		0,
+		groupTemplate, userTemplate,
+	)
+
 	ldapProvider.SetConnector(conn)
 
 	ldapProvider.GroupFilter.Parse("bad:{{ .NOTEXIST }}")
 
-	if _, _, err := ldapProvider.GetUserClaims("foo", "bar", true, ctx); err == nil {
+	if _, err := ldapProvider.UpdateUserClaims("foo", "bar", ctx); err == nil {
 		t.Fatal("An error did not occur")
 	}
 }
 
 // Should return an error when the user table does not accept a new user
-func TestLDAPGetUserClaimsReturnsErrorWhenCouldNotCreateUser(t *testing.T) {
+func TestLDAPUpdateUserClaimsReturnsErrorWhenCouldNotCreateUser(t *testing.T) {
 	ctx := tu.NewMockContext(
-		tu.StdLogger(),
 		tu.WithDatabase(t,
 			tu.User(
 				tu.UserInfo("local", "user", "localuser", "luser@hppr.dev"),
 				tu.Source("LOCAL"),
 				tu.Group(
 					tu.GroupInfo("ldap user group", "ldap group"),
-					tu.LDAPLink("ldap_group"),
+					tu.LDAPLink("main_ldap", "ldap_group"),
 					tu.Claim(
 						tu.ClaimInfo("user", "usr", "yes", "Grants user"),
 					),
@@ -663,13 +675,13 @@ func TestLDAPGetUserClaimsReturnsErrorWhenCouldNotCreateUser(t *testing.T) {
 	ldapProvider := createLDAPProvider()
 	ldapProvider.SetConnector(conn)
 
-	if _, _, err := ldapProvider.GetUserClaims("ldapuser", "luserpass", true, ctx); err == nil {
+	if _, err := ldapProvider.UpdateUserClaims("ldapuser", "luserpass", ctx); err == nil {
 		t.Fatal("An error did not occur.")
 	}
 }
 
 // Should return an error when trying to create a new ldap user with bad attributes
-func TestLDAPGetUserClaimsReturnsAnErrorOnMisconfiguredAttributes(t *testing.T) {
+func TestLDAPUpdateUserClaimsReturnsAnErrorOnMisconfiguredAttributes(t *testing.T) {
 	ctx := tu.NewMockContext(
 		tu.WithDatabase(t,
 			tu.User(
@@ -677,7 +689,7 @@ func TestLDAPGetUserClaimsReturnsAnErrorOnMisconfiguredAttributes(t *testing.T) 
 				tu.Source("LOCAL"),
 				tu.Group(
 					tu.GroupInfo("ldap user group", "ldap group"),
-					tu.LDAPLink("ldap_group"),
+					tu.LDAPLink("main_ldap", "ldap_group"),
 					tu.Claim(
 						tu.ClaimInfo("user", "usr", "yes", "Grants user"),
 					),
@@ -700,17 +712,24 @@ func TestLDAPGetUserClaimsReturnsAnErrorOnMisconfiguredAttributes(t *testing.T) 
 		LDAPGroup("ldapuser", "ldap_group"),
 	)
 
-	ldapProvider := createLDAPProvider()
-	ldapProvider.SetConnector(conn)
-	ldapProvider.FirstNameField = "cantfindme"
+	groupTemplate, userTemplate := createTemplates()
+	ldapProvider := usr.NewLDAPUserProvider(
+		"some ldap",
+		"ldap://someldap.server",
+		"adminuser", "adminpass", "", "group_name", "", "first_name", "last_name", "email",
+		0,
+		groupTemplate, userTemplate,
+	)
 
-	if _, _, err := ldapProvider.GetUserClaims("ldapuser", "luserpass", true, ctx); err == nil {
+	ldapProvider.SetConnector(conn)
+
+	if _, err := ldapProvider.UpdateUserClaims("ldapuser", "luserpass", ctx); err == nil {
 		t.Fatal("An error did not occur.")
 	}
 }
 
 // Should return an error if group search fails
-func TestLDAPGetUserClaimsReturnsAnErrorOnGroupSearchError(t *testing.T) {
+func TestLDAPUpdateUserClaimsReturnsAnErrorOnGroupSearchError(t *testing.T) {
 	ctx := tu.NewMockContext(
 		tu.WithDatabase(t,
 			tu.User(
@@ -718,7 +737,7 @@ func TestLDAPGetUserClaimsReturnsAnErrorOnGroupSearchError(t *testing.T) {
 				tu.Source("LOCAL"),
 				tu.Group(
 					tu.GroupInfo("ldap user group", "ldap group"),
-					tu.LDAPLink("ldap_group"),
+					tu.LDAPLink("main_ldap", "ldap_group"),
 					tu.Claim(
 						tu.ClaimInfo("user", "usr", "yes", "Grants user"),
 					),
@@ -745,13 +764,13 @@ func TestLDAPGetUserClaimsReturnsAnErrorOnGroupSearchError(t *testing.T) {
 	ldapProvider := createLDAPProvider()
 	ldapProvider.SetConnector(conn)
 
-	if _, _, err := ldapProvider.GetUserClaims("ldapuser", "luserpass", true, ctx); err == nil {
+	if _, err := ldapProvider.UpdateUserClaims("ldapuser", "luserpass", ctx); err == nil {
 		t.Fatal("An error did not occur.")
 	}
 }
 
 // Should return an error user has no LDAP groups
-func TestLDAPGetUserClaimsReturnsAnErrorOnNoLDAPGroups(t *testing.T) {
+func TestLDAPUpdateUserClaimsReturnsAnErrorOnNoLDAPGroups(t *testing.T) {
 	ctx := tu.NewMockContext(
 		tu.WithDatabase(t,
 			tu.User(
@@ -759,7 +778,7 @@ func TestLDAPGetUserClaimsReturnsAnErrorOnNoLDAPGroups(t *testing.T) {
 				tu.Source("LOCAL"),
 				tu.Group(
 					tu.GroupInfo("ldap user group", "ldap group"),
-					tu.LDAPLink("ldap_group"),
+					tu.LDAPLink("main_ldap", "ldap_group"),
 					tu.Claim(
 						tu.ClaimInfo("user", "usr", "yes", "Grants user"),
 					),
@@ -784,17 +803,8 @@ func TestLDAPGetUserClaimsReturnsAnErrorOnNoLDAPGroups(t *testing.T) {
 	ldapProvider := createLDAPProvider()
 	ldapProvider.SetConnector(conn)
 
-	if _, _, err := ldapProvider.GetUserClaims("ldapuser", "luserpass", true, ctx); err == nil {
+	if _, err := ldapProvider.UpdateUserClaims("ldapuser", "luserpass", ctx); err == nil {
 		t.Fatal("An error did not occur.")
-	}
-}
-
-func TestLDAPProviderInContext(t *testing.T) {
-	ldapProvider := createLDAPProvider()
-	ctx := ldapProvider.WithContext(context.Background())
-
-	if ldapProvider != usr.ProviderFromCtx(ctx).(*usr.LDAPUserProvider) {
-		t.Fatal("Provider from context did not match inserted provider")
 	}
 }
 
@@ -802,31 +812,28 @@ func TestLDAPConnectorReturnsErrorWhenBadURL(t *testing.T) {
 	ctx := tu.NewMockContext(tu.WithDatabase(t))
 	groupTemplate, userTemplate := createTemplates()
 	ldapProvider := usr.NewLDAPUserProvider(
+		"some ldap",
 		"this is a bad url!",
 		"", "", "", "", "", "", "", "",
 		0,
 		groupTemplate, userTemplate,
 	)
 
-	if _, _, err := ldapProvider.GetUserClaims("ldapuser", "luserpass", true, ctx); err == nil {
+	if _, err := ldapProvider.UpdateUserClaims("ldapuser", "luserpass", ctx); err == nil {
 		t.Fatal("An error did not occur.")
 	}
 }
 
-func createLDAPProvider() *usr.LDAPUserProvider {
+func createLDAPProvider() LDAPUserProvider {
 	groupTemplate, userTemplate := createTemplates()
 
-	return &usr.LDAPUserProvider{
-		BindUserDN:       "adminuser",
-		BindUserPassword: "adminpass",
-		GroupFilter:      groupTemplate,
-		GroupAttribute:   "group_name",
-		UserFilter:       userTemplate,
-		FirstNameField:   "first_name",
-		LastNameField:    "last_name",
-		EmailField:       "email",
-		LocalProvider:    usr.LocalProvider{},
-	}
+	return usr.NewLDAPUserProvider(
+		"main_ldap",
+		"ldap://someldap.server",
+		"adminuser", "adminpass", "", "group_name", "", "first_name", "last_name", "email",
+		0,
+		groupTemplate, userTemplate,
+	)
 }
 
 func createTemplates() (*template.Template, *template.Template) {
@@ -837,4 +844,25 @@ func createTemplates() (*template.Template, *template.Template) {
 	userTemplate.Parse("userFilter:{{ .Username }}")
 
 	return groupTemplate, userTemplate
+}
+
+func getUserAndClaims(username string, ctx context.Context) (*ent.User, ent.Claims) {
+	user := ent.FromContext(ctx).User.Query().
+		Where(
+			user.And(
+				user.Or(
+					user.UsernameEQ(username),
+					user.EmailEQ(username),
+				),
+			),
+		).
+		WithClaimGroups(func (q *ent.ClaimGroupQuery) {
+			q.WithClaims()
+		}).
+		OnlyX(ctx)
+	var allClaims ent.Claims
+	for _, group := range user.Edges.ClaimGroups {
+		allClaims = append(allClaims, group.Edges.Claims...)
+	}
+	return user, allClaims
 }

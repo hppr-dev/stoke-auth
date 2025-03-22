@@ -30,11 +30,12 @@
       <slot name="row-icon" :item="item"></slot>
     </template>
 
-    <template v-if="props.deleteClick" #item.row-delete="{ item }">
+    <template v-if="props.deleteClick" #item.row-delete="row">
       <DeleteActivator
+        v-if="props.rowProps && props.rowProps(row)"
         :onDelete="props.deleteClick"
         :titleIcon="icons.USER"
-        :toDelete="item[props.deleteItemKey]"
+        :toDelete="row.item[props.deleteItemKey]"
       />
     </template>
 
@@ -76,7 +77,7 @@
     searchIcon?: string,
     showSearch?: boolean,
     showFooter?: boolean,
-    rowProps?: Function | Object,
+    rowProps?: Function,
     deleteIcon?: string,
     deleteClick?: Promise<string>,
     deleteItemKey?: string,

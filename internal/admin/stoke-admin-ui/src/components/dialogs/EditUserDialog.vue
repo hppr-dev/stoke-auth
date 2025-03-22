@@ -2,7 +2,7 @@
   <v-sheet class="d-flex flex-column px-4 pt-4 mb-n5" width="80vw" height="80vh">
     <v-row>
       <v-text-field variant="solo-filled" clearable label="Username" v-model="username" no-resize disabled></v-text-field>
-      <v-btn class="ml-5 h-75" variant="tonal" color="info" stacked prepend-icon="mdi-lock-open-variant" disabled> Unlock </v-btn>
+      <v-btn class="ml-5 h-75" variant="tonal" color="info" stacked :prepend-icon="icons.UNLOCK" disabled> Unlock </v-btn>
       <UpdateUserPassword />
     </v-row>
     <v-row>
@@ -50,7 +50,8 @@
   import { useAppStore } from "../../stores/app"
   import { Group } from "../../util/entityTypes"
   import { require } from "../../util/rules"
-import UpdateUserPassword from "./UpdateUserPassword.vue";
+  import UpdateUserPassword from "./UpdateUserPassword.vue";
+  import icons from "../../util/icons"
 
   const store = useAppStore()
 

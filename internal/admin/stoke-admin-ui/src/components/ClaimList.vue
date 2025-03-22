@@ -16,7 +16,7 @@
       <AddActivator
         v-if="props.addButton"
         buttonText="Add Claim"
-        titleIcon="mdi-book-lock"
+        :titleIcon="icons.CLAIM"
         :onSave="store.addScratchClaim"
         :onCancel="store.resetScratchClaim"
       >

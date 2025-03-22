@@ -364,7 +364,8 @@ func (c *ClaimClient) QueryClaimGroups(cl *Claim) *ClaimGroupQuery {
 
 // Hooks returns the client hooks.
 func (c *ClaimClient) Hooks() []Hook {
-	return c.hooks.Claim
+	hooks := c.hooks.Claim
+	return append(hooks[:len(hooks):len(hooks)], claim.Hooks[:]...)
 }
 
 // Interceptors returns the client interceptors.
@@ -545,7 +546,8 @@ func (c *ClaimGroupClient) QueryClaims(cg *ClaimGroup) *ClaimQuery {
 
 // Hooks returns the client hooks.
 func (c *ClaimGroupClient) Hooks() []Hook {
-	return c.hooks.ClaimGroup
+	hooks := c.hooks.ClaimGroup
+	return append(hooks[:len(hooks):len(hooks)], claimgroup.Hooks[:]...)
 }
 
 // Interceptors returns the client interceptors.
@@ -976,7 +978,8 @@ func (c *UserClient) QueryClaimGroups(u *User) *ClaimGroupQuery {
 
 // Hooks returns the client hooks.
 func (c *UserClient) Hooks() []Hook {
-	return c.hooks.User
+	hooks := c.hooks.User
+	return append(hooks[:len(hooks):len(hooks)], user.Hooks[:]...)
 }
 
 // Interceptors returns the client interceptors.

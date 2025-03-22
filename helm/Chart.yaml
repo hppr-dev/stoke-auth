@@ -1,0 +1,32 @@
+apiVersion: v2
+appVersion: "v0.1.0"
+version: 0.1.0
+name: stoke-auth
+description: S(imple) Token(n) Auth server
+keywords:
+  - jwt
+  - auth
+  - LDAP
+  - OIDC
+sources:
+  - https://github.com/hppr-dev/stoke-auth
+dependencies:
+  - name: postgresql
+    version: 16.5.2
+    repository: https://charts.bitnami.com/bitnami
+    condition: postgresql.enabled
+    tags:
+      - postgresql
+
+  - name: mysql
+    version: 12.3.1
+    repository: https://charts.bitnami.com/bitnami
+    condition: mysql.enabled
+    tags: 
+      - mysql
+
+maintainers:
+  - name: Stephen Walker
+    email: admin@hppr.dev
+    url: https://hppr.dev
+icon: icon.svg

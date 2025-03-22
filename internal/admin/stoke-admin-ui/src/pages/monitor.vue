@@ -39,7 +39,7 @@
             <div class="mr-3 mt-2">
               <v-icon
                 @click="onStart"
-                :icon="store.metricsPaused? 'mdi-play-circle' : 'mdi-pause' "
+                :icon="store.metricsPaused? icons.PLAY : icons.PAUSE "
                 :color="store.metricsPaused? 'error': 'primary'"
               ></v-icon>
             </div>
@@ -73,6 +73,7 @@
 <script lang="ts" setup>
   import { ref, onMounted } from 'vue'
   import { useAppStore } from '../stores/app'
+  import icons from '../util/icons'
 
   const store = useAppStore()
 

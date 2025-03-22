@@ -14,6 +14,136 @@ import (
 )
 
 // Encode implements json.Marshaler.
+func (s *AvailableProvidersOKItem) Encode(e *jx.Encoder) {
+	e.ObjStart()
+	s.encodeFields(e)
+	e.ObjEnd()
+}
+
+// encodeFields encodes fields.
+func (s *AvailableProvidersOKItem) encodeFields(e *jx.Encoder) {
+	{
+		e.FieldStart("name")
+		e.Str(s.Name)
+	}
+	{
+		e.FieldStart("provider_type")
+		e.Str(s.ProviderType)
+	}
+	{
+		e.FieldStart("type_spec")
+		e.Str(s.TypeSpec)
+	}
+}
+
+var jsonFieldsNameOfAvailableProvidersOKItem = [3]string{
+	0: "name",
+	1: "provider_type",
+	2: "type_spec",
+}
+
+// Decode decodes AvailableProvidersOKItem from json.
+func (s *AvailableProvidersOKItem) Decode(d *jx.Decoder) error {
+	if s == nil {
+		return errors.New("invalid: unable to decode AvailableProvidersOKItem to nil")
+	}
+	var requiredBitSet [1]uint8
+
+	if err := d.ObjBytes(func(d *jx.Decoder, k []byte) error {
+		switch string(k) {
+		case "name":
+			requiredBitSet[0] |= 1 << 0
+			if err := func() error {
+				v, err := d.Str()
+				s.Name = string(v)
+				if err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"name\"")
+			}
+		case "provider_type":
+			requiredBitSet[0] |= 1 << 1
+			if err := func() error {
+				v, err := d.Str()
+				s.ProviderType = string(v)
+				if err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"provider_type\"")
+			}
+		case "type_spec":
+			requiredBitSet[0] |= 1 << 2
+			if err := func() error {
+				v, err := d.Str()
+				s.TypeSpec = string(v)
+				if err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"type_spec\"")
+			}
+		default:
+			return d.Skip()
+		}
+		return nil
+	}); err != nil {
+		return errors.Wrap(err, "decode AvailableProvidersOKItem")
+	}
+	// Validate required fields.
+	var failures []validate.FieldError
+	for i, mask := range [1]uint8{
+		0b00000111,
+	} {
+		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
+			// Mask only required fields and check equality to mask using XOR.
+			//
+			// If XOR result is not zero, result is not equal to expected, so some fields are missed.
+			// Bits of fields which would be set are actually bits of missed fields.
+			missed := bits.OnesCount8(result)
+			for bitN := 0; bitN < missed; bitN++ {
+				bitIdx := bits.TrailingZeros8(result)
+				fieldIdx := i*8 + bitIdx
+				var name string
+				if fieldIdx < len(jsonFieldsNameOfAvailableProvidersOKItem) {
+					name = jsonFieldsNameOfAvailableProvidersOKItem[fieldIdx]
+				} else {
+					name = strconv.Itoa(fieldIdx)
+				}
+				failures = append(failures, validate.FieldError{
+					Name:  name,
+					Error: validate.ErrFieldRequired,
+				})
+				// Reset bit.
+				result &^= 1 << bitIdx
+			}
+		}
+	}
+	if len(failures) > 0 {
+		return &validate.Error{Fields: failures}
+	}
+
+	return nil
+}
+
+// MarshalJSON implements stdjson.Marshaler.
+func (s *AvailableProvidersOKItem) MarshalJSON() ([]byte, error) {
+	e := jx.Encoder{}
+	s.Encode(&e)
+	return e.Bytes(), nil
+}
+
+// UnmarshalJSON implements stdjson.Unmarshaler.
+func (s *AvailableProvidersOKItem) UnmarshalJSON(data []byte) error {
+	d := jx.DecodeBytes(data)
+	return s.Decode(d)
+}
+
+// Encode implements json.Marshaler.
 func (s *CapabilitiesOK) Encode(e *jx.Encoder) {
 	e.ObjStart()
 	s.encodeFields(e)
@@ -3984,11 +4114,16 @@ func (s *LoginOK) encodeFields(e *jx.Encoder) {
 		e.FieldStart("refresh")
 		e.Str(s.Refresh)
 	}
+	{
+		e.FieldStart("username")
+		e.Str(s.Username)
+	}
 }
 
-var jsonFieldsNameOfLoginOK = [2]string{
+var jsonFieldsNameOfLoginOK = [3]string{
 	0: "token",
 	1: "refresh",
+	2: "username",
 }
 
 // Decode decodes LoginOK from json.
@@ -4024,6 +4159,18 @@ func (s *LoginOK) Decode(d *jx.Decoder) error {
 			}(); err != nil {
 				return errors.Wrap(err, "decode field \"refresh\"")
 			}
+		case "username":
+			requiredBitSet[0] |= 1 << 2
+			if err := func() error {
+				v, err := d.Str()
+				s.Username = string(v)
+				if err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"username\"")
+			}
 		default:
 			return d.Skip()
 		}
@@ -4034,7 +4181,7 @@ func (s *LoginOK) Decode(d *jx.Decoder) error {
 	// Validate required fields.
 	var failures []validate.FieldError
 	for i, mask := range [1]uint8{
-		0b00000011,
+		0b00000111,
 	} {
 		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
 			// Mask only required fields and check equality to mask using XOR.
@@ -4098,6 +4245,12 @@ func (s *LoginReq) encodeFields(e *jx.Encoder) {
 		e.Str(s.Password)
 	}
 	{
+		if s.Provider.Set {
+			e.FieldStart("provider")
+			s.Provider.Encode(e)
+		}
+	}
+	{
 		if s.RequiredClaims != nil {
 			e.FieldStart("required_claims")
 			e.ArrStart()
@@ -4119,11 +4272,12 @@ func (s *LoginReq) encodeFields(e *jx.Encoder) {
 	}
 }
 
-var jsonFieldsNameOfLoginReq = [4]string{
+var jsonFieldsNameOfLoginReq = [5]string{
 	0: "username",
 	1: "password",
-	2: "required_claims",
-	3: "filter_claims",
+	2: "provider",
+	3: "required_claims",
+	4: "filter_claims",
 }
 
 // Decode decodes LoginReq from json.
@@ -4158,6 +4312,16 @@ func (s *LoginReq) Decode(d *jx.Decoder) error {
 				return nil
 			}(); err != nil {
 				return errors.Wrap(err, "decode field \"password\"")
+			}
+		case "provider":
+			if err := func() error {
+				s.Provider.Reset()
+				if err := s.Provider.Decode(d); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"provider\"")
 			}
 		case "required_claims":
 			if err := func() error {
