@@ -64,7 +64,7 @@ jobs:
         images: ghcr.io/hppr-dev/stoke-auth
 
     - name: Build and push Docker image
-      id: push-docker
+      id: pushdocker
       uses: docker/build-push-action@v6
       with:
         context: .
@@ -76,14 +76,14 @@ jobs:
       uses: actions/attest-build-provenance@v2
       with:
         subject-name: ghcr.io/hppr-dev/stoke-auth
-        subject-digest: ${{ steps.push.outputs.digest }}
+        subject-digest: ${{ steps.pushdocker.outputs.digest }}
         push-to-registry: true
 
     - name: Setup helm
       uses: azure/setup-helm@v4.3.0
 
     - name: Build and push Helm OCI image
-      id: push-helm
+      id: pushhelm
       run: |
         echo '${{ secrets.PGP_PRIVATE_KEY }}' | base64 -d | gpg --batch --import
         gpg --pinentry-mode loopback --passphrase '${{ secrets.PGP_PASSPHRASE }}' --export-secret-keys > secring.gpg
