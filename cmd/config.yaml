@@ -83,6 +83,8 @@ telemetry:
 users:
   create_stoke_claims: false                # Whether to create stoke administration claims for reading/writing claims/groups/users. Checked every start up.
   provider_config_dir: "./providers.d"      # Where to look for providers configuration files
+  user_init_dir: "./dbinit.d"               # Where to look for database init files
+  user_init_file: ""                        # Singular user init file. Overriden by the -dbinit argument
   policy_config:
     allow_superuser_override: false         # Whether a superuser can override protection policies
     read_only_mode: false                   # Whether to prevent all updates to users, claims and groups
