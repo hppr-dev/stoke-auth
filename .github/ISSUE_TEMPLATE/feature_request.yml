@@ -1,0 +1,50 @@
+name: Bug Report
+description: File a bug report
+title: "[BUG] "
+labels: ["bug", "triage"]
+body:
+  - type: textarea
+    id: desired
+    attributes:
+      label: The Feature
+    validations:
+      required: true
+  - type: textarea
+    id: current
+    attributes:
+      label: The Benefits
+      description: Why should we have this feature?
+    validations:
+      required: true
+  - type: textarea
+    id: extra
+    attributes:
+      label: Extra Information
+  - type: dropdown
+    id: complexity
+    attributes:
+      label: Complexity
+      description: How complex is this to implement in comparison to teaching a 5 year old a subject?
+      multiple: false
+      options:
+        - Quantum Mechanics (Very High)
+        - Calculus (High)
+        - Algebra (Medium)
+        - Addition (Low)
+        - Not Sure
+  - type: dropdown
+    id: levelofeffort
+    attributes:
+      label: Level of Effort
+      description: How much effort is required to get this done in comparison to greek mythology?
+      multiple: false
+      options:
+        - Sisyphus (Impossible)
+        - Heracles (High)
+        - Jason (Medium)
+        - Orpheus (Low)
+        - Not Sure
+  - type: markdown
+    attributes:
+      value: Thanks for filling out a feature request!
+

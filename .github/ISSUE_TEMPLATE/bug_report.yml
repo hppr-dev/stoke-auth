@@ -1,0 +1,69 @@
+name: Bug Report
+description: File a bug report
+title: "[BUG] "
+labels: ["bug", "triage"]
+body:
+  - type: dropdown
+    id: depkind
+    attributes:
+      label: Deployment Kind
+      description: What type of deployment does this effect?
+      multiple: false
+      options:
+        - Executable
+        - Docker
+        - Helm
+        - All
+        - N/A or Not Sure
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What behavior do you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: How does it actually behave?
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: How can we reproduce the issue?
+  - type: dropdown
+    id: cusimpact
+    attributes:
+      label: Usability Impact
+      description: How much does this impact your use case?
+      multiple: false
+      options:
+        - Software is unusable (Severe)
+        - Hard to work around (High)
+        - Easy to work around (Medium)
+        - No noticable effect (Low)
+  - type: dropdown
+    id: secimpact
+    attributes:
+      label: Security Impact
+      description: How much does this impact your security?
+      multiple: false
+      options:
+        - Broken Window (Severe)
+        - Defective Lock (High)
+        - Unlocked Door (Medium)
+        - Lost Keys (Low)
+        - N/A
+  - type: textarea
+    id: extra
+    attributes:
+      label: Extra Information
+  - type: markdown
+    attributes:
+      value: Thanks for filing a bug!
+
