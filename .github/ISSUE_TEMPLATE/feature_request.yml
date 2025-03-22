@@ -1,19 +1,25 @@
-name: Bug Report
-description: File a bug report
-title: "[BUG] "
-labels: ["bug", "triage"]
+name: Feature Request
+description: Request a feature
+title: "[REQ] "
+labels: ["enhancement"]
 body:
   - type: textarea
     id: desired
     attributes:
-      label: The Feature
+      label: Feature Behavior
+      description: Describe the desired feature
     validations:
       required: true
   - type: textarea
     id: current
     attributes:
-      label: The Benefits
-      description: Why should we have this feature?
+      label: Current Behavior
+      description: What current behavior is similar and/or related?
+  - type: textarea
+    id: benefits
+    attributes:
+      label: Benefits
+      description: What benefits does this feature bring?
     validations:
       required: true
   - type: textarea
