@@ -89,4 +89,4 @@ jobs:
         gpg --pinentry-mode loopback --passphrase '${{ secrets.PGP_PASSPHRASE }}' --export-secret-keys > secring.gpg
         helm registry login ghcr.io -u '${{ github.actor }}' -p '${{ secrets.GITHUB_TOKEN }}'
         echo '${{ secrets.PGP_PASSPHRASE }}' | helm package --passphrase-file '-' --sign --key hppr.dev --keyring secring.gpg ./helm
-        helm push stoke-auth*.tgz oci://ghcr.io/hppr-dev
+        helm push stoke-auth*.tgz oci://ghcr.io/hppr-dev/helm
