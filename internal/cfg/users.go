@@ -4,9 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
+	"path"
 	"stoke/internal/ent"
 	"stoke/internal/ent/schema/policy"
 	"stoke/internal/usr"
+	"strings"
+
+	"github.com/ghodss/yaml"
 
 	"github.com/rs/zerolog"
 )
@@ -16,6 +21,8 @@ type Users struct {
 	CreateStokeClaims bool              `json:"create_stoke_claims"`
 	// Policy Configuration
 	PolicyConfig PolicyConfig           `json:"policy_config"`
+	// Directory to pull provider definitions from
+	ProviderConfigDir string            `json:"provider_config_dir"`
 	// Configs for providers
 	Providers         []*ProviderConfig `json:"providers"`
 }
@@ -34,13 +41,51 @@ type PolicyConfig struct {
 }
 
 func (u Users) withContext(ctx context.Context) context.Context {
+	logger := zerolog.Ctx(ctx)
 	ctx = u.PolicyConfig.withContext(ctx)
+
+	if u.ProviderConfigDir == "" {
+		u.ProviderConfigDir = "/etc/stoke/providers.d/"
+	}
+
+	if stat, err := os.Stat(u.ProviderConfigDir); err == nil && stat.IsDir() {
+		files, err := os.ReadDir(u.ProviderConfigDir)
+		if err != nil {
+			logger.Error().
+				Err(err).
+				Msg("Could not read provider config directory")
+		}
+		for _, f := range files {
+			if strings.HasSuffix(f.Name(), ".yaml") || strings.HasSuffix(f.Name(), ".yml") {
+				provFile, err := os.ReadFile(path.Join(u.ProviderConfigDir, f.Name()))
+				if err != nil {
+					logger.Error().
+						Err(err).
+						Str("filename", f.Name()).
+						Msg("Could not read provider config file")
+						continue
+				}
+				newProv := &ProviderConfig{}
+				if err := yaml.Unmarshal(provFile, newProv); err != nil {
+					logger.Error().
+						Err(err).
+						Str("filename", f.Name()).
+						Msg("Could not marshal provider config file")
+						continue
+				}
+				logger.Info().
+					Str("filename", f.Name()).
+					Msg("Provider config file read")
+				u.Providers = append(u.Providers, newProv)
+			}
+		}
+	}
 
 	providerList := usr.NewProviderList()
 
 	if u.CreateStokeClaims {
 		if err := providerList.CheckCreateForStokeClaims(ctx); err != nil {
-			zerolog.Ctx(ctx).Error().
+			logger.Error().
 				Err(err).
 				Msg("Error while creating stoke claims")
 		}

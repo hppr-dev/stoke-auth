@@ -1,0 +1,21 @@
+type: ldap
+name: local_ldap
+server_url: ldap://localhost:10389               # LDAP Server URL. Must begin with ldap://, ldaps:// or ldapi://
+
+bind_user_dn: "cn=admin,dc=planetexpress,dc=com" # Bind user distinguished name. Should only have read permissions
+bind_user_password: GoodNewsEveryone             # Password for user specified in bind_user_dn
+
+group_search_root: "ou=people,dc=planetexpress,dc=com"                 # Where to search in LDAP for groups
+group_filter_template: "(&(objectClass=group)(member={{ .UserDN }}))"  # Filter template to select groups. May use {{.UserDN}} or {{.Username}} to inject user info
+
+user_search_root: "ou=people,dc=planetexpress,dc=com"                       # Where to search in LDAP for users
+user_filter_template: "(&(objectClass=inetOrgPerson)(uid={{ .Username }}))" # Filter template to select users. Must return only one entry. May use {{.Username}} to inject user supplied username
+
+ldap_group_name_field: "cn"                      # Field in LDAP groups which determines the group's name
+ldap_first_name_field: "givenName"               # Field in LDAP user which determines the user's first name
+ldap_last_name_field:  "sn"                      # Field in LDAP user which determines the user's last name
+ldap_email_field: "mail"                         # Field in LDAP user which determines the user's email
+
+search_timeout: 0                                # LDAP search timeout. Set to 0 for unlimited.
+ldap_ca_cert: ""                                 # Certificate to use when verifying connections to LDAP
+skip_certificate_verification: true              # Whether to skip certificate verification for secure LDAP server
