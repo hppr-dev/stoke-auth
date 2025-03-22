@@ -73,6 +73,8 @@ jobs:
     - name: Build and push Helm OCI image
       id: push
       run: |
-        helm registry login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
-        helm package ./helm
+        echo '${{ secrets.PGP_PRIVATE_KEY }}' | base64 -d | gpg --batch --import
+        gpg --pinentry-mode loopback --passphrase '${{ secrets.PGP_PASSPHRASE }}' --export-secret-keys > secring.gpg
+        helm registry login ghcr.io -u '${{ github.actor }}' -p '${{ secrets.GITHUB_TOKEN }}'
+        echo '${{ secrets.PGP_PASSPHRASE }}' | helm package --passphrase-file '-' --sign --key hppr.dev --keyring secring.gpg ./helm
         helm push stoke-auth*.tgz oci://ghcr.io/hppr-dev
