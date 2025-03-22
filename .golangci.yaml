@@ -9,3 +9,5 @@ issues:
     - path: internal/schema/
       linters:
         - errcheck
+run:
+  timeout: 5m
