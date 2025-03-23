@@ -13,6 +13,7 @@ import (
 
 	"stoke/internal/ent/claim"
 	"stoke/internal/ent/claimgroup"
+	"stoke/internal/ent/dbinitfile"
 	"stoke/internal/ent/grouplink"
 	"stoke/internal/ent/privatekey"
 	"stoke/internal/ent/user"
@@ -32,6 +33,8 @@ type Client struct {
 	Claim *ClaimClient
 	// ClaimGroup is the client for interacting with the ClaimGroup builders.
 	ClaimGroup *ClaimGroupClient
+	// DBInitFile is the client for interacting with the DBInitFile builders.
+	DBInitFile *DBInitFileClient
 	// GroupLink is the client for interacting with the GroupLink builders.
 	GroupLink *GroupLinkClient
 	// PrivateKey is the client for interacting with the PrivateKey builders.
@@ -51,6 +54,7 @@ func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Claim = NewClaimClient(c.config)
 	c.ClaimGroup = NewClaimGroupClient(c.config)
+	c.DBInitFile = NewDBInitFileClient(c.config)
 	c.GroupLink = NewGroupLinkClient(c.config)
 	c.PrivateKey = NewPrivateKeyClient(c.config)
 	c.User = NewUserClient(c.config)
@@ -148,6 +152,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		config:     cfg,
 		Claim:      NewClaimClient(cfg),
 		ClaimGroup: NewClaimGroupClient(cfg),
+		DBInitFile: NewDBInitFileClient(cfg),
 		GroupLink:  NewGroupLinkClient(cfg),
 		PrivateKey: NewPrivateKeyClient(cfg),
 		User:       NewUserClient(cfg),
@@ -172,6 +177,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		config:     cfg,
 		Claim:      NewClaimClient(cfg),
 		ClaimGroup: NewClaimGroupClient(cfg),
+		DBInitFile: NewDBInitFileClient(cfg),
 		GroupLink:  NewGroupLinkClient(cfg),
 		PrivateKey: NewPrivateKeyClient(cfg),
 		User:       NewUserClient(cfg),
@@ -203,21 +209,21 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
-	c.Claim.Use(hooks...)
-	c.ClaimGroup.Use(hooks...)
-	c.GroupLink.Use(hooks...)
-	c.PrivateKey.Use(hooks...)
-	c.User.Use(hooks...)
+	for _, n := range []interface{ Use(...Hook) }{
+		c.Claim, c.ClaimGroup, c.DBInitFile, c.GroupLink, c.PrivateKey, c.User,
+	} {
+		n.Use(hooks...)
+	}
 }
 
 // Intercept adds the query interceptors to all the entity clients.
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
-	c.Claim.Intercept(interceptors...)
-	c.ClaimGroup.Intercept(interceptors...)
-	c.GroupLink.Intercept(interceptors...)
-	c.PrivateKey.Intercept(interceptors...)
-	c.User.Intercept(interceptors...)
+	for _, n := range []interface{ Intercept(...Interceptor) }{
+		c.Claim, c.ClaimGroup, c.DBInitFile, c.GroupLink, c.PrivateKey, c.User,
+	} {
+		n.Intercept(interceptors...)
+	}
 }
 
 // Mutate implements the ent.Mutator interface.
@@ -227,6 +233,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Claim.mutate(ctx, m)
 	case *ClaimGroupMutation:
 		return c.ClaimGroup.mutate(ctx, m)
+	case *DBInitFileMutation:
+		return c.DBInitFile.mutate(ctx, m)
 	case *GroupLinkMutation:
 		return c.GroupLink.mutate(ctx, m)
 	case *PrivateKeyMutation:
@@ -567,6 +575,139 @@ func (c *ClaimGroupClient) mutate(ctx context.Context, m *ClaimGroupMutation) (V
 		return (&ClaimGroupDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown ClaimGroup mutation op: %q", m.Op())
+	}
+}
+
+// DBInitFileClient is a client for the DBInitFile schema.
+type DBInitFileClient struct {
+	config
+}
+
+// NewDBInitFileClient returns a client for the DBInitFile from the given config.
+func NewDBInitFileClient(c config) *DBInitFileClient {
+	return &DBInitFileClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `dbinitfile.Hooks(f(g(h())))`.
+func (c *DBInitFileClient) Use(hooks ...Hook) {
+	c.hooks.DBInitFile = append(c.hooks.DBInitFile, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `dbinitfile.Intercept(f(g(h())))`.
+func (c *DBInitFileClient) Intercept(interceptors ...Interceptor) {
+	c.inters.DBInitFile = append(c.inters.DBInitFile, interceptors...)
+}
+
+// Create returns a builder for creating a DBInitFile entity.
+func (c *DBInitFileClient) Create() *DBInitFileCreate {
+	mutation := newDBInitFileMutation(c.config, OpCreate)
+	return &DBInitFileCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of DBInitFile entities.
+func (c *DBInitFileClient) CreateBulk(builders ...*DBInitFileCreate) *DBInitFileCreateBulk {
+	return &DBInitFileCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *DBInitFileClient) MapCreateBulk(slice any, setFunc func(*DBInitFileCreate, int)) *DBInitFileCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &DBInitFileCreateBulk{err: fmt.Errorf("calling to DBInitFileClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*DBInitFileCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &DBInitFileCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for DBInitFile.
+func (c *DBInitFileClient) Update() *DBInitFileUpdate {
+	mutation := newDBInitFileMutation(c.config, OpUpdate)
+	return &DBInitFileUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *DBInitFileClient) UpdateOne(dif *DBInitFile) *DBInitFileUpdateOne {
+	mutation := newDBInitFileMutation(c.config, OpUpdateOne, withDBInitFile(dif))
+	return &DBInitFileUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *DBInitFileClient) UpdateOneID(id int) *DBInitFileUpdateOne {
+	mutation := newDBInitFileMutation(c.config, OpUpdateOne, withDBInitFileID(id))
+	return &DBInitFileUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for DBInitFile.
+func (c *DBInitFileClient) Delete() *DBInitFileDelete {
+	mutation := newDBInitFileMutation(c.config, OpDelete)
+	return &DBInitFileDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *DBInitFileClient) DeleteOne(dif *DBInitFile) *DBInitFileDeleteOne {
+	return c.DeleteOneID(dif.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *DBInitFileClient) DeleteOneID(id int) *DBInitFileDeleteOne {
+	builder := c.Delete().Where(dbinitfile.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &DBInitFileDeleteOne{builder}
+}
+
+// Query returns a query builder for DBInitFile.
+func (c *DBInitFileClient) Query() *DBInitFileQuery {
+	return &DBInitFileQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeDBInitFile},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a DBInitFile entity by its id.
+func (c *DBInitFileClient) Get(ctx context.Context, id int) (*DBInitFile, error) {
+	return c.Query().Where(dbinitfile.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *DBInitFileClient) GetX(ctx context.Context, id int) *DBInitFile {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *DBInitFileClient) Hooks() []Hook {
+	return c.hooks.DBInitFile
+}
+
+// Interceptors returns the client interceptors.
+func (c *DBInitFileClient) Interceptors() []Interceptor {
+	return c.inters.DBInitFile
+}
+
+func (c *DBInitFileClient) mutate(ctx context.Context, m *DBInitFileMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&DBInitFileCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&DBInitFileUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&DBInitFileUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&DBInitFileDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown DBInitFile mutation op: %q", m.Op())
 	}
 }
 
@@ -1005,9 +1146,9 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Claim, ClaimGroup, GroupLink, PrivateKey, User []ent.Hook
+		Claim, ClaimGroup, DBInitFile, GroupLink, PrivateKey, User []ent.Hook
 	}
 	inters struct {
-		Claim, ClaimGroup, GroupLink, PrivateKey, User []ent.Interceptor
+		Claim, ClaimGroup, DBInitFile, GroupLink, PrivateKey, User []ent.Interceptor
 	}
 )

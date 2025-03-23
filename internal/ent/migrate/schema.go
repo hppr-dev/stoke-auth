@@ -41,6 +41,18 @@ var (
 		Columns:    ClaimGroupsColumns,
 		PrimaryKey: []*schema.Column{ClaimGroupsColumns[0]},
 	}
+	// DbInitFilesColumns holds the columns for the "db_init_files" table.
+	DbInitFilesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "filename", Type: field.TypeString},
+		{Name: "md5", Type: field.TypeString},
+	}
+	// DbInitFilesTable holds the schema information for the "db_init_files" table.
+	DbInitFilesTable = &schema.Table{
+		Name:       "db_init_files",
+		Columns:    DbInitFilesColumns,
+		PrimaryKey: []*schema.Column{DbInitFilesColumns[0]},
+	}
 	// GroupLinksColumns holds the columns for the "group_links" table.
 	GroupLinksColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -146,6 +158,7 @@ var (
 	Tables = []*schema.Table{
 		ClaimsTable,
 		ClaimGroupsTable,
+		DbInitFilesTable,
 		GroupLinksTable,
 		PrivateKeysTable,
 		UsersTable,

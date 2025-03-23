@@ -2,11 +2,15 @@ package cfg
 
 import (
 	"context"
+	"crypto/md5"
+	"encoding/base64"
 	"fmt"
 	"os"
+	"slices"
 	"stoke/internal/ent"
 	"stoke/internal/ent/claim"
 	"stoke/internal/ent/claimgroup"
+	"stoke/internal/ent/dbinitfile"
 	"stoke/internal/ent/schema/policy"
 	"strings"
 
@@ -17,6 +21,7 @@ import (
 func InitializeDatabaseFromFile(filename string, ctx context.Context) error {
 	logger := zerolog.Ctx(ctx).With().Str("filename", filename).Logger()
 	ctx = policy.BypassDatabasePolicies(ctx)
+	entDB := ent.FromContext(ctx)
 
 	content, err := os.ReadFile(filename)
 	if err != nil {
@@ -24,6 +29,22 @@ func InitializeDatabaseFromFile(filename string, ctx context.Context) error {
 			Err(err).
 			Msg("Could not read database initialization file.")
 		return err
+	}
+
+	mdsumArr := md5.Sum(content)
+	mdsumStr := base64.URLEncoding.EncodeToString(mdsumArr[:])
+
+	files, err := entDB.DBInitFile.Query().
+		Where(
+			dbinitfile.FilenameEQ(filename),
+		).
+		All(ctx)
+	if !ent.IsNotFound(err) && len(files) != 0 {
+		if slices.ContainsFunc(files, func(f *ent.DBInitFile) bool { return f.Md5 == mdsumStr }) {
+			logger.Info().Msg("Init file already applied")
+			return nil
+		}
+		logger.Warn().Msg("Found matching filename that has already been applied.")
 	}
 
 	logger.Info().Msg("Initializing database")
@@ -38,11 +59,11 @@ func InitializeDatabaseFromFile(filename string, ctx context.Context) error {
 	if err := dbInitFile.validate(); err != nil {
 		logger.Error().
 			Err(err).
-			Msg("Could not start validate db init file")
+			Msg("Could not validate db init file")
 		return err
 	}
 
-	tx, err := ent.FromContext(ctx).Tx(ctx)
+	tx, err := entDB.Tx(ctx)
 	if err != nil {
 		logger.Error().
 			Err(err).
@@ -81,6 +102,18 @@ func InitializeDatabaseFromFile(filename string, ctx context.Context) error {
 				Msg("Failed to initialize claims in database")
 			return err
 		}
+	}
+
+	_, err = tx.DBInitFile.Create().
+		SetFilename(filename).
+		SetMd5(mdsumStr).
+		Save(ctx)
+	if err != nil {
+		logger.Error().
+			Err(err).
+			AnErr("rollbackErr", tx.Rollback()).
+			Msg("Failed to add dbinit record")
+		return err
 	}
 
 	return tx.Commit()

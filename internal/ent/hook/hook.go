@@ -32,6 +32,18 @@ func (f ClaimGroupFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, 
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ClaimGroupMutation", m)
 }
 
+// The DBInitFileFunc type is an adapter to allow the use of ordinary
+// function as DBInitFile mutator.
+type DBInitFileFunc func(context.Context, *ent.DBInitFileMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f DBInitFileFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.DBInitFileMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DBInitFileMutation", m)
+}
+
 // The GroupLinkFunc type is an adapter to allow the use of ordinary
 // function as GroupLink mutator.
 type GroupLinkFunc func(context.Context, *ent.GroupLinkMutation) (ent.Value, error)

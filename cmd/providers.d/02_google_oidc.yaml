@@ -1,0 +1,17 @@
+type: oidc
+name: google                                      # Name of the oidc provider. Used as an endpoint
+discovery_url: "https://accounts.google.com/.well-known/openid-configuration"       # Url to pull openid configuration information from
+auth_url: ""                                      # Where to authorize with the provider. (pulled from discovery_url automatically)
+token_url: ""                                     # Where to get tokens from the provider. (pulled from discovery_url automatically)
+user_info_url: ""                                 # Where to get user info from the provider. (pulled from discovery_url automatically)
+auth_flow_type: code                              # OpenID flow type to use. Must be code, implicit or hybrid
+claims_source: endpoint                           # Main source for claims to map in stoke. Must be token or endpoint
+client_id: CLIENT ID                              # Client ID from the provider
+client_secret: CLIENT SECRET                      # Client Secret from the provider
+redirect_uri: "http://localhost:8080/oidc/google" # Must match what is registered with the provider
+first_name_claim: "given_name"                    # Claim to use as the user's first name
+last_name_claim: "family_name"                    # Claim to use as the user's last name
+email_claim: "email"                              # Claim to use as the user's email
+scopes:                                           # Scopes to request from the provider
+  - profile
+  - email

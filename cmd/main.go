@@ -16,7 +16,7 @@ import (
 
 func main() {
 	flagSet := flag.NewFlagSet("flags", flag.ExitOnError)
-	dbInitFile := flagSet.String("dbinit", "", "Database initialization file")
+	dbInitFile := flagSet.String("dbinit", "", "Database initialization file (overrides what is in config.yaml)")
 	configFile := flagSet.String("config", "config.yaml", "Configuration file to use")
 
 	var allFlags []string
@@ -53,6 +53,10 @@ func main() {
 		return
 	}
 
+	if *dbInitFile != "" {
+		config.Users.UserInitFile = *dbInitFile
+	}
+
 	rootCtx := config.WithContext(context.Background())
 	logger := zerolog.Ctx(rootCtx)
 
@@ -62,14 +66,6 @@ func main() {
 		Interface("config", config).
 		Msg("Config Loaded")
 
-	if *dbInitFile != "" {
-		if err := cfg.InitializeDatabaseFromFile(*dbInitFile, rootCtx); err != nil {
-			logger.Error().
-				Err(err).
-				Str("initFile", *dbInitFile).
-				Msg("Could not initialize database from file")
-		}
-	}
 
 	if err := usr.ProviderFromCtx(rootCtx).CheckCreateForSuperUser(rootCtx); err != nil {
 		logger.Error().

@@ -16,6 +16,8 @@ type Tx struct {
 	Claim *ClaimClient
 	// ClaimGroup is the client for interacting with the ClaimGroup builders.
 	ClaimGroup *ClaimGroupClient
+	// DBInitFile is the client for interacting with the DBInitFile builders.
+	DBInitFile *DBInitFileClient
 	// GroupLink is the client for interacting with the GroupLink builders.
 	GroupLink *GroupLinkClient
 	// PrivateKey is the client for interacting with the PrivateKey builders.
@@ -155,6 +157,7 @@ func (tx *Tx) Client() *Client {
 func (tx *Tx) init() {
 	tx.Claim = NewClaimClient(tx.config)
 	tx.ClaimGroup = NewClaimGroupClient(tx.config)
+	tx.DBInitFile = NewDBInitFileClient(tx.config)
 	tx.GroupLink = NewGroupLinkClient(tx.config)
 	tx.PrivateKey = NewPrivateKeyClient(tx.config)
 	tx.User = NewUserClient(tx.config)
