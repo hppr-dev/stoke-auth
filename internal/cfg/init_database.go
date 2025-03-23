@@ -39,7 +39,7 @@ func InitializeDatabaseFromFile(filename string, ctx context.Context) error {
 			dbinitfile.FilenameEQ(filename),
 		).
 		All(ctx)
-	if len(files) != 0 {
+	if !ent.IsNotFound(err) && len(files) != 0 {
 		if slices.ContainsFunc(files, func(f *ent.DBInitFile) bool { return f.Md5 == mdsumStr }) {
 			logger.Info().Msg("Init file already applied")
 			return nil
