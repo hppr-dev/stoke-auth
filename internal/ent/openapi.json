@@ -2564,6 +2564,25 @@
           "description"
         ]
       },
+      "DBInitFile": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "filename": {
+            "type": "string"
+          },
+          "md5": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "filename",
+          "md5"
+        ]
+      },
       "GroupLink": {
         "type": "object",
         "properties": {

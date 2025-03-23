@@ -140,7 +140,7 @@ func (u *Users) initLocalDatabase(ctx context.Context) error {
 				Msg("Could not read init file")
 			return err
 		}
-		logger.Info().Msg("Initialized database from file")
+		logger.Debug().Msg("Initialized database from file")
 	}
 	if u.UserInitDir != "" {
 		if stat, err := os.Stat(u.UserInitDir); err == nil && stat.IsDir() {
@@ -160,7 +160,7 @@ func (u *Users) initLocalDatabase(ctx context.Context) error {
 							Msg("Could not init from file")
 						continue
 					}
-					logger.Info().
+					logger.Debug().
 						Str("filename", f.Name()).
 						Msg("Initialized database from file")
 				}

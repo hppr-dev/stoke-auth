@@ -9,6 +9,7 @@ import (
 	"reflect"
 	"stoke/internal/ent/claim"
 	"stoke/internal/ent/claimgroup"
+	"stoke/internal/ent/dbinitfile"
 	"stoke/internal/ent/grouplink"
 	"stoke/internal/ent/privatekey"
 	"stoke/internal/ent/user"
@@ -79,6 +80,7 @@ func checkColumn(table, column string) error {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
 			claim.Table:      claim.ValidColumn,
 			claimgroup.Table: claimgroup.ValidColumn,
+			dbinitfile.Table: dbinitfile.ValidColumn,
 			grouplink.Table:  grouplink.ValidColumn,
 			privatekey.Table: privatekey.ValidColumn,
 			user.Table:       user.ValidColumn,

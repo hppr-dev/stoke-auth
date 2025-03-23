@@ -157,6 +157,30 @@ func (f ClaimGroupMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Muta
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.ClaimGroupMutation", m)
 }
 
+// The DBInitFileQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type DBInitFileQueryRuleFunc func(context.Context, *ent.DBInitFileQuery) error
+
+// EvalQuery return f(ctx, q).
+func (f DBInitFileQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.DBInitFileQuery); ok {
+		return f(ctx, q)
+	}
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.DBInitFileQuery", q)
+}
+
+// The DBInitFileMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type DBInitFileMutationRuleFunc func(context.Context, *ent.DBInitFileMutation) error
+
+// EvalMutation calls f(ctx, m).
+func (f DBInitFileMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
+	if m, ok := m.(*ent.DBInitFileMutation); ok {
+		return f(ctx, m)
+	}
+	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.DBInitFileMutation", m)
+}
+
 // The GroupLinkQueryRuleFunc type is an adapter to allow the use of ordinary
 // functions as a query rule.
 type GroupLinkQueryRuleFunc func(context.Context, *ent.GroupLinkQuery) error

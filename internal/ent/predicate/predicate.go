@@ -12,6 +12,9 @@ type Claim func(*sql.Selector)
 // ClaimGroup is the predicate function for claimgroup builders.
 type ClaimGroup func(*sql.Selector)
 
+// DBInitFile is the predicate function for dbinitfile builders.
+type DBInitFile func(*sql.Selector)
+
 // GroupLink is the predicate function for grouplink builders.
 type GroupLink func(*sql.Selector)
 
