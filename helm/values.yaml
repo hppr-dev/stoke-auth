@@ -1,6 +1,9 @@
 # Database subchart configurations
 postgresql:
-  enabled: true
+  enabled: false
+  serviceAccount:
+    create: true
+    name: stokedbservice
   auth:
     database: stoke
     username: stoke_user
@@ -8,6 +11,9 @@ postgresql:
 
 mysql:
   enabled: false
+  serviceAccount:
+    create: true
+    name: stokedbservice
 
 # Parent chart config
 server:

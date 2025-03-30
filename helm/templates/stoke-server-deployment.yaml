@@ -32,7 +32,7 @@ spec:
       volumes:
         - name: server-config
           configMap:
-            name: stoke-config
+            name: stoke-config-{{ .Release.Name }}
       containers:
       - name: server
         image: {{ .Values.server.image }}

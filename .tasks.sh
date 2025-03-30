@@ -39,6 +39,7 @@ task_test() {
 
 		echo Starting supplemental containers...
 		cd $TASK_DIR/test
+		export STOKE_ADDRESS=localhost:8080
 		docker compose up -d
 
 		if [[ -z "$ARG_CERT$ARG_DB$ARG_RACE$ARG_PROVIDER$ARG_ENV" ]]
@@ -221,6 +222,101 @@ arguments_stoke() {
 
 task_stoke() {
 	_compose_task "$TASK_DIR/client/examples/stoke-server/docker-compose.yaml"
+}
+
+arguments_kube() {
+	DESCRIPTION="Kubernetes helper scripts"
+	SUBCOMMANDS="pvc|tkn"
+	PVC_OPTIONS="create:c:bool update:u:bool delete:d:bool"
+	TKN_OPTIONS="local:l:bool git:g:bool"
+}
+
+task_kube() {
+	if [[ "$TASK_SUBCOMMAND" == "pvc" ]]
+	then
+		if [[ -n "$ARG_CREATE" ]]
+		then
+			cat << EOF| kubectl apply -f -
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: stoke-local
+spec:
+  storageClassName: local-path
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+EOF
+
+		fi
+
+		if [[ -n "$ARG_UPDATE" ]]
+		then
+			echo "Starting transfer pod..."
+			cat << EOF | kubectl apply -f -
+apiVersion: v1
+kind: Pod
+metadata:
+  name: stoke-xfer-pod
+spec:
+  restartPolicy: Never
+  volumes:
+    - name: stoke
+      persistentVolumeClaim:
+        claimName: stoke-local
+  containers:
+    - name: xfer
+      image: alpine:latest
+      command: ["sleep", "60"]
+      volumeMounts:
+        - name: stoke
+          mountPath: /mnt/stoke
+EOF
+
+			while [[ "$(kubectl get pod stoke-xfer-pod -o 'jsonpath={.status.phase}')" != "Running" ]]
+			do
+				echo "Waiting for pod to be ready..."
+				sleep 1
+			done
+
+			echo "Deleting existing files..."
+			kubectl exec -i stoke-xfer-pod -- /bin/ash -c 'rm -rf /mnt/stoke/*'
+
+			echo "Updating to latest files..."
+			cd $TASK_DIR
+			tar -cf - . | kubectl exec -i stoke-xfer-pod -- tar xf - -C /mnt/stoke
+
+			echo "List of files in pvc:"
+			kubectl exec -i stoke-xfer-pod -- ls /mnt/stoke
+
+			echo "Removing xfer pod..."
+			kubectl delete pod stoke-xfer-pod --now
+
+		fi
+		if [[ -n "$ARG_DELETE" ]]
+		then
+			echo "Deleting PVC..."
+			kubectl delete pvc stoke-local
+		fi
+
+	fi
+	if [[ "$TASK_SUBCOMMAND" == "tkn" ]]
+	then
+		if [[ -n "$ARG_LOCAL" ]]
+		then
+			echo Running pipeline with local pvc...
+			kubectl create -f $TASK_DIR/test/tekton/local_run.yaml
+		fi
+		if [[ -n "$ARG_GIT" ]]
+		then
+			echo Running pipeline on latest from git...
+			kubectl create -f $TASK_DIR/test/tekton/git_run.yaml
+		fi
+	fi
+	echo "Done."
+
 }
 
 _compose_task() { #compose_file

@@ -1,0 +1,14 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: list-workspace-files
+spec:
+  description: List files in workspace
+  workspaces:
+    - name: source
+  steps:
+    - name: list-fiels
+      image: alpine:latest
+      script: | 
+        #!/usr/bin/env sh
+        ls $(workspaces.source.path)

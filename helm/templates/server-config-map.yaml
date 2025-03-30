@@ -44,7 +44,7 @@ data:
       {{ else }}
       type: sqlite
       sqlite:
-        file: "stoke.db"
+        file: ":memory:"
         flags: "cache=shared&_fk=1"
       {{ end }}
 
