@@ -30,9 +30,25 @@ spec:
         - {{ .Values.server.pullSecret }}
       {{ end }}
       volumes:
+{{- if .Values.dbInit }}
+        - name: server-config
+          projected:
+            sources:
+              - configMap:
+                  name: stoke-config-{{ .Release.Name }}
+                  items:
+                    - key: config.yaml
+                      path: config.yaml
+              - configMap:
+                  name: stoke-dbinit-{{ .Release.Name }}
+                  items:
+                    - key: 00_generated.yaml
+                      path: dbinit.d/00_generated.yaml
+{{- else }}
         - name: server-config
           configMap:
             name: stoke-config-{{ .Release.Name }}
+{{- end }}
       containers:
       - name: server
         image: {{ .Values.server.image }}

@@ -1,0 +1,21 @@
+{{- if gt (len .Values.dbInit) 0 }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: stoke-dbinit-{{ .Release.Name }}
+  labels:
+    app.kubernetes.io/name: stoke
+    app.kubernetes.io/component: config
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+data:
+  00_generated.yaml: |
+    claims:
+{{ toYaml .Values.dbInit.claims | indent 6 }}
+    groups:
+{{ toYaml .Values.dbInit.groups | indent 6 }}
+    users:
+{{ toYaml .Values.dbInit.users | indent 6 }}
+
+{{- end }}

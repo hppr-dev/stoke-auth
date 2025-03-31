@@ -13,19 +13,19 @@ import { fileURLToPath, URL } from 'node:url'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-	build: {
-		outDir: "../dist",
-		cssCodeSplit: false,
-		rollupOptions: {
-			output: {
-				manualChunks: false,
-				inlineDynamicImports: true,
-				entryFileNames: '[hash].js',
-				assetFileNames: '[hash].[ext]',
-			},
-		},
-	},
-	base: "/admin/",
+  build: {
+    outDir: "../dist",
+    cssCodeSplit: false,
+    rollupOptions: {
+      output: {
+        manualChunks: false,
+        inlineDynamicImports: true,
+        entryFileNames: '[hash].js',
+        assetFileNames: '[hash].[ext]',
+      },
+    },
+  },
+  base: "/admin/",
   plugins: [
     VueRouter({
       dts: 'src/typed-router.d.ts',
@@ -84,4 +84,11 @@ export default defineConfig({
   server: {
     port: 3000,
   },
+  css: {
+    preprocessorOptions: {
+      scss: {
+        api: "modern-compiler"
+      }
+    },
+  }
 })

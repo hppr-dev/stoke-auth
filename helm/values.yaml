@@ -17,7 +17,7 @@ mysql:
 
 # Parent chart config
 server:
-  image: hpprdev/stoke-auth:v0.1.0
+  image: hpprdev/stoke-auth:v0.2.0
   pullPolicy: IfNotPresent
   pullSecret: ""
   address: ""
@@ -122,6 +122,54 @@ config:
     disable_monitoring: true                 # Whether to disable the default /metrics and /metrics/logs endpoints
     require_prometheus_authentication: false  # Whether to require authentication to reach default prometheus metrics
 
-  # User Provider configuration
+## Initialize database
+dbInit:
   users:
-    providers:
+    - username: stoke
+      first_name: Stephen
+      last_name:  Toke
+      email: stoke@hppr.dev
+      password_hash: LY/qY1w8fE69kKL+2QCRv4YO8azlXaZtRFAKQz3yQd3QAdqjmyA+COUO2nZwrAvlTltXEAVqpbFYh1ptYRG9uQ==
+      password_salt: y+hEP0tTMKmETwcJvDASwSoTKtJtA8Z6hDwp7rfLlUE=
+      groups:
+        - Stoke Admins
+
+  groups:
+    - name: Stoke Admins
+      description: Stoke administrators
+      claims:
+        - Stoke Super User
+
+    - name: Ship Crew
+      description: Planet express ship crew
+      links:
+        - type: LDAP
+          resource_spec: ship_crew
+      claims:
+        - Engineer Role
+        - Ship Access
+
+    - name: Ship Staff
+      description: Planet express ship staff
+      links:
+        - type: LDAP
+          resource_spec: ship_staff
+      claims:
+        - Engineer Role
+
+
+  claims:
+    - name: Stoke Super User
+      description: Grants stoke admin super user priviledges
+      short_name: stk
+      value: S
+
+    - name: Ship Access
+      description:  Grants crew ability to access ship
+      short_name: ship
+      value: acc
+
+    - name: Engineer Role
+      description: Specifies role as engineer
+      short_name: role
+      value: eng

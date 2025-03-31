@@ -6,11 +6,12 @@
 
 // Composables
 import { createRouter, createWebHistory } from 'vue-router/auto'
+import { routes } from 'vue-router/auto-routes'
 import { setupLayouts } from 'virtual:generated-layouts'
 
 const router = createRouter({
+  routes: setupLayouts(routes),
   history: createWebHistory(import.meta.env.BASE_URL),
-  extendRoutes: setupLayouts,
 })
 
 export default router

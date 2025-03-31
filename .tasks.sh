@@ -269,7 +269,7 @@ spec:
   containers:
     - name: xfer
       image: alpine:latest
-      command: ["sleep", "60"]
+      command: ["tail", "-f", "/dev/null"]
       volumeMounts:
         - name: stoke
           mountPath: /mnt/stoke
