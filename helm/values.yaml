@@ -125,51 +125,26 @@ config:
 ## Initialize database
 dbInit:
   users:
-    - username: stoke
-      first_name: Stephen
-      last_name:  Toke
-      email: stoke@hppr.dev
-      password_hash: LY/qY1w8fE69kKL+2QCRv4YO8azlXaZtRFAKQz3yQd3QAdqjmyA+COUO2nZwrAvlTltXEAVqpbFYh1ptYRG9uQ==
-      password_salt: y+hEP0tTMKmETwcJvDASwSoTKtJtA8Z6hDwp7rfLlUE=
+    - username: tester
+      first_name: Travis
+      last_name: Ester
+      email: tester@hppr.dev
+      password_hash: +OnrEsjkbdXdXugEKwDLGdqlDnMNV9+WyZ6T9wAtSMzp3jKYY+7pLYxoBlMlmWBOXlC9bviWtS9mw0fa4B6gkA==
+      password_salt: H3UP6GzWV3UISU7HJN/sVT6YjTYcmOPdJwiFcdXMVyQ=
       groups:
-        - Stoke Admins
-
+        - Testing group
   groups:
-    - name: Stoke Admins
-      description: Stoke administrators
+    - name: Testing group
+      description: Group of testsers
       claims:
-        - Stoke Super User
-
-    - name: Ship Crew
-      description: Planet express ship crew
-      links:
-        - type: LDAP
-          resource_spec: ship_crew
-      claims:
-        - Engineer Role
-        - Ship Access
-
-    - name: Ship Staff
-      description: Planet express ship staff
-      links:
-        - type: LDAP
-          resource_spec: ship_staff
-      claims:
-        - Engineer Role
-
-
+        - Testing Environment Access
+        - User Access
   claims:
-    - name: Stoke Super User
-      description: Grants stoke admin super user priviledges
-      short_name: stk
-      value: S
-
-    - name: Ship Access
-      description:  Grants crew ability to access ship
-      short_name: ship
+    - name: Testing Environment Access
+      description:  Grants access to the testing environment
+      short_name: test
       value: acc
-
-    - name: Engineer Role
-      description: Specifies role as engineer
-      short_name: role
-      value: eng
+    - name: User Access
+      description: Grants standard user access
+      short_name: user
+      value: acc

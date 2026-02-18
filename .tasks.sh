@@ -226,9 +226,11 @@ task_stoke() {
 
 arguments_kube() {
 	DESCRIPTION="Kubernetes helper scripts"
-	SUBCOMMANDS="pvc|tkn"
+	SUBCOMMANDS="pvc|tkn|build|helm"
 	PVC_OPTIONS="create:c:bool update:u:bool delete:d:bool"
 	TKN_OPTIONS="local:l:bool git:g:bool"
+	BUILD_REQUIREMENTS="tag:t:str"
+	HELM_OPTIONS="install:i:bool uninstall:u:bool name:n:str list:l:bool"
 }
 
 task_kube() {
@@ -313,6 +315,35 @@ EOF
 		then
 			echo Running pipeline on latest from git...
 			kubectl create -f $TASK_DIR/test/tekton/git_run.yaml
+		fi
+	fi
+	if [[ "$TASK_SUBCOMMAND" == "build" ]]
+	then
+		echo Building container for kubernetes environment...
+		cd $TASK_DIR
+		nerdctl -n k8s.io build -t hpprdev/stoke-auth:$ARG_TAG .
+	fi
+	if [[ "$TASK_SUBCOMMAND" == "helm" ]]
+	then
+		cd $TASK_DIR/helm
+		if [[ -z "$ARG_NAME" ]]
+		then
+			ARG_NAME=stoketest
+		fi
+		if [[ -n "$ARG_INSTALL" ]]
+		then
+			echo Installing stoke helm chart as $ARG_NAME...
+			helm install $ARG_NAME .
+		fi
+		if [[ -n "$ARG_UNINSTALL" ]]
+		then
+			echo Uninstalling helm chart $ARG_NAME...
+			helm uninstall $ARG_NAME
+		fi
+		if [[ -n "$ARG_LIST" ]]
+		then
+			echo Installed helm charts:
+			helm list
 		fi
 	fi
 	echo "Done."
