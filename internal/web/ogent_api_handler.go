@@ -107,9 +107,9 @@ func (h *entityHandler) Capabilities(ctx context.Context) (*ogent.CapabilitiesOK
 	}
 
 	return &ogent.CapabilitiesOK{
-		Capabilities: caps,
+		Capabilities:   caps,
+		BaseAdminPath: config.Server.BaseAdminPath,
 	}, nil
-
 }
 
 func (h *entityHandler) Totals(ctx context.Context) (*ogent.TotalsOK, error) {

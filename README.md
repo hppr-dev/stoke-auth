@@ -362,6 +362,8 @@ To build from source:
 4. Build the UI by running `npm install && npm run build --emptyOutDir` in the internal/admin/stoke-admin-ui directory
 5. Build the server executable by running `go build -o stoke-server ./cmd/` in the root of the repository
 
+To verify the build, run `golangci-lint run` and `go test ./...` from the repository root to match CI. For integration tests and other tasks, the project uses a task script (see [test/README.md](test/README.md)). In short run `task test int` to run integration tests (requires docker)
+
 # Configuration
 
 Configuration files are in yaml and may be specified by using the `-config` flag.
@@ -375,7 +377,7 @@ There are 6 config sections:
  * logging   -- logging options
  * tokens    -- token/key generation/rotation options
  * telemetry -- where and how to send telemetry data
- * users     -- user source configuration (LDAP for now)
+ * users     -- user sources and policy (providers, database init, protection rules)
 
 Here is an example config file will all possible configuration values:
 ```yaml
@@ -460,43 +462,51 @@ telemetry:
   disable_monitoring: true                  # Whether to disable the default /metrics and /metrics/logs endpoints
   require_prometheus_authentication: false  # Whether to require authentication to reach default prometheus metrics
 
-# User Provider configuration
+# User sources and policy
 users:
   create_stoke_claims: true                 # Whether to create stoke administration claims for reading/writing claims/groups/users. Checked every start up.
-  enable_ldap: true                         # Whether to use LDAP
-  server_url: ldap://localhost:10389        # LDAP Server URL. Must begin with ldap://, ldaps:// or ldapi://
+  provider_config_dir: "/etc/stoke/providers.d/"  # Directory to load provider configs from (default). Only .yaml and .yml files are read.
+  user_init_file: ""                       # Single database init file. Overridden by the -dbinit flag when provided.
+  user_init_dir: ""                        # Directory of database init files; all .yaml/.yml files are applied. When both file and dir are set, both are applied (file then directory).
+  policy_config:
+    allow_superuser_override: false        # Whether a superuser can override protection policies
+    read_only_mode: false                  # Whether to prevent all updates to users, claims and groups after start
+    protected_users: []                    # Usernames that may not be changed
+    protected_groups: []                   # Group names that may not be changed
+    protected_claims: []                   # Claim short names that may not be changed
+  # providers: []                         # Optional list of providers (LDAP, OIDC). May also be defined in files under provider_config_dir.
+```
 
-  bind_user_dn: "cn=admin,dc=planetexpress,dc=com" # Bind user distinguished name. Should only have read permissions
-  bind_user_password: GoodNewsEveryone             # Password for user specified in bind_user_dn
+## Provider configuration (LDAP and OIDC)
 
-  group_search_root: "ou=people,dc=planetexpress,dc=com"                 # Where to search in LDAP for groups
-  group_filter_template: "(&(objectClass=group)(member={{ .UserDN }}))"  # Filter template to select groups. May use {{.UserDN}} or {{.Username}} to inject user info
+User sources are configured as providers. Each provider has a `type` (ldap or oidc) and a `name` (used in login URLs and in group links for claim mapping). Providers may be listed in the main config under `users.providers` or placed as separate YAML files in the directory given by `users.provider_config_dir` (only files with `.yaml` or `.yml` extensions are read).
 
-  user_search_root: "ou=people,dc=planetexpress,dc=com"                       # Where to search in LDAP for users
-  user_filter_template: "(&(objectClass=inetOrgPerson)(uid={{ .Username }}))" # Filter template to select users. Must return only one entry. May use {{.Username}} to inject user supplied username
+**LDAP provider:** Set `type: ldap` (or `LDAP`) and `name`. Required fields include `server_url` (ldap://, ldaps:// or ldapi://), `bind_user_dn`, `bind_user_password`, `group_search_root`, `group_filter_template`, `user_search_root`, `user_filter_template`, `ldap_group_name_field`, `ldap_first_name_field`, `ldap_last_name_field`, `ldap_email_field`. Optional: `search_timeout`, `ldap_ca_cert`, `skip_certificate_verify`. See [cmd/providers.d/01_ldap.yaml](cmd/providers.d/01_ldap.yaml) for an example.
 
-  ldap_group_name_field: "cn"        # Field in LDAP groups which determines the group's name
-  ldap_first_name_field: "givenName" # Field in LDAP user which determines the user's first name
-  ldap_last_name_field:  "sn"        # Field in LDAP user which determines the user's last name
-  ldap_email_field: "mail"           # Field in LDAP user which determines the user's email
+**OIDC provider:** Set `type: oidc` (or `OIDC`) and `name`. Discovery can be used: set `discovery_url` (e.g. `https://accounts.google.com/.well-known/openid-configuration`) and the server will set token, authorization and userinfo URLs from it. Otherwise set `token_url`, `auth_url` (authorization URL), and `user_info_url` explicitly. Required or commonly used: `auth_flow_type` (code, implicit or hybrid), `claims_source` (token or endpoint), `client_id`, `client_secret`, `redirect_uri`, `first_name_claim`, `last_name_claim`, `email_claim`, `scopes`. See [cmd/providers.d/02_google_oidc.yaml](cmd/providers.d/02_google_oidc.yaml) for an example.
 
-  search_timeout: 0                   # LDAP search timeout. Set to 0 for unlimited.
-  ldap_ca_cert: ""                    # Certificate to use when verifying connections to LDAP
-  skip_certificate_verification: true # Whether to skip certificate verification for secure LDAP server
 ```
 
 ## Database Initialization file
 
-A database initialization file can be specified using the `-dbinit` flag.
-The database initialization file may add users, groups and claims to the database upon start up.
-If you wish to only initialize the database without starting the server, run the executable with `migrate` subcommand.
+Initialization may come from a single file or from a directory. A single file can be set via `user_init_file` in config or the `-dbinit` flag (the flag overrides the config when provided). A directory is set via `user_init_dir`; when used, every file in that directory with a `.yaml` or `.yml` extension is applied. When both a file and a directory are set, the file is applied first, then all eligible files in the directory.
 
 The initialization file has 3 sections:
  * users
  * groups
  * claims
 
-Note that all groups refrenced in the users and claims refrenced in groups must be created in this file to successfully initialize the database.
+Note that all groups referenced in the users and claims referenced in groups must be created in this file to successfully initialize the database.
+
+### Shorthand formats
+
+In addition to the long-form keys (`username`, `name`, `description`, etc.), the following shorthand forms are supported:
+
+ * **Users:** `user: username,first_name,last_name,email` — the four comma-separated values set username, first name, last name and email. Optional `password_hash`, `password_salt` and `groups` may be given as in the long form.
+ * **Groups:** `group: name,description` — two comma-separated values. For provider links, use `links` with either `link: type,resource` (e.g. LDAP and a resource name) or the long form `type:` / `resource:` (and optionally `provider`). Type is stored as provider type plus provider name (e.g. LDAP or OIDC:name).
+ * **Claims:** `claim: name,description,short_name,value` — four comma-separated values.
+
+See [cmd/dbinit.d/testinit.yaml](cmd/dbinit.d/testinit.yaml) for examples mixing long-form and shorthand.
 
 Here is an example dbinit.yaml file that initializes the database to have 2 users, 4 groups, and 4 claims:
 ``` yaml
@@ -586,7 +596,7 @@ where SUBCOMMAND can be:
     - migrate       -- Migrate the configured database and exit
     - validate      -- Validate and print configuration and exit
     - hash-password -- Hash a password for use in a dbinit file
-If SUBCOMMAND is ommited, the database is migrated and the server is run
+If SUBCOMMAND is omitted, the database is migrated and the server is run
 ```
 
 # Use cases
@@ -651,12 +661,11 @@ A summary is as follows:
   - /api/pkeys -- current valid public verification keys
   - /api/login -- JSON login
   - /api/renew -- renew a given JWT
+  - /api/available_providers -- lists configured identity providers (name, provider_type, type_spec); used by the admin UI for login options
   - /api/admin -- endpoints used from the admin console
 
 # Road Map
 
-    * High availablity
-    * OpenID Connect User Provider
-      * Stoke does not aim to become an OIDC Provider, but an OIDC Client.
-      * The idea is to use OIDC much like LDAP, in that it will get the claim/auth data from a compliant OIDC server and use the data to do environment level auth.
+    * High availability
+    * Additional OIDC providers or flow options
     * Clients for additional languages/protocols

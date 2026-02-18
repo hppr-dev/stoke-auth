@@ -21,6 +21,10 @@ Integration tests have been written to verify the functionality of the server:
 
 To run all of the integration test cases run `task test int -a`.
 
+## Running the task script
+
+Integration tests are run via the task script in the repository root (`.tasks.sh`). Use [bash task master (btm)](https://btm.hppr.dev), to run all integration tests: `task test int -a`.
+
 ## Integration Test Configurations
 
 Tests run with `task test int` will run a test per config in the configs/ directory following these steps:
@@ -54,6 +58,9 @@ Language client unit tests should accompany the client code in the client/ direc
 Run `task test client` to run client unit tests.
 Note that some clients may require some environment set up.
 
+## Kubernetes / Tekton
+
+For in-cluster testing, the repository includes Tekton tasks and pipelines under [test/tekton/](test/tekton/). Use the kube task (e.g. `task_kube` with subcommand `tkn`) to run the pipeline locally or from git. Ensure a cluster and any required PVC or Helm setup are in place. The table above describes what each test type (cert, database, provider, client integration, race) does.
 
 ## Performance/Load Benchmarks
 

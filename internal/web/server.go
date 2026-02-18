@@ -72,8 +72,10 @@ func NewServer(ctx context.Context) *http.Server {
 	}
 
 	if !config.DisableAdmin {
-		// Static files
-		mux.Handle("/admin/", http.StripPrefix("/admin/", http.FileServerFS(admin.Pages)))
+		// Static files; normalize base to avoid double slashes when BaseAdminPath has trailing slash
+		base := strings.TrimRight(config.BaseAdminPath, "/")
+		fullAdminPath := base + "/admin/"
+		mux.Handle(fullAdminPath, http.StripPrefix(fullAdminPath, http.FileServerFS(admin.Pages)))
 	}
 
 	allowedHosts := strings.Join(config.AllowedHosts,",")

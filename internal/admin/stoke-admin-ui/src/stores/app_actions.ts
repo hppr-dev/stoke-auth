@@ -101,7 +101,13 @@ export const appActions = {
 
     const result = await response.json();
     if ( result.capabilities ) {
-      this.capabilites = result.capabilities
+      this.capabilities = result.capabilities
+    }
+    if ( result.base_admin_path != null && result.base_admin_path !== "" ) {
+      this.baseAdminPath = result.base_admin_path
+      this.api_url = result.base_admin_path
+    } else {
+      this.baseAdminPath = ""
     }
   },
   fetchAvailableProviders: async function() {
@@ -128,7 +134,7 @@ export const appActions = {
     sessionStorage.setItem("refresh", "")
     sessionStorage.setItem("username", "")
 
-    window.location.replace("/admin/")
+    window.location.replace(`${this.baseAdminPath || ""}/admin/`)
     clearTimeout(this.refreshTimeout)
   },
 }

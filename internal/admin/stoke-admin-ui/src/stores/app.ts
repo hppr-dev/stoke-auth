@@ -32,6 +32,7 @@ export interface ChartDatasets {
 export const useAppStore = defineStore('app', {
   state: () => ({
     api_url: import.meta.env.DEV? import.meta.env.VITE_API_URL : "",
+    baseAdminPath: "" as string,
     username: "",
     capabilities : [] as string[],
 

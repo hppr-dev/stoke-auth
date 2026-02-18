@@ -1916,6 +1916,10 @@
                       "items": {
                         "type": "string"
                       }
+                    },
+                    "base_admin_path": {
+                      "description": "Base path for the admin UI when served behind a proxy, e.g. /auth; empty when admin is at /admin/",
+                      "type": "string"
                     }
                   },
                   "required": [

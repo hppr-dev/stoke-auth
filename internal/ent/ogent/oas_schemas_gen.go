@@ -51,6 +51,8 @@ func (s *AvailableProvidersOKItem) SetTypeSpec(val string) {
 type CapabilitiesOK struct {
 	// List of enabled capabilites.
 	Capabilities []string `json:"capabilities"`
+	// Base path for the admin UI when served behind a proxy, e.g. /auth; empty when admin is at /admin/.
+	BaseAdminPath string `json:"base_admin_path,omitempty"`
 }
 
 // GetCapabilities returns the value of Capabilities.
@@ -61,6 +63,16 @@ func (s *CapabilitiesOK) GetCapabilities() []string {
 // SetCapabilities sets the value of Capabilities.
 func (s *CapabilitiesOK) SetCapabilities(val []string) {
 	s.Capabilities = val
+}
+
+// GetBaseAdminPath returns the value of BaseAdminPath.
+func (s *CapabilitiesOK) GetBaseAdminPath() string {
+	return s.BaseAdminPath
+}
+
+// SetBaseAdminPath sets the value of BaseAdminPath.
+func (s *CapabilitiesOK) SetBaseAdminPath(val string) {
+	s.BaseAdminPath = val
 }
 
 // Ref: #/components/schemas/Claim_ClaimGroupsList

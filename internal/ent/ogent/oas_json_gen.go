@@ -160,10 +160,17 @@ func (s *CapabilitiesOK) encodeFields(e *jx.Encoder) {
 		}
 		e.ArrEnd()
 	}
+	{
+		if s.BaseAdminPath != "" {
+			e.FieldStart("base_admin_path")
+			e.Str(s.BaseAdminPath)
+		}
+	}
 }
 
-var jsonFieldsNameOfCapabilitiesOK = [1]string{
+var jsonFieldsNameOfCapabilitiesOK = [2]string{
 	0: "capabilities",
+	1: "base_admin_path",
 }
 
 // Decode decodes CapabilitiesOK from json.
@@ -194,6 +201,17 @@ func (s *CapabilitiesOK) Decode(d *jx.Decoder) error {
 				return nil
 			}(); err != nil {
 				return errors.Wrap(err, "decode field \"capabilities\"")
+			}
+		case "base_admin_path":
+			if err := func() error {
+				v, err := d.Str()
+				s.BaseAdminPath = string(v)
+				if err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"base_admin_path\"")
 			}
 		default:
 			return d.Skip()
