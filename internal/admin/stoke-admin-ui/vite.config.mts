@@ -14,7 +14,7 @@ import { fileURLToPath, URL } from 'node:url'
 // https://vitejs.dev/config/
 export default defineConfig({
   build: {
-    outDir: "../dist",
+    outDir: "dist",
     cssCodeSplit: false,
     rollupOptions: {
       output: {
@@ -25,7 +25,8 @@ export default defineConfig({
       },
     },
   },
-  base: "/admin/",
+  // Relative base so the app works when mounted at /admin/ or e.g. /auth/admin/
+  base: "./",
   plugins: [
     VueRouter({
       dts: 'src/typed-router.d.ts',

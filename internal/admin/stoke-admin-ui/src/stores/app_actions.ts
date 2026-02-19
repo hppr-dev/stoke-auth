@@ -1,7 +1,7 @@
 export const appActions = {
   login: async function(username : string, password : string, provider : string, callback : () => void) {
     try {
-      const response = await fetch(`${this.api_url}/api/login`, {
+      const response = await fetch(`${this.apiBase}/login`, {
         method: "POST",
         headers: {
           "Content-Type" : "application/json",
@@ -56,7 +56,7 @@ export const appActions = {
   },
   refreshSession: async function() {
     try {
-      const response = await fetch(`${this.api_url}/api/refresh`, {
+      const response = await fetch(`${this.apiBase}/refresh`, {
         method: "POST",
         headers: {
           "Content-Type" : "application/json",
@@ -91,7 +91,7 @@ export const appActions = {
     }
   },
   fetchCapabilites: async function() {
-    const response = await fetch(`${this.api_url}/api/capabilities`, {
+    const response = await fetch(`${this.apiBase}/capabilities`, {
       method: "GET",
       headers: {
         "Content-Type" : "application/json",
@@ -103,15 +103,9 @@ export const appActions = {
     if ( result.capabilities ) {
       this.capabilities = result.capabilities
     }
-    if ( result.base_admin_path != null && result.base_admin_path !== "" ) {
-      this.baseAdminPath = result.base_admin_path
-      this.api_url = result.base_admin_path
-    } else {
-      this.baseAdminPath = ""
-    }
   },
   fetchAvailableProviders: async function() {
-    const response = await fetch(`${this.api_url}/api/available_providers`, {
+    const response = await fetch(`${this.apiBase}/available_providers`, {
       method: "GET",
       headers: {
         "Content-Type" : "application/json",
@@ -119,8 +113,8 @@ export const appActions = {
     })
 
     const result = await response.json();
-    if ( result.length > 0) {
-      this.availableProviders = result
+    if ( result.providers && result.providers.length > 0) {
+      this.availableProviders = result.providers
     }
   },
   scheduleRefresh: function() {
@@ -134,7 +128,9 @@ export const appActions = {
     sessionStorage.setItem("refresh", "")
     sessionStorage.setItem("username", "")
 
-    window.location.replace(`${this.baseAdminPath || ""}/admin/`)
+    const pathname = typeof window !== 'undefined' ? window.location.pathname : ''
+    const adminRoot = pathname.replace(/\/admin\/?.*$/, '') + '/admin/'
+    window.location.replace(adminRoot)
     clearTimeout(this.refreshTimeout)
   },
 }

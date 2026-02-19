@@ -31,7 +31,7 @@ export const metricActions = {
     }
   },
   fetchMetricData: async function() {
-    const response = await fetch(`${this.api_url}/metrics`, {
+    const response = await fetch(`${this.metricsBase}`, {
         method: "GET",
         headers: {
           "Content-Type" : "text/plain; version=0.0.4",
@@ -80,7 +80,7 @@ export const metricActions = {
     }
   },
   fetchLogText: async function() {
-    const response = await fetch(`${this.api_url}/metrics/logs`, {
+    const response = await fetch(`${this.metricsBase}/logs`, {
         method: "GET",
         headers: {
           "Content-Type" : "text/plain; version=0.0.4",

@@ -29,7 +29,7 @@ type Invoker interface {
 	// Get available providers.
 	//
 	// GET /available_providers
-	AvailableProviders(ctx context.Context) ([]AvailableProvidersOKItem, error)
+	AvailableProviders(ctx context.Context) (*AvailableProvidersOK, error)
 	// Capabilities invokes capabilities operation.
 	//
 	// Get server capabilities.
@@ -291,12 +291,12 @@ func (c *Client) requestURL(ctx context.Context) *url.URL {
 // Get available providers.
 //
 // GET /available_providers
-func (c *Client) AvailableProviders(ctx context.Context) ([]AvailableProvidersOKItem, error) {
+func (c *Client) AvailableProviders(ctx context.Context) (*AvailableProvidersOK, error) {
 	res, err := c.sendAvailableProviders(ctx)
 	return res, err
 }
 
-func (c *Client) sendAvailableProviders(ctx context.Context) (res []AvailableProvidersOKItem, err error) {
+func (c *Client) sendAvailableProviders(ctx context.Context) (res *AvailableProvidersOK, err error) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("available_providers"),
 		semconv.HTTPMethodKey.String("GET"),

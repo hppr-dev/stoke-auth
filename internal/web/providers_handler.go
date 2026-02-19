@@ -7,15 +7,19 @@ import (
 	"strings"
 )
 
-func (h *entityHandler) AvailableProviders(ctx context.Context) ([]ogent.AvailableProvidersOKItem, error) {
+func (h *entityHandler) AvailableProviders(ctx context.Context) (*ogent.AvailableProvidersOK, error) {
 	config := cfg.Ctx(ctx)
-	res := []ogent.AvailableProvidersOKItem{}
+	providers := []ogent.AvailableProvidersOKItem{}
 	for _, p := range config.Users.Providers {
-		res = append(res, ogent.AvailableProvidersOKItem{
+		providers = append(providers, ogent.AvailableProvidersOKItem{
 			Name:         p.Name,
 			ProviderType: strings.ToUpper(p.ProviderType),
 			TypeSpec:     p.TypeSpec(),
 		})
 	}
-	return res, nil
+	basePath := strings.TrimRight(config.Server.BasePath, "/")
+	return &ogent.AvailableProvidersOK{
+		Providers:     providers,
+		BaseAdminPath: basePath,
+	}, nil
 }

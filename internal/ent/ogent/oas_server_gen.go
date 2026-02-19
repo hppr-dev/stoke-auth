@@ -13,7 +13,7 @@ type Handler interface {
 	// Get available providers.
 	//
 	// GET /available_providers
-	AvailableProviders(ctx context.Context) ([]AvailableProvidersOKItem, error)
+	AvailableProviders(ctx context.Context) (*AvailableProvidersOK, error)
 	// Capabilities implements capabilities operation.
 	//
 	// Get server capabilities.

@@ -12,8 +12,8 @@ type Server struct {
 	Port          int    `json:"port"`
 	// Request Timeout in milliseconds
 	Timeout       int    `json:"timeout"`
-  	// Base Admin Path, allows hosting admin console behind a proxy
-  	BaseAdminPath string `json:"base_admin_path"`
+	// Base Path for web assets and api, useful for hosting behind a proxy
+	BasePath   string `json:"base_path"`
 
 	// Private TLS Key
 	TLSPrivateKey string `json:"tls_private_key"`

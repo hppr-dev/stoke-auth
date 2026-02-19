@@ -13,7 +13,6 @@ func addCapabilitesEndpoint(spec *ogen.Spec, security ogen.SecurityRequirements)
 					SetType("object").
 					SetProperties(&ogen.Properties{
 						*ogen.NewProperty().SetName("capabilities").SetSchema(ogen.String().AsArray().SetDescription("List of enabled capabilites")),
-						*ogen.NewProperty().SetName("base_admin_path").SetSchema(ogen.String().SetDescription("Base path for the admin UI when served behind a proxy, e.g. /auth; empty when admin is at /admin/")),
 					}).
 					SetRequired([]string{"capabilities"}),
 				),

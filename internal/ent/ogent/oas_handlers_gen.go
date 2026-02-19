@@ -59,7 +59,7 @@ func (s *Server) handleAvailableProvidersRequest(args [0]string, argsEscaped boo
 		err error
 	)
 
-	var response []AvailableProvidersOKItem
+	var response *AvailableProvidersOK
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
 			Context:          ctx,
@@ -74,7 +74,7 @@ func (s *Server) handleAvailableProvidersRequest(args [0]string, argsEscaped boo
 		type (
 			Request  = struct{}
 			Params   = struct{}
-			Response = []AvailableProvidersOKItem
+			Response = *AvailableProvidersOK
 		)
 		response, err = middleware.HookMiddleware[
 			Request,

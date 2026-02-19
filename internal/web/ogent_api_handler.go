@@ -107,8 +107,7 @@ func (h *entityHandler) Capabilities(ctx context.Context) (*ogent.CapabilitiesOK
 	}
 
 	return &ogent.CapabilitiesOK{
-		Capabilities:   caps,
-		BaseAdminPath: config.Server.BaseAdminPath,
+		Capabilities: caps,
 	}, nil
 }
 

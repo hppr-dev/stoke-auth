@@ -18,7 +18,7 @@ var _ Handler = UnimplementedHandler{}
 // Get available providers.
 //
 // GET /available_providers
-func (UnimplementedHandler) AvailableProviders(ctx context.Context) (r []AvailableProvidersOKItem, _ error) {
+func (UnimplementedHandler) AvailableProviders(ctx context.Context) (r *AvailableProvidersOK, _ error) {
 	return r, ht.ErrNotImplemented
 }
 

@@ -7,6 +7,7 @@ server:
   tls_private_key: "" # stoke-private.key  # Private key to use for https TLS
   tls_public_cert: "" # stoke-public.crt   # Public key to use for https TLS
   disable_admin: false                # Disable the admin UI
+  base_path: "/auth/"                 # Base path for the web assets and api, useful for hosting behind a proxy
   allowed_hosts:                      # Hosts to include in the allowed hosts CORS header
     - "*"
 
@@ -15,7 +16,7 @@ database:
   type: sqlite # Type of database to use ( sqlite, postgres or mysql )
 
   sqlite:
-    file: stoke.db              # SQLite database file location
+    file: /etc/stoke/stoke.db              # SQLite database file location
     flags: "cache=shared&_fk=1" # SQLite database flags
 
   postgres:

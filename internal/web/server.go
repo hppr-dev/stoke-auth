@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -15,9 +16,9 @@ import (
 	"stoke/internal/cfg"
 	"stoke/internal/key"
 
-	"hppr.dev/stoke"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/zerolog"
+	"hppr.dev/stoke"
 )
 
 type debugLogger struct {
@@ -71,24 +72,30 @@ func NewServer(ctx context.Context) *http.Server {
 			Msg("Failed to initialize TLS.")
 	}
 
+	fullAPIPath, _ := url.JoinPath(config.BasePath, "/api/")
+	fullMetricsPath, _ := url.JoinPath(config.BasePath, "/metrics/")
+	fullLogsPath, _ := url.JoinPath(config.BasePath, "/metrics/", "logs")
+	fullAdminPath, err := url.JoinPath(config.BasePath, "/admin/")
+	if err != nil {
+		logger.Panic().
+			Str("basePath", config.BasePath).
+			Msg("Could not compute path. Check configured base_path.")
+	}
+
 	if !config.DisableAdmin {
-		// Static files; normalize base to avoid double slashes when BaseAdminPath has trailing slash
-		base := strings.TrimRight(config.BaseAdminPath, "/")
-		fullAdminPath := base + "/admin/"
 		mux.Handle(fullAdminPath, http.StripPrefix(fullAdminPath, http.FileServerFS(admin.Pages)))
 	}
 
 	allowedHosts := strings.Join(config.AllowedHosts,",")
 
 	mux.Handle(
-		"/api/",
+		fullAPIPath,
 		ConfigureCORS(
 			"GET,POST,PATCH,DELETE,OPTIONS",
 			allowedHosts,
-			NewEntityAPIHandler("/api/", ctx),
+			NewEntityAPIHandler(fullAPIPath, ctx),
 		),
 	)
-
 
 	if !telConf.DisableMonitoring {
 		logsHandler := func(res http.ResponseWriter, req *http.Request) {
@@ -117,7 +124,7 @@ func NewServer(ctx context.Context) *http.Server {
 
 		if telConf.RequirePrometheusAuthentication {
 			mux.Handle(
-				"/metrics",
+				fullMetricsPath,
 				ConfigureCORS(
 					"GET,OPTIONS",
 					allowedHosts,
@@ -133,7 +140,7 @@ func NewServer(ctx context.Context) *http.Server {
 				),
 			)
 			mux.Handle(
-				"/metrics/logs",
+				fullLogsPath,
 				ConfigureCORS(
 					"GET,OPTIONS",
 					allowedHosts,
@@ -151,7 +158,7 @@ func NewServer(ctx context.Context) *http.Server {
 
 		} else {
 			mux.Handle(
-				"/metrics",
+				fullMetricsPath,
 				ConfigureCORS(
 					"GET,OPTIONS",
 					allowedHosts,
@@ -159,7 +166,7 @@ func NewServer(ctx context.Context) *http.Server {
 				),
 			)
 			mux.Handle(
-				"/metrics/logs",
+				fullLogsPath,
 				ConfigureCORSFunc(
 					"GET,OPTIONS",
 					allowedHosts,

@@ -1,9 +1,9 @@
 FROM node:22-alpine3.19 AS node-builder
-RUN mkdir -p /build/dist
+RUN mkdir -p /build/
 WORKDIR /build
 
-COPY internal/admin/stoke-admin-ui ./
-RUN npm install && npm run build --emptyOutDir
+COPY internal/admin/ .
+RUN cd stoke-admin-ui && npm install && npm run build
 
 FROM golang:1.23.7-alpine3.20 AS go-builder
 RUN apk add build-base
@@ -12,7 +12,7 @@ RUN mkdir -p /build
 WORKDir /build
 
 COPY . ./
-COPY --from=node-builder /build/dist ./internal/admin/
+COPY --from=node-builder /build/stoke-admin-ui/dist ./internal/admin/stoke-admin-ui/dist
 
 ARG EXTRA_BUILD_ARGS
 RUN go mod tidy
