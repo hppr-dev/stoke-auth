@@ -1,7 +1,8 @@
 arguments_test() {
 	DESCRIPTION="Run tests"
-	SUBCOMMANDS="int|unit|client|clean"
+	SUBCOMMANDS="int|unit|client|clean|e2e"
 	INT_DESCRIPTION="Run integration tests"
+	E2E_DESCRIPTION="Run Playwright E2E tests (requires Stoke server; see test/docs/playwright.md)"
 	INT_OPTIONS="image:i:str rimage:R:str build:b:bool buildclient:B:bool case:C:str log:l:bool logfile:L:bool progress:P:bool all:a:bool cert:c:bool db:d:bool race:r:bool provider:p:bool env:e:bool"
 	UNIT_DESCRIPTION="Run unit tests"
 	UNIT_OPTIONS="cover:c:bool html:h:bool func:f:bool name:n:str"
@@ -128,6 +129,15 @@ task_test() {
 
 		echo Cleaning test logs file...
 		rm -rf $TASK_DIR/test/logs/*
+	elif [[ "$TASK_SUBCOMMAND" == "e2e" ]]
+	then
+		export STOKE_BASE_URL="${STOKE_BASE_URL:-http://localhost:8080}"
+		echo "Running Playwright E2E tests (STOKE_BASE_URL=$STOKE_BASE_URL)..."
+		echo "See test/docs/playwright.md for full documentation."
+		cd $TASK_DIR/test/e2e
+		npm ci --no-audit --no-fund
+		npx playwright install --with-deps chromium
+		npx playwright test
 	fi
 }
 

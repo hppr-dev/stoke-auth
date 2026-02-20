@@ -21,3 +21,4 @@
 | Test | Location | How |
 |------|----------|-----|
 | Go | test/capabilities_test.go | TestAvailableProviders_ReturnsProvidersAndBaseAdminPath |
+| E2E | test/e2e/specs/admin.spec.ts | GET /api/available_providers returns providers @US-006 |

@@ -44,6 +44,14 @@ See `task help test` for flags to include test types.
 
 Client integration tests use the examples included in the ./client/examples directory.
 
+## E2E tests (Playwright)
+
+End-to-end tests run with [Playwright](https://playwright.dev/) from `test/e2e/`. They exercise the admin UI and API against a running Stoke server.
+
+- **Location:** `test/e2e/` (specs in `test/e2e/specs/`)
+- **User stories:** See `test/stories/` for story IDs and traceability; tests reference story IDs (e.g. `@US-001`).
+- **How to run:** See [test/docs/playwright.md](docs/playwright.md) for full documentation. Quick start: start a Stoke server, then run `task test e2e` from the repo root, or `cd test/e2e && npm run test` with `STOKE_BASE_URL` set to the server URL (default `http://localhost:8080`).
+
 ## Running Unit Tests
 
 Unit tests are located in the internal package next to the code under test.

@@ -39,3 +39,46 @@ jobs:
 
     - name: Run unit tests
       run: go test ./...
+
+  e2e:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: "22"
+
+    - name: Build Stoke Docker image
+      run: docker build -t stoke-e2e .
+
+    - name: Start Stoke server
+      run: |
+        docker run -d --name stoke-e2e \
+          -v ${{ github.workspace }}/test/configs/cert_type/ecdsa.yaml:/etc/stoke/config.yaml \
+          -v ${{ github.workspace }}/test/configs/dbinit/smoke_test.yaml:/etc/stoke/dbinit.yaml \
+          -p 8080:8080 \
+          stoke-e2e -config /etc/stoke/config.yaml -dbinit /etc/stoke/dbinit.yaml
+        sleep 5
+        docker ps
+
+    - name: Run Playwright E2E tests
+      run: |
+        cd test/e2e
+        npm ci --no-audit --no-fund
+        npx playwright install --with-deps chromium
+        STOKE_BASE_URL=http://localhost:8080 npx playwright test
+      env:
+        STOKE_BASE_URL: http://localhost:8080
+
+    - name: Upload Playwright report on failure
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: playwright-report
+        path: test/e2e/playwright-report/
+        retention-days: 7
