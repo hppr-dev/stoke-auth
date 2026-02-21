@@ -80,16 +80,28 @@ func (p UserMutationPolicy) EvalMutation(ctx context.Context, m ent.Mutation) er
 }
 
 func (p UserMutationPolicy) getTargetUserOrDeny(ctx context.Context, m *ent.UserMutation) (*ent.User, error) {
+	logger := zerolog.Ctx(ctx)
 	ids, err := m.IDs(ctx)
 	if err != nil {
+		logger.Warn().
+			Err(err).
+			Ints("ids", ids).
+			Msg("Access Denied to IDs")
 		return nil, privacy.Denyf("Could not determine target user")
 	}
 	if len(ids) != 1 {
+		logger.Warn().
+			Ints("ids", ids).
+			Msg("Multiple users change denied")
 		return nil, privacy.Denyf("Can not change more than one user at once")
 	}
 
 	modUser, err := m.Client().User.Get(ctx, ids[0])
 	if err != nil {
+		logger.Warn().
+			Err(err).
+			Int("id", ids[0]).
+			Msg("Access denied to user")
 		return nil, privacy.Denyf("Could not determine user")
 	}
 
@@ -98,6 +110,9 @@ func (p UserMutationPolicy) getTargetUserOrDeny(ctx context.Context, m *ent.User
 
 func (p UserMutationPolicy) denyChangesToProtectedEntities(ctx context.Context, user *ent.User) error {
 	if slices.Contains(policyFromCtx(ctx).protectedUsernames, user.Username) {
+		zerolog.Ctx(ctx).Warn().
+			Str("username", user.Username).
+			Msg("Read only user change denied")
 		return privacy.Denyf("User %s is read-only", user.Username)
 	}
 	return nil
@@ -121,6 +136,9 @@ func (p UserMutationPolicy) denyAssigningSuperuserFromNonSuperuser(ctx context.C
 			WithClaims().
 			All(ctx)
 		if err != nil {
+			zerolog.Ctx(ctx).Warn().
+				Err(err).
+				Msg("Could not determine assigned groups")
 			return privacy.Denyf("Could not determine assigned groups")
 		}
 
@@ -128,6 +146,10 @@ func (p UserMutationPolicy) denyAssigningSuperuserFromNonSuperuser(ctx context.C
 		for _, group := range mutGroups {
 			for _, claim := range group.Edges.Claims {
 				if userIsNotSuper && claim.ShortName == "stk" && claim.Value == "S" {
+					zerolog.Ctx(ctx).Warn().
+						Str("group", group.Name).
+						Str("claim", claim.ShortName).
+						Msg("Non-superuser superuser claim assign denied")
 					return privacy.Denyf("Cannot assign superuser claim from non superuser")
 				}
 			}
