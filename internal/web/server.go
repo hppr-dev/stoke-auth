@@ -72,15 +72,22 @@ func NewServer(ctx context.Context) *http.Server {
 			Msg("Failed to initialize TLS.")
 	}
 
-	fullAPIPath, _ := url.JoinPath(config.BasePath, "/api/")
-	fullMetricsPath, _ := url.JoinPath(config.BasePath, "/metrics/")
-	fullLogsPath, _ := url.JoinPath(config.BasePath, "/metrics/", "logs")
-	fullAdminPath, err := url.JoinPath(config.BasePath, "/admin/")
+	fullAPIPath, _ := url.JoinPath("/", config.BasePath, "/api/")
+	fullMetricsPath, _ := url.JoinPath("/", config.BasePath, "/metrics/")
+	fullLogsPath, _ := url.JoinPath("/", config.BasePath, "/metrics/", "logs")
+	fullAdminPath, err := url.JoinPath("/", config.BasePath, "/admin/")
 	if err != nil {
 		logger.Panic().
 			Str("basePath", config.BasePath).
 			Msg("Could not compute path. Check configured base_path.")
 	}
+
+	logger.Debug().
+		Str("apiPath", fullAPIPath).
+		Str("metricsPath", fullMetricsPath).
+		Str("logsPath", fullLogsPath).
+		Str("adminPath", fullAdminPath).
+		Msg("Initializing routes.")
 
 	if !config.DisableAdmin {
 		mux.Handle(fullAdminPath, http.StripPrefix(fullAdminPath, http.FileServerFS(admin.Pages)))

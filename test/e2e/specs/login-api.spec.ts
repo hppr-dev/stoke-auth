@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 // US-001: User can obtain a token with valid local credentials
 test('POST /api/login with valid local credentials returns token and refresh @US-001', async ({ request }) => {
   const res = await request.post('/api/login', {
-    data: { username: 'tester', password: 'tester' },
+    data: { username: 'stoke', password: 'admin' },
     headers: { 'Content-Type': 'application/json' },
   });
   expect(res.status()).toBe(200);

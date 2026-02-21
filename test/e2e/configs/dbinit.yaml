@@ -1,0 +1,53 @@
+# E2E dbinit: copied from cmd/dbinit.yaml (user stoke / password admin)
+# If there are no super users, i.e. with the srol=spr claim, one will be created automatically.
+# All groups given to users must be specified in the groups section
+users:
+  - username: stoke
+    first_name: Stephen
+    last_name:  Toke
+    email: stoke@hppr.dev
+    password_hash: LY/qY1w8fE69kKL+2QCRv4YO8azlXaZtRFAKQz3yQd3QAdqjmyA+COUO2nZwrAvlTltXEAVqpbFYh1ptYRG9uQ==
+    password_salt: y+hEP0tTMKmETwcJvDASwSoTKtJtA8Z6hDwp7rfLlUE=
+    groups:
+      - Stoke Admins
+
+# All claims listed must be specified in the claims list below
+groups:
+  - name: Stoke Admins
+    description: Stoke administrators
+    claims:
+      - Stoke Super User
+
+  - name: Ship Crew
+    description: Planet express ship crew
+    links:
+      - type: LDAP
+        resource_spec: ship_crew
+    claims:
+      - Engineer Role
+      - Ship Access
+
+  - name: Ship Staff
+    description: Planet express ship staff
+    links:
+      - type: LDAP
+        resource_spec: ship_staff
+    claims:
+      - Engineer Role
+
+
+claims:
+  - name: Stoke Super User
+    description: Grants stoke admin super user priviledges
+    short_name: stk
+    value: S
+
+  - name: Ship Access
+    description:  Grants crew ability to access ship
+    short_name: ship
+    value: acc
+
+  - name: Engineer Role
+    description: Specifies role as engineer
+    short_name: role
+    value: eng

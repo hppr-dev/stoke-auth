@@ -9,7 +9,7 @@ FROM golang:1.23.7-alpine3.20 AS go-builder
 RUN apk add build-base
 
 RUN mkdir -p /build
-WORKDir /build
+WORKDIR /build
 
 COPY . ./
 COPY --from=node-builder /build/stoke-admin-ui/dist ./internal/admin/stoke-admin-ui/dist

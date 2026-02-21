@@ -5,26 +5,40 @@ This document describes how to run the Playwright end-to-end tests for the Stoke
 ## Prerequisites
 
 - **Node.js** 22 or later (for `test/e2e`)
-- **Stoke server** running and reachable (see below)
+- **Stoke server** running and reachable, **or** use the task option to start it for you (see below)
 - **npm** (comes with Node)
 
 Playwright will install browser binaries (Chromium by default) on first run.
 
+## Does the task start the server?
+
+**Yes, by default.** `task test e2e` builds the integration-test Docker image (if missing), starts a Stoke container with the E2E config and dbinit from `test/e2e/configs/` (user **stoke** / password **admin**, plus claims and groups), runs the Playwright tests, then stops and removes the container.
+
+To use **an already running server** instead (e.g. one you started yourself), use:
+
+```bash
+task test e2e -n
+```
+
+(or `--no-server`). The task will then only run Playwright against `STOKE_BASE_URL` (default `http://localhost:8080`).
+
+Dependencies (`npm ci` and Playwright Chromium) are installed only when missing (no `node_modules` or no Chromium browser), so repeated runs are faster.
+
 ## Quick start
 
-1. **Start a Stoke server** (e.g. with default config and dbinit that includes user `tester` / password `tester` for login tests). For example, from the repo root:
-
-   ```bash
-   # Build and run server, or use Docker; ensure it listens on the URL you will use below.
-   ```
-
-2. **Run E2E from repo root via task script:**
+1. **Run E2E from repo root** (server is started and stopped for you):
 
    ```bash
    task test e2e
    ```
 
-   This uses `STOKE_BASE_URL=http://localhost:8080` by default, runs `npm ci` and `playwright install --with-deps chromium` in `test/e2e`, then runs all Playwright tests.
+   This builds the Stoke image if needed, starts the server, runs Playwright, then stops the server. Uses `STOKE_BASE_URL=http://localhost:8080`.
+
+2. **If you already have a server running**, skip start/stop:
+
+   ```bash
+   task test e2e -n
+   ```
 
 3. **Or run from test/e2e directly:**
 
@@ -47,6 +61,25 @@ Playwright will install browser binaries (Chromium by default) on first run.
 |----------|---------|-------------|
 | `STOKE_BASE_URL` | `http://localhost:8080` | Base URL of the Stoke server (admin UI and API). All requests (e.g. `/admin`, `/api/login`, `/api/available_providers`) are sent to this origin. |
 
+## Headed vs headless
+
+Tests run **headless** (no visible browser) by default.
+
+- **Headless (default):**  
+  `npm run test` or `task test e2e`
+
+- **Headed (browser window visible):**  
+  `npm run test:headed` from `test/e2e/`, or:
+  ```bash
+  task test e2e -h
+  ```
+  (or `task test e2e --headed`). You can combine with no-server: `task test e2e -n -h`.
+
+- **UI mode (interactive):**  
+  `npm run test:ui` from `test/e2e/`
+
+All commands are run from **test/e2e/** unless you use `task test e2e` (which changes into that directory for you).
+
 ## Running a subset of tests
 
 - **Single file:**  
@@ -61,7 +94,7 @@ Playwright will install browser binaries (Chromium by default) on first run.
 - **UI mode (interactive):**  
   `npm run test:ui`
 
-All commands are run from **test/e2e/** unless you use `task test e2e` (which changes into that directory for you).
+All commands above are run from **test/e2e/** unless you use `task test e2e` (which changes into that directory for you).
 
 ## Viewing the report
 

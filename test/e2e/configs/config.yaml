@@ -1,4 +1,5 @@
 ---
+# E2E config: copied from cmd/config.yaml (user stoke / password admin)
 # Web Server configuration
 server:
   address: ""                         # Address to listen on

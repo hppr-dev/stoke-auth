@@ -19,10 +19,10 @@ test('admin UI login page loads', async ({ page }) => {
 
 const baseURL = () => process.env.STOKE_BASE_URL || 'http://localhost:8080';
 
-test('admin UI login as tester shows user area', async ({ page }) => {
+test('admin UI login as stoke shows user area', async ({ page }) => {
   await loginAsTester(page, baseURL());
   await expect(page).toHaveURL(/\/user/);
   await expect(
-    page.getByRole('link', { name: /users|groups|claims/i }).first()
+    page.locator('[data-testid="nav-users"], [data-testid="nav-groups"], [data-testid="nav-claims"]').first()
   ).toBeVisible({ timeout: 5000 });
 });
