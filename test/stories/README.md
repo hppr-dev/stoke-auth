@@ -19,6 +19,10 @@ User stories for stoke-auth live here. Each story has a stable **ID** used to tr
 | US-006 | Anonymous user can list login providers | [admin-api.md](admin-api.md) | Go |
 | US-007 | User with correct claims can access protected endpoints | [client-integration.md](client-integration.md) | k6 |
 | US-008 | User without required claims receives 403 | [client-integration.md](client-integration.md) | k6 |
+| US-009 | Admin can view Users, Groups, and Claims pages (smoke) | [admin-ui.md](admin-ui.md) | E2E |
+| US-010 | Admin can list users, list groups, list claims | [admin-ui.md](admin-ui.md) | E2E |
+| US-011 | Admin can create claim → group → user and that user can retrieve a JWT | [admin-ui.md](admin-ui.md) | E2E |
+| US-012 | Generated dbinit file creates a loginable user | [admin-ui.md](admin-ui.md) | E2E |
 
 (Add rows as more stories are added.)
 
