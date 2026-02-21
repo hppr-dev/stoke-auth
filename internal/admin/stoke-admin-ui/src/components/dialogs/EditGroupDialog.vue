@@ -3,20 +3,20 @@
     <v-row>
       <v-text-field
         variant="solo-filled"
-        label="Name"
+        label="Group Name"
         v-model="name"
-        :rules="[require('Name'), hasAChange]"
+        :rules="[require('Group Name'), hasAChange]"
         @update:modelValue="updateScratchGroup"
       ></v-text-field>
     </v-row>
     <v-row>
       <v-textarea
         variant="solo-filled"
-        label="Description"
+        label="Group Description"
         no-resize
         rows="2"
         v-model="description"
-        :rules="[require('Description'), hasAChange]"
+        :rules="[require('Group Description'), hasAChange]"
         @update:modelValue="updateScratchGroup"
       ></v-textarea>
     </v-row>

@@ -28,8 +28,8 @@ test('create claim → group (with claim) → user (with group) then user can re
   // 2. Create group and assign claim to it
   await page.goto('/admin/group');
   await page.getByRole('button', { name: /add group/i }).click();
-  await page.getByLabel('Name').fill(groupName);
-  await page.getByLabel('Description').fill('E2E test group');
+  await page.getByLabel('Group Name').fill(groupName);
+  await page.getByLabel('Group Description').fill('E2E test group');
   await page.getByText(claimName).first().click();
   await page.getByRole('button', { name: 'Save' }).click();
   await expect(page.getByRole('button', { name: /add group/i })).toBeVisible({ timeout: 5000 });
