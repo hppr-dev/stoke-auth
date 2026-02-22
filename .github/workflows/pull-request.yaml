@@ -2,7 +2,7 @@ name: Merge Request
 
 on:
   pull_request:
-    types: ["opened", "edited"]
+    types: ["opened", "edited", "synchronize"]
     branches: ["main"]
     paths-ignore:
       - "./github/**"
