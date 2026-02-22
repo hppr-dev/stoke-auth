@@ -19,6 +19,7 @@ Stoke can run with multiple replicas behind a load balancer so that no single pr
        - https://stoke-0:8080
        - https://stoke-1:8080
      refresh_sec: 30   # optional; default 30
+     instance_id: "stoke-0"   # optional; unique per replica so key ids (kid) stay distinct in merged JWKS
    ```
 
    - `static_peers` must list the base URLs of **all** replicas (including this one if you want this instance to merge its own keys with peers). Use the URL that other replicas and clients use to reach each instance (e.g. service URL or ingress).
@@ -42,5 +43,6 @@ Stoke can run with multiple replicas behind a load balancer so that no single pr
 | `cluster.discovery` | Discovery mechanism. Use `static` (default); `k8s` may be supported later. |
 | `cluster.static_peers` | List of peer base URLs (e.g. `https://host:8080`) for merging keys. |
 | `cluster.refresh_sec` | Seconds between refreshing the merged key set from peers; default 30. |
+| `cluster.instance_id` | Optional unique id for this replica (e.g. `stoke-0`, `stoke1`). When set, signing key ids are prefixed (e.g. `stoke-0-p-0`) so merged JWKS from multiple replicas keeps all keys distinct. |
 
 See the main [Configuration](../README.md#configuration) section and [values.yaml](../helm/values.yaml) for how to supply this in your deployment.

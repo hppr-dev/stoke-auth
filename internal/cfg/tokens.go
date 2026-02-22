@@ -123,10 +123,12 @@ func (t *Tokens) createRSAIssuer(ctx context.Context) key.TokenIssuer {
 
 func createAsymetricIssuer[P key.PrivateKey](t *Tokens, ctx context.Context, pair key.KeyPair[P]) *key.AsymetricTokenIssuer[P] {
 	persistKeys := t.PersistKeys
+	keyIdPrefix := ""
 	if cl := ClusterFromContext(ctx); cl != nil && cl.Enabled {
 		persistKeys = false
+		keyIdPrefix = cl.InstanceID
 	}
-	cache, err := key.NewPrivateKeyCache(t.TokenDuration, t.KeyDuration, persistKeys, pair, ctx)
+	cache, err := key.NewPrivateKeyCache(t.TokenDuration, t.KeyDuration, persistKeys, pair, ctx, keyIdPrefix)
 	if err != nil {
 		zerolog.Ctx(ctx).Fatal().
 			Str("component", "cfg.Tokens").

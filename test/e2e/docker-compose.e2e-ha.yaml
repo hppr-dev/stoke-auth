@@ -1,0 +1,57 @@
+# E2E HA: Postgres + two Stoke replicas with cluster.enabled and static_peers.
+# Migrate runs once first so both replicas connect to an already-migrated DB (no contention).
+# Replica 1: http://localhost:8080, Replica 2: http://localhost:8081
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: stoke_user
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: stoke
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U stoke_user -d stoke"]
+      interval: 2s
+      timeout: 5s
+      retries: 10
+
+  migrate:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./configs/config-ha-replica1.yaml:/etc/stoke/config.yaml
+      - ./configs/dbinit.yaml:/etc/stoke/dbinit.yaml
+    command: ["-config", "/etc/stoke/config.yaml", "-dbinit", "/etc/stoke/dbinit.yaml", "migrate"]
+    restart: "no"
+
+  stoke1:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    volumes:
+      - ./configs/config-ha-replica1.yaml:/etc/stoke/config.yaml
+    ports:
+      - "8080:8080"
+    command: ["-config", "/etc/stoke/config.yaml"]
+
+  stoke2:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    volumes:
+      - ./configs/config-ha-replica2.yaml:/etc/stoke/config.yaml
+    ports:
+      - "8081:8081"
+    command: ["-config", "/etc/stoke/config.yaml"]

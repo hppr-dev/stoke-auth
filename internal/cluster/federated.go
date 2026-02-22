@@ -9,7 +9,7 @@ import (
 )
 
 // MergeJWKS parses localJWKS as a JWKSet, fetches JWKS from each peer at
-// peerURL + "/api/pkeys", merges all keys deduplicating by KeyId, and returns
+// peerURL + "/api/pkeys?local=true" (local-only to avoid recursion), merges all keys deduplicating by KeyId, and returns
 // the combined JWKSet as JSON. Expires is set to the earliest expiry among
 // local and all fetched sets. If httpClient is nil, http.DefaultClient is used.
 // Peer fetch failures (non-200 or decode error) cause that peer to be skipped;
@@ -41,7 +41,7 @@ func MergeJWKS(localJWKS []byte, peerURLs []string, httpClient *http.Client) ([]
 	}
 
 	for _, baseURL := range peerURLs {
-		u := strings.TrimSuffix(baseURL, "/") + "/api/pkeys"
+		u := strings.TrimSuffix(baseURL, "/") + "/api/pkeys?local=true"
 		resp, err := client.Get(u)
 		if err != nil {
 			continue

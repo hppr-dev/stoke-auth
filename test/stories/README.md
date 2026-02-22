@@ -23,6 +23,8 @@ User stories for stoke-auth live here. Each story has a stable **ID** used to tr
 | US-010 | Admin can list users, list groups, list claims | [admin-ui.md](admin-ui.md) | E2E |
 | US-011 | Admin can create claim → group → user and that user can retrieve a JWT | [admin-ui.md](admin-ui.md) | E2E |
 | US-012 | Generated dbinit file creates a loginable user | [admin-ui.md](admin-ui.md) | E2E |
+| US-013 | With HA enabled, each replica serves merged JWKS at /api/pkeys | [high-availability.md](high-availability.md) | Go, E2E |
+| US-014 | Token issued by one replica is verified with federated JWKS | [high-availability.md](high-availability.md) | Go |
 
 (Add rows as more stories are added.)
 

@@ -12,6 +12,7 @@ func addPkeysEndpoint(spec *ogen.Spec) error {
 		SetGet(ogen.NewOperation().
 			SetOperationID("pkeys").
 			SetSummary("Get current valid public keys").
+			SetDescription("Returns JWKS (merged from all peers when clustered). Optional query: local=true or local=1 to return only this node's keys (used by peers to avoid recursion).").
 			AddResponse("200", ogen.NewResponse().
 				AddContent("application/json", ogen.NewSchema().
 					SetType("object").

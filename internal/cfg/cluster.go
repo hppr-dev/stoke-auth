@@ -9,6 +9,9 @@ type Cluster struct {
 	Discovery   string   `json:"discovery"`    // "static" (default) or "k8s" (future)
 	StaticPeers []string `json:"static_peers"` // base URLs, e.g. https://stoke-1:8080
 	RefreshSec  int      `json:"refresh_sec"`  // seconds between peer refresh; default 30
+	// InstanceID is a unique identifier for this replica (e.g. "stoke1", "stoke2"). When set,
+	// signing key kids are prefixed so merged JWKS from multiple replicas keeps all keys distinct.
+	InstanceID string `json:"instance_id"`
 }
 
 type clusterCtxKey struct{}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"stoke/internal/ent"
 	"stoke/internal/ent/privatekey"
 	"stoke/internal/tel"
@@ -21,6 +22,8 @@ import (
 type KeyCache[P PrivateKey] interface {
 	CurrentKey() KeyPair[P]
 	CurrentID() int
+	// CurrentKeyId returns the key id for the active key (same as in JWKS). Used for token kid header/claims.
+	CurrentKeyId() string
 	PublicKeys(context.Context) ([]byte, error)
 	Generate(context.Context) error
 	Keys() []KeyPair[P]
@@ -35,21 +38,25 @@ type PrivateKeyCache[P PrivateKey] struct {
 	KeyDuration time.Duration
 	TokenDuration time.Duration
 	PersistKeys bool
+	// KeyIdPrefix makes key ids unique per server (e.g. "stoke1" -> "stoke1-p-0"). Empty = "p-0", "p-1".
+	KeyIdPrefix string
 
 	activeKey int
 	keyPairsMutex sync.RWMutex
 	KeyPairs []KeyPair[P]
 }
 
-// Initializes a new PrivateKeyCache. Starts a management goroutine
-func NewPrivateKeyCache[P PrivateKey](tokenDur, keyDur time.Duration, persistKeys bool, keyPair KeyPair[P], ctx context.Context) (*PrivateKeyCache[P], error) {
+// NewPrivateKeyCache initializes a new PrivateKeyCache and starts a management goroutine.
+// keyIdPrefix, when non-empty, is prepended to key ids (e.g. "stoke1" -> "stoke1-p-0") so kids are unique per server in HA.
+func NewPrivateKeyCache[P PrivateKey](tokenDur, keyDur time.Duration, persistKeys bool, keyPair KeyPair[P], ctx context.Context, keyIdPrefix string) (*PrivateKeyCache[P], error) {
 	c := &PrivateKeyCache[P]{
-		Ctx : ctx,
+		Ctx:         ctx,
 		TokenDuration: tokenDur,
 		KeyDuration: keyDur,
 		PersistKeys: persistKeys,
+		KeyIdPrefix: keyIdPrefix,
 	}
-  err := c.Bootstrap(ctx, keyPair)
+	err := c.Bootstrap(ctx, keyPair)
 	go c.goManage(ctx)
 	return c, err
 }
@@ -113,10 +120,22 @@ func (c *PrivateKeyCache[P]) goManage(ctx context.Context) {
 }
 
 func (c *PrivateKeyCache[P]) CurrentKey() KeyPair[P] { return c.KeyPairs[c.activeKey] }
-func (c *PrivateKeyCache[P]) CurrentID() int { return c.activeKey }
+func (c *PrivateKeyCache[P]) CurrentID() int         { return c.activeKey }
+
+// keyIdForIndex returns the JWK key id for key at index i (unique per server when KeyIdPrefix is set).
+func (c *PrivateKeyCache[P]) keyIdForIndex(i int) string {
+	if c.KeyIdPrefix == "" {
+		return fmt.Sprintf("p-%d", i)
+	}
+	return c.KeyIdPrefix + "-p-" + strconv.Itoa(i)
+}
+
+// CurrentKeyId returns the key id for the active key (same as in JWKS).
+func (c *PrivateKeyCache[P]) CurrentKeyId() string { return c.keyIdForIndex(c.activeKey) }
+
 func (c *PrivateKeyCache[P]) Keys() []KeyPair[P] { return c.KeyPairs }
-func (c *PrivateKeyCache[P]) ReadLock() { c.keyPairsMutex.RLock() }
-func (c *PrivateKeyCache[P]) ReadUnlock() { c.keyPairsMutex.RUnlock() }
+func (c *PrivateKeyCache[P]) ReadLock()          { c.keyPairsMutex.RLock() }
+func (c *PrivateKeyCache[P]) ReadUnlock()       { c.keyPairsMutex.RUnlock() }
 
 // Marshalls the current key's public parts into a JWKSet
 func (c *PrivateKeyCache[P]) PublicKeys(ctx context.Context) ([]byte, error) {
@@ -127,7 +146,7 @@ func (c *PrivateKeyCache[P]) PublicKeys(ctx context.Context) ([]byte, error) {
 	jwks := make([]*stoke.JWK, len(c.KeyPairs))
 	for i, k := range c.KeyPairs {
 		jwks[i] = stoke.CreateJWK().FromPublicKey(k.PublicKey())
-		jwks[i].KeyId = fmt.Sprintf("p-%d", i)
+		jwks[i].KeyId = c.keyIdForIndex(i)
 	}
 	expireTime := c.CurrentKey().ExpiresAt()
 	clientPullTime := expireTime.Add( ( c.TokenDuration * -3 ) / 2)

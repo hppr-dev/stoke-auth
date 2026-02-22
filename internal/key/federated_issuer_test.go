@@ -97,6 +97,45 @@ func TestFederatedTokenIssuer_PublicKeys_ReturnsMergedJWKS(t *testing.T) {
 	}
 }
 
+// TestFederatedTokenIssuer_PublicKeys_LocalOnly_ReturnsOnlyInnerKeys ensures that when
+// the context has LocalKeysOnly set (e.g. GET /api/pkeys?local=true), we return only
+// the inner issuer's keys and do not fetch from peers (avoids recursion in HA).
+func TestFederatedTokenIssuer_PublicKeys_LocalOnly_ReturnsOnlyInnerKeys(t *testing.T) {
+	localJWKS := stoke.JWKSet{
+		Expires: time.Now().Add(time.Hour),
+		Keys:    []*stoke.JWK{{KeyId: "local-only", KeyType: "EC", Use: "sig", Curve: "P-256", X: "x", Y: "y"}},
+	}
+	localBytes, _ := json.Marshal(localJWKS)
+
+	peerCalled := false
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		peerCalled = true
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"keys":[]}`))
+	}))
+	defer srv.Close()
+
+	inner := &mockFederatedInner{publicKeysBytes: localBytes}
+	discoverer := &cluster.StaticDiscoverer{URLs: []string{srv.URL}}
+	federated := NewFederatedTokenIssuer(inner, discoverer, nil, "", 30)
+
+	ctx := WithLocalKeysOnly(context.Background())
+	got, err := federated.PublicKeys(ctx)
+	if err != nil {
+		t.Fatalf("PublicKeys: %v", err)
+	}
+	if peerCalled {
+		t.Error("peer was called; local-only should not fetch peers")
+	}
+	var decoded stoke.JWKSet
+	if err := json.Unmarshal(got, &decoded); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if len(decoded.Keys) != 1 || decoded.Keys[0].KeyId != "local-only" {
+		t.Errorf("expected single key local-only, got %d keys: %v", len(decoded.Keys), decoded.Keys)
+	}
+}
+
 // TestFederatedTokenIssuer_ParseClaims_VerifiesTokenFromPeer ensures that a token signed by
 // a "peer" replica (key B) is verified by the federated issuer's merged JWKS (local key A + peer key B).
 func TestFederatedTokenIssuer_ParseClaims_VerifiesTokenFromPeer(t *testing.T) {

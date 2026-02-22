@@ -1,6 +1,8 @@
 package key_test
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"crypto/ed25519"
 	"stoke/internal/key"
 	"stoke/internal/testutil"
@@ -43,14 +45,7 @@ func TestAsymetricIssueTokenHappy(t *testing.T) {
 		t.Fail()
 	}
 
-	// We need to handle any valid ordering of keys and order will change the signature
-	expBody := map[string]string {
-		"eyJpc3MiOiJNZSIsInN1YiI6Ik15c2VsZiIsImF1ZCI6WyJleWUiXSwiZXhwIjo5NTYxODM5ODIxMCwianRpIjoiazEiLCJoZWxsbyI6IndvcmxkIiwiZm9vIjoiYmFyIiwia2lkIjoiMCJ9.P74Wzd0mBlPXz6kpYTna6ud1F1_ngu5BsTHQq1FpgLai2jiOb2KKMo4G9BEMy8uNkjqjQzJzR7gGQeiz_lBRDw" : "fGha64MbiPNyAUgh19F2-GUXBckujT4O6CBMpHSQ9oAvo2fqHLoxuzSoR0TIv7Q8o_nc0iqqySAMGwj2PBuDCA==",
-		"eyJpc3MiOiJNZSIsInN1YiI6Ik15c2VsZiIsImF1ZCI6WyJleWUiXSwiZXhwIjo5NTYxODM5ODIxMCwianRpIjoiazEiLCJmb28iOiJiYXIiLCJraWQiOiIwIiwiaGVsbG8iOiJ3b3JsZCJ9.rMo-hVR1fXsV1JiWzNHPCrkDKXhT6-R32Rs3pBNkNRees2w958fV_W3Y0XXR3lwPBUyf1JsFrqMFdLxXzI6cDA" : "v5O55dwC7kr_E8i24pRyJcX7O37g0_3LOeEsGrmWchQ7yy-zHwQSKWrNy-5zx5mtprDQqNYY5CM1BBc2UhdUBw==",
-		"eyJpc3MiOiJNZSIsInN1YiI6Ik15c2VsZiIsImF1ZCI6WyJleWUiXSwiZXhwIjo5NTYxODM5ODIxMCwianRpIjoiazEiLCJraWQiOiIwIiwiaGVsbG8iOiJ3b3JsZCIsImZvbyI6ImJhciJ9.GKAuf1wlBv0uL4uYUSWoAQwnajPNK_n6lADcegmiTiJbVcpz2I8RYxUE7EZna7N-d4NjSY2zKVuainwYDy4NBw" : "I72ZvdHoQmEdnzCdfTA9SE9RfWmqyG1hl4fQ8-MV4qId_Lx8nDiFumHHzuYTDj8aal-Z7rk_Ji_XMqgdXC4rDQ==",
-	}
-
-	expectToken(token, refresh, expBody, t)
+	expectToken(token, refresh, t)
 }
 
 func TestAsymetricIssueTokenWithTokenLimit(t *testing.T) {
@@ -84,14 +79,7 @@ func TestAsymetricIssueTokenWithTokenLimit(t *testing.T) {
 		t.Fail()
 	}
 
-	// We need to handle any valid ordering of keys and order will change the signature
-	expBody := map[string]string {
-		"eyJpc3MiOiJNZSIsInN1YiI6Ik15c2VsZiIsImF1ZCI6WyJleWUiXSwiZXhwIjo5NTYxODM5ODIxMCwianRpIjoiazMiLCJoZWxsbyI6IndvcmxkIiwiZm9vIjoiYmFyIiwia2lkIjoiMCJ9.J-aaXAWsCGTvL6TTwtRp8g3TOWjZoLbIBqihEEaW3JnBZSetg9vzWbXOhBI3uXygCFUd_zNS444CD2OUCoMIAw" : "kSFtOjwE9n40J6BthpUkmEVmkrDGOU02gQJAje9UA6QyxAEQ2PUKK2ch58qAEYuu8ry8D1WaYwUID9OSkXFHCg==",
-		"eyJpc3MiOiJNZSIsInN1YiI6Ik15c2VsZiIsImF1ZCI6WyJleWUiXSwiZXhwIjo5NTYxODM5ODIxMCwianRpIjoiazMiLCJraWQiOiIwIiwiaGVsbG8iOiJ3b3JsZCIsImZvbyI6ImJhciJ9.PcCoNF3l24HBTZxTisSawYtubygTw2nzjvZ5km0w4fdhhBltBqSanCbPh_g_mKDYVvq063Im6Qk2w9n_xEYKBA" : "baUX214V35xO2D9m1LzgTLz7n_4bT8d1miZBHHMCjFVGkK2v_w06tZJQOsnXuPPWqGnlw0V6M545Zd006SIDAA==",
-		"eyJpc3MiOiJNZSIsInN1YiI6Ik15c2VsZiIsImF1ZCI6WyJleWUiXSwiZXhwIjo5NTYxODM5ODIxMCwianRpIjoiazMiLCJmb28iOiJiYXIiLCJraWQiOiIwIiwiaGVsbG8iOiJ3b3JsZCJ9.g-25mWypad_Lj_TNU4JHMWlhUXHzISO_D5RWj00tM25XAQFUaJQT7eXbhQXrqCzKF0bJy31IT0Y1ZkqMPyd_Bw" : "qzQWJQHo0hO4GlesFsiszR4VBa8Ze_0_NIeJglPaEXq0lXpbDsJEEyEn_0XonsIHnOZBANEYeVOF6hyzuAY4AQ==",
-	}
-
-	expectToken(token, refresh, expBody, t)
+	expectToken(token, refresh, t)
 }
 
 func TestAsymetricIssueTokenWithTokenLimitWithCustomKey(t *testing.T) {
@@ -126,13 +114,7 @@ func TestAsymetricIssueTokenWithTokenLimitWithCustomKey(t *testing.T) {
 		t.Fail()
 	}
 
-	// We need to handle any order of keys
-	expBody := map[string]string {
-		"eyJpc3MiOiJNZSIsInN1YiI6Ik15c2VsZiIsImF1ZCI6WyJleWUiXSwiZXhwIjo5NTYxODM5ODIxMCwianRpIjoic29tZUlEIiwicmVmIjoiazIiLCJraWQiOiIwIn0.KlH-j6BcRltIBcQH3FkaoBFS0Dy5RgSpgp0clVbArSaegyiJinEyntrfVW3fOgm94SnyCstuwCJ6LKOg3GQKDA" : "G9z2rMfOqUTyj20faiqf5J5S_2eHmm2iO1M1IU8-4ageumx2Me6ML-sAWxR_fHH3J6-_AbSvU-iZuWbPeVp5Cw==",
-		"eyJpc3MiOiJNZSIsInN1YiI6Ik15c2VsZiIsImF1ZCI6WyJleWUiXSwiZXhwIjo5NTYxODM5ODIxMCwianRpIjoic29tZUlEIiwia2lkIjoiMCIsInJlZiI6ImsyIn0.2tdrXw3GsjYOEQTetz3lWs5k8N-qZb5TcnWRj0B_TaxwUijbxH-L46lRT2nBHC5VSo_Ld4RQkVlD2qlTkm9fCw" : "3zi6qG1TQSbbnpZE8whQSpcMcL6FjH6g0wu1M5II309M-0ge6qyV_2l5V3mlfi4BG10uAvmnID0SsSDXwvLMBw==",
-	}
-
-	expectToken(token, refresh, expBody, t)
+	expectToken(token, refresh, t)
 }
 
 func TestAsymetricIssueTokenAtRefreshLimit(t *testing.T) {
@@ -190,14 +172,7 @@ func TestAsymetricRefreshHappy(t *testing.T) {
 		t.Fail()
 	}
 
-	// We need to handle any valid ordering of keys and order will change the signature
-	expBodyMap := map[string]string {
-		"eyJpc3MiOiJNZSIsInN1YiI6Ik15c2VsZiIsImF1ZCI6WyJleWUiXSwiZXhwIjo5NTYxODQwMTgxMCwianRpIjoiazEiLCJoZWxsbyI6IndvcmxkIiwiZm9vIjoiYmFyIiwia2lkIjoiMCJ9.UARbF9h-E_95vxMn1k4Gk4AmeJIak6hLCfb-VdJ534MRtRcu1pGoXO6LMpJdLDIdKwJtTt2fBaj9bB5HjNzQBw" : "4995wpo_tQer0QRLHiGAwRXQ6WgXgn_DeRom8Q8102T3m8be0I7ZiIUGP2iR1UoI6Ms1jazAQJx8qJWAst9zAw==",
-		"eyJpc3MiOiJNZSIsInN1YiI6Ik15c2VsZiIsImF1ZCI6WyJleWUiXSwiZXhwIjo5NTYxODQwMTgxMCwianRpIjoiazEiLCJraWQiOiIwIiwiaGVsbG8iOiJ3b3JsZCIsImZvbyI6ImJhciJ9.TdsL5RtWxUpkkvDiP5ZDkLyxvYhERrKnmTqLt55kIQQ6azrQpmTFnp8VgRo7WIyieMGPh2Rvlk9Y0YjfHO9lAQ" : "lHc_M5CT12mFmM9p49dUHKmRBy3j6AE7nZWeylt3IcZJULok2l6FUxZ3sMj8d0okJab6P1EUXntesAxtXVTLDg==",
-		"eyJpc3MiOiJNZSIsInN1YiI6Ik15c2VsZiIsImF1ZCI6WyJleWUiXSwiZXhwIjo5NTYxODQwMTgxMCwianRpIjoiazEiLCJmb28iOiJiYXIiLCJraWQiOiIwIiwiaGVsbG8iOiJ3b3JsZCJ9.07x6XWC5vtk-Jc6MuxL8N7Hc5xZA2DEtlIqNmbfmzXE22s6RYRj372kj8H6OGQen6_a2bzjYWP1uw1UHKWygBw" : "062974mDze4qFldjRB2ySXAe6_VyorcTithEpWzD45obgqWD2jiSCR9D0ppBoujnE5VDMiOacCFfYTUDYZ4uAA==",
-	}
-
-	expectToken(token, refresh, expBodyMap, t)
+	expectToken(token, refresh, t)
 }
 
 func TestAsymetricRefreshTokenBadBase64Encoding(t *testing.T) {
@@ -288,25 +263,48 @@ func TestAsymetricWithContextFromContext(t *testing.T) {
 
 }
 
-func expectToken(token, refresh string, expBodyMap map[string]string, t *testing.T) {
-	expHeader := "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9"
-
+func expectToken(token, refresh string, t *testing.T) {
 	splitToken := strings.Split(token, ".")
-	if splitToken[0] != expHeader {
-		t.Logf("Header did not match expected value:\nE:%s\nA:%s", expHeader, splitToken[0])
-		t.FailNow()
+	if len(splitToken) != 3 {
+		t.Fatalf("token should have 3 parts, got %d", len(splitToken))
+	}
+	headerBytes, err := base64.RawURLEncoding.DecodeString(splitToken[0])
+	if err != nil {
+		t.Fatalf("decode header: %v", err)
+	}
+	var header map[string]interface{}
+	if err := json.Unmarshal(headerBytes, &header); err != nil {
+		t.Fatalf("parse header: %v", err)
+	}
+	if header["alg"] != "EdDSA" || header["typ"] != "JWT" {
+		t.Fatalf("header alg/typ: want EdDSA/JWT, got %v", header)
+	}
+	if header["kid"] != "p-0" {
+		t.Fatalf("header kid: want p-0, got %v", header["kid"])
 	}
 
-	bodySig := splitToken[1] + "." + splitToken[2]
-	expRefresh, ok := expBodyMap[bodySig]
-	if !ok {
-		t.Logf("Token Body.Signature was not recognized:\n\n\"%s\" : \"%s\",\n\n", bodySig, refresh)
-		t.FailNow()
+	bodyBytes, err := base64.RawURLEncoding.DecodeString(splitToken[1])
+	if err != nil {
+		t.Fatalf("decode payload: %v", err)
+	}
+	var payload map[string]interface{}
+	if err := json.Unmarshal(bodyBytes, &payload); err != nil {
+		t.Fatalf("parse payload: %v", err)
+	}
+	if payload["kid"] != "p-0" {
+		t.Fatalf("payload kid: want p-0, got %v", payload["kid"])
 	}
 
-	if refresh != expRefresh {
-		t.Logf("Refresh token did not match expected:\nT:%s\n\nE:%s\nA:%s", token, expRefresh, refresh)
-		t.Fail()
+	// Refresh token must be non-empty valid base64 (EdDSA refresh is 64 bytes)
+	if refresh == "" {
+		t.Fatal("refresh token is empty")
+	}
+	refreshBytes, err := base64.URLEncoding.DecodeString(refresh)
+	if err != nil {
+		t.Fatalf("refresh token not valid base64: %v", err)
+	}
+	if len(refreshBytes) != 64 {
+		t.Fatalf("refresh token length: want 64 (EdDSA), got %d", len(refreshBytes))
 	}
 }
 

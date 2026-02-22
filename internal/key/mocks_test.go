@@ -60,8 +60,9 @@ type MockKeyCache struct{}
 func (*MockKeyCache) Keys() []key.KeyPair[ed25519.PrivateKey] { return []key.KeyPair[ed25519.PrivateKey]{ edKeyPair } }
 func (*MockKeyCache) ParseClaims(context.Context, string, *stoke.Claims, ...jwt.ParserOption) (*jwt.Token, error) { return nil, nil }
 func (*MockKeyCache) CurrentKey() key.KeyPair[ed25519.PrivateKey] { return edKeyPair }
-func (*MockKeyCache) CurrentID() int { return 0 }
-func (*MockKeyCache) PublicKeys(context.Context) ([]byte, error) { return edKeyPair.PrivateKey.Public().([]byte), nil }
+func (*MockKeyCache) CurrentID() int                               { return 0 }
+func (*MockKeyCache) CurrentKeyId() string                         { return "p-0" }
+func (*MockKeyCache) PublicKeys(context.Context) ([]byte, error)   { return edKeyPair.PrivateKey.Public().([]byte), nil }
 func (*MockKeyCache) Bootstrap(context.Context, key.KeyPair[ed25519.PrivateKey]) error { return nil }
 func (*MockKeyCache) Generate(context.Context) error { return nil }
 func (*MockKeyCache) ReadLock() { }

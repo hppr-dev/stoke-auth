@@ -5,61 +5,34 @@ This document describes how to run the Playwright end-to-end tests for the Stoke
 ## Prerequisites
 
 - **Node.js** 22 or later (for `test/e2e`)
-- **Stoke server** running and reachable, **or** use the task option to start it for you (see below)
+- **Docker** (when using automatic server start)
+- **Stoke server** running and reachable, **or** use automatic start/teardown (see below)
 - **npm** (comes with Node)
 
 Playwright will install browser binaries (Chromium by default) on first run.
 
 ## Does the task start the server?
 
-**Yes, by default.** `task test e2e` builds the integration-test Docker image (if missing), starts a Stoke container with the E2E config and dbinit from `test/e2e/configs/` (user **stoke** / password **admin**, plus claims and groups), runs the Playwright tests, then stops and removes the container.
+**Yes, unless you pass `-n`.** From the repo root:
 
-To use **an already running server** instead (e.g. one you started yourself), use:
+- **`task test e2e`** — Builds the Stoke image (if missing), starts a single container with `test/e2e/configs/`, runs Playwright, then stops the container.
+- **`task test e2e --ha`** — Starts the HA stack (Postgres + two Stoke replicas) via `docker-compose.e2e-ha.yaml`, runs Playwright with `STOKE_BASE_URL` and `STOKE_BASE_URL_REPLICA_2` set, then tears down the stack.
+- **`task test e2e -n`** — Runs Playwright only (no server start/stop). Use when you already have a server running. Set `STOKE_BASE_URL` if it’s not `http://localhost:8080`.
 
-```bash
-task test e2e -n
-```
-
-(or `--no-server`). The task will then only run Playwright against `STOKE_BASE_URL` (default `http://localhost:8080`).
-
-Dependencies (`npm ci` and Playwright Chromium) are installed only when missing (no `node_modules` or no Chromium browser), so repeated runs are faster.
+Run the test suite on different configs by starting the server yourself (single or HA, or custom), then run **`task test e2e -n`** or from **test/e2e**: **`STOKE_BASE_URL=... npm run test`**.
 
 ## Quick start
 
-1. **Run E2E from repo root** (server is started and stopped for you):
-
-   ```bash
-   task test e2e
-   ```
-
-   This builds the Stoke image if needed, starts the server, runs Playwright, then stops the server. Uses `STOKE_BASE_URL=http://localhost:8080`.
-
-2. **If you already have a server running**, skip start/stop:
-
-   ```bash
-   task test e2e -n
-   ```
-
-3. **Or run from test/e2e directly:**
-
-   ```bash
-   cd test/e2e
-   npm install
-   npx playwright install --with-deps chromium   # first time only
-   npm run test
-   ```
-
-   To point at a different server:
-
-   ```bash
-   STOKE_BASE_URL=http://localhost:9000 npm run test
-   ```
+1. **From repo root (single server):** `task test e2e`
+2. **From repo root (HA):** `task test e2e --ha`
+3. **No server (use existing):** `task test e2e -n` or `cd test/e2e && STOKE_BASE_URL=http://localhost:8080 npm run test`
 
 ## Environment variables
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `STOKE_BASE_URL` | `http://localhost:8080` | Base URL of the Stoke server (admin UI and API). All requests (e.g. `/admin`, `/api/login`, `/api/available_providers`) are sent to this origin. |
+| `STOKE_BASE_URL` | `http://localhost:8080` | Base URL of the Stoke server. |
+| `STOKE_BASE_URL_REPLICA_2` | — | Set by `task test e2e --ha`; used by HA specs. |
 
 ## Headed vs headless
 
