@@ -666,6 +666,5 @@ A summary is as follows:
 
 # Road Map
 
-    * High availability
     * Additional OIDC providers or flow options
     * Clients for additional languages/protocols

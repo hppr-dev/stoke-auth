@@ -1,10 +1,13 @@
 package cfg
 
 import (
-	"context"
 	"fmt"
-	"stoke/internal/key"
 	"time"
+	"context"
+	"net/http"
+
+	"stoke/internal/cluster"
+	"stoke/internal/key"
 
 	"github.com/rs/zerolog"
 )
@@ -82,6 +85,13 @@ func (t *Tokens) withContext(ctx context.Context) context.Context {
 			Msg("Unsupported algorithm")
 	}
 
+	if cl := ClusterFromContext(ctx); cl != nil && cl.Enabled {
+		discoverer := &cluster.StaticDiscoverer{URLs: cl.StaticPeers}
+		basePath := Ctx(ctx).Server.BasePath
+		refreshSec := cl.RefreshSec
+		issuer = key.NewFederatedTokenIssuer(issuer, discoverer, http.DefaultClient, basePath, refreshSec)
+	}
+
 	return issuer.WithContext(ctx)
 }
 
@@ -112,7 +122,11 @@ func (t *Tokens) createRSAIssuer(ctx context.Context) key.TokenIssuer {
 }
 
 func createAsymetricIssuer[P key.PrivateKey](t *Tokens, ctx context.Context, pair key.KeyPair[P]) *key.AsymetricTokenIssuer[P] {
-	cache, err := key.NewPrivateKeyCache(t.TokenDuration, t.KeyDuration, t.PersistKeys, pair, ctx)
+	persistKeys := t.PersistKeys
+	if cl := ClusterFromContext(ctx); cl != nil && cl.Enabled {
+		persistKeys = false
+	}
+	cache, err := key.NewPrivateKeyCache(t.TokenDuration, t.KeyDuration, persistKeys, pair, ctx)
 	if err != nil {
 		zerolog.Ctx(ctx).Fatal().
 			Str("component", "cfg.Tokens").

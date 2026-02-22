@@ -14,7 +14,11 @@ type Cluster struct {
 type clusterCtxKey struct{}
 
 func (c Cluster) withContext(ctx context.Context) context.Context {
-	return context.WithValue(ctx, clusterCtxKey{}, &c)
+	c2 := c
+	if c2.RefreshSec <= 0 {
+		c2.RefreshSec = 30
+	}
+	return context.WithValue(ctx, clusterCtxKey{}, &c2)
 }
 
 // ClusterFromContext returns the Cluster from ctx, or nil if not set.
