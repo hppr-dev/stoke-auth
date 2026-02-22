@@ -31,3 +31,7 @@ The main [values.yaml](values.yaml) sections are:
 The server config is rendered into a single ConfigMap (see [templates/server-config-map.yaml](templates/server-config-map.yaml)). Providers are configured inline via the `providers` value; there is no separate mount for a providers.d-style directory.
 
 When dbInit is provided, the deployment uses a projected volume so both the main config and the generated dbinit file are available under `/etc/stoke/` (see [templates/stoke-server-deployment.yaml](templates/stoke-server-deployment.yaml)).
+
+## High availability
+
+For multiple replicas, set `server.replicaCount` to the desired count. Use a shared database (Postgres or MySQL) and configure `cluster.enabled: true` with `cluster.static_peers` listing the base URLs of all replicas so each instance merges peer keys and serves a federated JWKS at `/api/pkeys`. See [High availability](../docs/high-availability.md) in the repo for details.

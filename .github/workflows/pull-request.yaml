@@ -59,8 +59,8 @@ jobs:
     - name: Start Stoke server
       run: |
         docker run -d --name stoke-e2e \
-          -v ${{ github.workspace }}/test/configs/cert_type/ecdsa.yaml:/etc/stoke/config.yaml \
-          -v ${{ github.workspace }}/test/configs/dbinit/smoke_test.yaml:/etc/stoke/dbinit.yaml \
+          -v ${{ github.workspace }}/test/e2e/configs/config.yaml:/etc/stoke/config.yaml \
+          -v ${{ github.workspace }}/test/e2e/configs/dbinit.yaml:/etc/stoke/dbinit.yaml \
           -p 8080:8080 \
           stoke-e2e -config /etc/stoke/config.yaml -dbinit /etc/stoke/dbinit.yaml
         sleep 5

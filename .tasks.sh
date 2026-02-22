@@ -3,7 +3,7 @@ arguments_test() {
 	SUBCOMMANDS="int|unit|client|clean|e2e"
 	INT_DESCRIPTION="Run integration tests"
 	E2E_DESCRIPTION="Run Playwright E2E tests (starts/stops Stoke server; see test/docs/playwright.md)"
-	E2E_OPTIONS="no-server:n:bool headed:h:bool"
+	E2E_OPTIONS="no-server:n:bool headed:h:bool ha:ha:bool"
 	INT_OPTIONS="image:i:str rimage:R:str build:b:bool buildclient:B:bool case:C:str log:l:bool logfile:L:bool progress:P:bool all:a:bool cert:c:bool db:d:bool race:r:bool provider:p:bool env:e:bool"
 	UNIT_DESCRIPTION="Run unit tests"
 	UNIT_OPTIONS="cover:c:bool html:h:bool func:f:bool name:n:str"
@@ -150,37 +150,58 @@ task_test() {
 		fi
 		if [[ -z "$ARG_NO_SERVER" ]]
 		then
-			echo "Building Stoke image and starting server for E2E..."
-			ARG_IMAGE=$( docker image ls | grep stoke-inttest | head -n 1 | awk '{print $1}' )
-			if [[ -z "$ARG_IMAGE" ]]
+			if [[ -n "$ARG_HA" ]]
 			then
-				ARG_IMAGE=stoke-inttest-$(date +%Y%m%d%H%M)
-				echo Building new image $ARG_IMAGE...
-				docker build -t $ARG_IMAGE $TASK_DIR
+				echo "Starting HA stack (Postgres + two Stoke replicas) for E2E..."
+				cd $TASK_DIR/test/e2e
+				docker compose -f docker-compose.e2e-ha.yaml up -d --build
+				sleep 5
+				if ! docker compose -f docker-compose.e2e-ha.yaml ps | grep -q "Up"
+				then
+					echo "HA stack failed to start."
+					docker compose -f docker-compose.e2e-ha.yaml logs
+					docker compose -f docker-compose.e2e-ha.yaml down -v
+					exit 1
+				fi
+				export STOKE_BASE_URL="http://localhost:8080"
+				export STOKE_BASE_URL_REPLICA_2="http://localhost:8081"
+				npx playwright test $e2e_playwright_args
+				e2e_exit=$?
+				docker compose -f docker-compose.e2e-ha.yaml down -v
+				exit $e2e_exit
+			else
+				echo "Building Stoke image and starting server for E2E..."
+				ARG_IMAGE=$( docker image ls | grep stoke-inttest | head -n 1 | awk '{print $1}' )
+				if [[ -z "$ARG_IMAGE" ]]
+				then
+					ARG_IMAGE=stoke-inttest-$(date +%Y%m%d%H%M)
+					echo Building new image $ARG_IMAGE...
+					docker build -t $ARG_IMAGE $TASK_DIR
+				fi
+				cd $TASK_DIR/test
+				e2e_config_dir="$TASK_DIR/test/e2e/configs"
+				docker run -d --name stoke-e2e \
+					-v "$e2e_config_dir/config.yaml:/etc/stoke/config.yaml" \
+					-v "$e2e_config_dir/dbinit.yaml:/etc/stoke/dbinit.yaml" \
+					-v $TASK_DIR/client/examples/certs/stoke.crt:/etc/stoke/stoke.crt \
+					-v $TASK_DIR/client/examples/certs/stoke.key:/etc/stoke/stoke.key \
+					-p 8080:8080 \
+					$ARG_IMAGE -config /etc/stoke/config.yaml -dbinit /etc/stoke/dbinit.yaml
+				sleep 3
+				if ! docker ps | grep stoke-e2e > /dev/null
+				then
+					echo "Stoke container failed to start."
+					docker logs stoke-e2e 2>&1 || true
+					docker rm stoke-e2e 2>/dev/null || true
+					exit 1
+				fi
+				cd $TASK_DIR/test/e2e
+				npx playwright test $e2e_playwright_args
+				e2e_exit=$?
+				docker stop stoke-e2e > /dev/null
+				docker rm stoke-e2e > /dev/null
+				exit $e2e_exit
 			fi
-			cd $TASK_DIR/test
-			e2e_config_dir="$TASK_DIR/test/e2e/configs"
-			docker run -d --name stoke-e2e \
-				-v "$e2e_config_dir/config.yaml:/etc/stoke/config.yaml" \
-				-v "$e2e_config_dir/dbinit.yaml:/etc/stoke/dbinit.yaml" \
-				-v $TASK_DIR/client/examples/certs/stoke.crt:/etc/stoke/stoke.crt \
-				-v $TASK_DIR/client/examples/certs/stoke.key:/etc/stoke/stoke.key \
-				-p 8080:8080 \
-				$ARG_IMAGE -config /etc/stoke/config.yaml -dbinit /etc/stoke/dbinit.yaml
-			sleep 3
-			if ! docker ps | grep stoke-e2e > /dev/null
-			then
-				echo "Stoke container failed to start."
-				docker logs stoke-e2e 2>&1 || true
-				docker rm stoke-e2e 2>/dev/null || true
-				exit 1
-			fi
-			cd $TASK_DIR/test/e2e
-			npx playwright test $e2e_playwright_args
-			e2e_exit=$?
-			docker stop stoke-e2e > /dev/null
-			docker rm stoke-e2e > /dev/null
-			exit $e2e_exit
 		else
 			echo "Running Playwright E2E tests (STOKE_BASE_URL=$STOKE_BASE_URL)..."
 			echo "See test/docs/playwright.md for full documentation."

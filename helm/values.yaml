@@ -17,6 +17,7 @@ mysql:
 
 # Parent chart config
 server:
+  replicaCount: 1
   image: hpprdev/stoke-auth:v0.2.0
   pullPolicy: IfNotPresent
   pullSecret: ""
