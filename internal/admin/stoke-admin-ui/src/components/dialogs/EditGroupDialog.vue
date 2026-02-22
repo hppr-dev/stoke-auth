@@ -116,7 +116,7 @@
   }
 
   onMounted(async () => {
-    await store.fetchAllClaims()
+    await store.fetchAllClaims(props.add ?? false)
     if ( props.add ) {
       store.$patch({
         scratchGroup: {},

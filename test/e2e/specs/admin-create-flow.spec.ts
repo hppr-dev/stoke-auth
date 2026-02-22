@@ -30,7 +30,11 @@ test('create claim → group (with claim) → user (with group) then user can re
   await page.getByRole('button', { name: /add group/i }).click();
   await page.getByLabel('Group Name').fill(groupName);
   await page.getByLabel('Group Description').fill('E2E test group');
-  await page.getByText(claimName).first().click();
+  // Claim list is in the dialog; wait for fetch and render (no role=dialog scope - Vuetify structure)
+  await expect(page.getByRole('row', { name: new RegExp(claimName) })).toBeVisible({
+    timeout: 15000,
+  });
+  await page.getByRole('row', { name: new RegExp(claimName) }).click();
   await page.getByRole('button', { name: 'Save' }).click();
   await expect(page.getByRole('button', { name: /add group/i })).toBeVisible({ timeout: 5000 });
 
@@ -47,9 +51,10 @@ test('create claim → group (with claim) → user (with group) then user can re
   await expect(page.getByRole('button', { name: /add user/i })).toBeVisible({ timeout: 5000 });
 
   // 4. Select the new user and assign group (Edit User → click group → Save)
-  await page.getByText(userName).first().click();
+  await expect(page.getByText(userName)).toBeVisible({ timeout: 10000 });
+  await page.getByText(userName).click();
   await page.getByRole('button', { name: /edit user/i }).click();
-  await page.getByText(groupName).first().click();
+  await page.getByRole('dialog').getByRole('row', { name: new RegExp(groupName) }).click();
   await page.getByRole('button', { name: 'Save' }).click();
 
   // 5. Assert user can retrieve JWT from login endpoint

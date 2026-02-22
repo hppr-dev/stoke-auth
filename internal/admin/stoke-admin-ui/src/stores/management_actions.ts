@@ -121,19 +121,25 @@ export const managementActions = {
   },
   addScratchUser: function() {
     return this.simplePost("/admin/localuser", "scratchUser")
-      .then( () => this.scratchUser = {} )
-      .finally(this.fetchAllUsers)
+      .then( () => {
+        this.scratchUser = {}
+        this.fetchAllUsers(true)
+      })
   },
   addScratchGroup: function() {
     this.scratchGroup.claims = this.scratchClaims.map((c : Claim) => c.id)
     return this.simplePost("/admin/claim-groups", "scratchGroup")
-      .then( () => this.scratchGroup = {} )
-      .finally(this.fetchAllGroups)
+      .then( () => {
+        this.scratchGroup = {}
+        this.fetchAllGroups(true)
+      })
   },
   addScratchClaim: function() {
     return this.simplePost("/admin/claims", "scratchClaim")
-      .then( () => this.scratchClaim = {} )
-      .finally(this.fetchAllClaims)
+      .then( () => {
+        this.scratchClaim = {}
+        this.fetchAllClaims(true)
+      })
   },
   addScratchLink: function() {
     return this.simplePost("/admin/group-links", "scratchLink")
@@ -160,17 +166,17 @@ export const managementActions = {
   deleteUser: function() {
     return this.simpleDelete("/admin/users", this.currentUser)
       .then(() => this.currentUser = {})
-      .finally(this.fetchAllUsers)
+      .finally(() => this.fetchAllUsers(true))
   },
   deleteGroup: function() {
     return this.simpleDelete("/admin/claim-groups", this.currentGroup)
       .then(() => this.currentGroup = {})
-      .finally(this.fetchAllGroups)
+      .finally(() => this.fetchAllGroups(true))
   },
   deleteClaim: function() {
     return this.simpleDelete("/admin/claims", this.currentClaim)
       .then(() => this.currentClaim = {})
-      .finally(this.fetchAllClaims)
+      .finally(() => this.fetchAllClaims(true))
   },
   deleteLink: function(link: GroupLink) {
     return this.simpleDelete("/admin/group-links", link)

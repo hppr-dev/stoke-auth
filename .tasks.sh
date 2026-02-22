@@ -115,6 +115,7 @@ task_test() {
 		docker compose down 
 		docker stop stoke-test stoke-e2e
 		docker rm stoke-test stoke-e2e
+		docker rmi $(docker images | grep stoke-int | awk '{print $1}')
 		docker compose -f $TASK_DIR/client/client-test-compose.yaml down
 
 		echo Removing coverage files...
