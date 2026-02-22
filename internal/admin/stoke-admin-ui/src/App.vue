@@ -14,7 +14,7 @@
   const store = useAppStore()
   const router = useRouter()
 
-  router.beforeEach( (to, _) => {
+  router.beforeEach( (to) => {
     if ( !store.authenticated && to.name != "/" ) {
       return { name: "/" }
     }

@@ -21,6 +21,10 @@ Integration tests have been written to verify the functionality of the server:
 
 To run all of the integration test cases run `task test int -a`.
 
+## Running the task script
+
+Integration tests are run via the task script in the repository root (`.tasks.sh`). Use [bash task master (btm)](https://btm.hppr.dev), to run all integration tests: `task test int -a`.
+
 ## Integration Test Configurations
 
 Tests run with `task test int` will run a test per config in the configs/ directory following these steps:
@@ -40,6 +44,14 @@ See `task help test` for flags to include test types.
 
 Client integration tests use the examples included in the ./client/examples directory.
 
+## E2E tests (Playwright)
+
+End-to-end tests run with [Playwright](https://playwright.dev/) from `test/e2e/`. They exercise the admin UI and API against a running Stoke server.
+
+- **Location:** `test/e2e/` (specs in `test/e2e/specs/`)
+- **User stories:** See `test/stories/` for story IDs and traceability; tests reference story IDs (e.g. `@US-001`).
+- **How to run:** See [test/docs/playwright.md](docs/playwright.md) for full documentation. Quick start: start a Stoke server, then run `task test e2e` from the repo root, or `cd test/e2e && npm run test` with `STOKE_BASE_URL` set to the server URL (default `http://localhost:8080`).
+
 ## Running Unit Tests
 
 Unit tests are located in the internal package next to the code under test.
@@ -54,6 +66,9 @@ Language client unit tests should accompany the client code in the client/ direc
 Run `task test client` to run client unit tests.
 Note that some clients may require some environment set up.
 
+## Kubernetes / Tekton
+
+For in-cluster testing, the repository includes Tekton tasks and pipelines under [test/tekton/](test/tekton/). Use the kube task (e.g. `task_kube` with subcommand `tkn`) to run the pipeline locally or from git. Ensure a cluster and any required PVC or Helm setup are in place. The table above describes what each test type (cert, database, provider, client integration, race) does.
 
 ## Performance/Load Benchmarks
 

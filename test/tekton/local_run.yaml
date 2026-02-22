@@ -1,0 +1,19 @@
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  generateName: local-test-case-run-
+spec:
+  pipelineRef:
+    name: run-test-case
+  params:
+  - name: k6_file
+    value: test/k6/smoke.js
+  - name: pull_latest
+    value: "false"
+  podTemplate:
+    securityContext:
+      fsGroup: 65532
+  workspaces:
+   - name: stoke-source
+     persistentVolumeClaim:
+       claimName: stoke-local

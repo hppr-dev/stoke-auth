@@ -1,0 +1,23 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: run-k6
+spec:
+  description: Run a k6 test
+  params:
+    - name: file
+      type: string
+      description: Path to the k6 test file in the workspace
+    - name: extra_args
+      type: string
+      default: ""
+      description: Extra arguments to pass to k6
+  workspaces:
+    - name: source
+  steps:
+    - name: k6
+      image: grafana/k6:0.57.0
+      workingDir: /workspace/source/
+      script: | 
+        #!/usr/bin/env sh
+        k6 run $(params.extra_args) $(params.file)

@@ -1,0 +1,24 @@
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  generateName: git-test-case-run-
+spec:
+  pipelineRef:
+    name: run-test-case
+  params:
+  - name: k6_file
+    value: test/k6/smoke.js
+  - name: pull_latest
+    value: true
+  podTemplate:
+    securityContext:
+      fsGroup: 65532
+  workspaces:
+  - name: stoke-source
+    volumeClaimTemplate:
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi

@@ -1868,29 +1868,41 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "name": {
-                        "description": "Name of provider",
-                        "type": "string"
-                      },
-                      "provider_type": {
-                        "description": "Type of provider",
-                        "type": "string"
-                      },
-                      "type_spec": {
-                        "description": "Type specification of provider",
-                        "type": "string"
+                  "type": "object",
+                  "properties": {
+                    "providers": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "description": "Name of provider",
+                            "type": "string"
+                          },
+                          "provider_type": {
+                            "description": "Type of provider",
+                            "type": "string"
+                          },
+                          "type_spec": {
+                            "description": "Type specification of provider",
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "name",
+                          "provider_type",
+                          "type_spec"
+                        ]
                       }
                     },
-                    "required": [
-                      "name",
-                      "provider_type",
-                      "type_spec"
-                    ]
-                  }
+                    "base_admin_path": {
+                      "description": "Base path for the admin UI when served behind a proxy, e.g. /auth; empty when admin is at /admin/",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "providers"
+                  ]
                 }
               }
             }

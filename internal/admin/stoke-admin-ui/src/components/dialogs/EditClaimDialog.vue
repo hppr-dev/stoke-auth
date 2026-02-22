@@ -3,9 +3,9 @@
     <v-row>
       <v-text-field
         variant="solo-filled"
-        label="Name"
+        label="Claim Name"
         v-model="name"
-        :rules="[require('Name'), hasAChange]"
+        :rules="[require('Claim Name'), hasAChange]"
         @update:modelValue="updateScratchClaim"
       ></v-text-field>
     </v-row>
@@ -13,9 +13,9 @@
       <v-col cols="4">
         <v-text-field
           variant="outlined"
-          label="Short Name"
+          label="Claim Short Name"
           v-model="shortName"
-          :rules="[require('Short name'), hasAChange]"
+          :rules="[require('Claim Short Name'), hasAChange]"
           @update:modelValue="updateScratchClaim"
         ></v-text-field>
       </v-col>
@@ -25,9 +25,9 @@
       <v-col cols="4">
         <v-text-field
           variant="outlined"
-          label="Value"
+          label="Claim Value"
           v-model="value"
-          :rules="[require('Value'), hasAChange]"
+          :rules="[require('Claim Value'), hasAChange]"
           @update:modelValue="updateScratchClaim"
         ></v-text-field>
       </v-col>
@@ -35,10 +35,10 @@
     <v-row>
       <v-textarea
         variant="solo-filled"
-        label="Description"
+        label="Claim Description"
         no-resize
         v-model="description"
-        :rules="[require('Description'), hasAChange]"
+        :rules="[require('Claim Description'), hasAChange]"
         @update:modelValue="updateScratchClaim"
       ></v-textarea>
     </v-row>

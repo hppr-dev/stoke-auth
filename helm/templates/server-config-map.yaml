@@ -44,7 +44,7 @@ data:
       {{ else }}
       type: sqlite
       sqlite:
-        file: "stoke.db"
+        file: ":memory:"
         flags: "cache=shared&_fk=1"
       {{ end }}
 
@@ -93,6 +93,9 @@ data:
     # User Provider configuration
     users:
       create_stoke_claims: {{ .Values.createStokeClaims }}
+{{- if .Values.dbInit }}
+      user_init_dir: /etc/stoke/dbinit.d/
+{{- end }}
       policy_config:
         allow_superuser_override: {{ .Values.policy.allowSuperuserOverride }}
         read_only_mode: {{ .Values.policy.readOnlyMode }}
@@ -101,5 +104,3 @@ data:
         protected_groups: {{ .Values.policy.protectedGroups | toJson }}
       providers:
 {{ .Values.providers | toYaml | indent 6 }}
-  
-  

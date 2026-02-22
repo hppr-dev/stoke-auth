@@ -1,7 +1,9 @@
 arguments_test() {
 	DESCRIPTION="Run tests"
-	SUBCOMMANDS="int|unit|client|clean"
+	SUBCOMMANDS="int|unit|client|clean|e2e"
 	INT_DESCRIPTION="Run integration tests"
+	E2E_DESCRIPTION="Run Playwright E2E tests (starts/stops Stoke server; see test/docs/playwright.md)"
+	E2E_OPTIONS="no-server:n:bool headed:h:bool ha:ha:bool"
 	INT_OPTIONS="image:i:str rimage:R:str build:b:bool buildclient:B:bool case:C:str log:l:bool logfile:L:bool progress:P:bool all:a:bool cert:c:bool db:d:bool race:r:bool provider:p:bool env:e:bool"
 	UNIT_DESCRIPTION="Run unit tests"
 	UNIT_OPTIONS="cover:c:bool html:h:bool func:f:bool name:n:str"
@@ -39,6 +41,7 @@ task_test() {
 
 		echo Starting supplemental containers...
 		cd $TASK_DIR/test
+		export STOKE_ADDRESS=localhost:8080
 		docker compose up -d
 
 		if [[ -z "$ARG_CERT$ARG_DB$ARG_RACE$ARG_PROVIDER$ARG_ENV" ]]
@@ -110,8 +113,9 @@ task_test() {
 
 		echo Cleaning docker environment...
 		docker compose down 
-		docker stop stoke-test
-		docker rm stoke-test
+		docker stop stoke-test stoke-e2e
+		docker rm stoke-test stoke-e2e
+		docker rmi $(docker images | grep stoke-int | awk '{print $1}')
 		docker compose -f $TASK_DIR/client/client-test-compose.yaml down
 
 		echo Removing coverage files...
@@ -127,6 +131,82 @@ task_test() {
 
 		echo Cleaning test logs file...
 		rm -rf $TASK_DIR/test/logs/*
+	elif [[ "$TASK_SUBCOMMAND" == "e2e" ]]
+	then
+		export STOKE_BASE_URL="${STOKE_BASE_URL:-http://localhost:8080}"
+		e2e_playwright_args=""
+		[[ -n "$ARG_HEADED" ]] && e2e_playwright_args="--headed"
+		cd $TASK_DIR/test/e2e
+		if [[ ! -d node_modules ]]
+		then
+			echo "Installing E2E dependencies..."
+			npm ci --no-audit --no-fund
+		fi
+		e2e_browsers_dir="${PLAYWRIGHT_BROWSERS_PATH:-$HOME/.cache/ms-playwright}"
+		if [[ ! -d "$e2e_browsers_dir" ]] || [[ -z "$(ls -d "$e2e_browsers_dir"/chromium-* 2>/dev/null)" ]]
+		then
+			echo "Installing Playwright Chromium..."
+			npx playwright install --with-deps chromium
+		fi
+		if [[ -z "$ARG_NO_SERVER" ]]
+		then
+			if [[ -n "$ARG_HA" ]]
+			then
+				echo "Starting HA stack (Postgres + two Stoke replicas) for E2E..."
+				cd $TASK_DIR/test/e2e
+				docker compose -f docker-compose.e2e-ha.yaml up -d --build
+				sleep 5
+				if ! docker compose -f docker-compose.e2e-ha.yaml ps | grep -q "Up"
+				then
+					echo "HA stack failed to start."
+					docker compose -f docker-compose.e2e-ha.yaml logs
+					docker compose -f docker-compose.e2e-ha.yaml down -v
+					exit 1
+				fi
+				export STOKE_BASE_URL="http://localhost:8080"
+				export STOKE_BASE_URL_REPLICA_2="http://localhost:8081"
+				npx playwright test $e2e_playwright_args
+				e2e_exit=$?
+				docker compose -f docker-compose.e2e-ha.yaml down -v
+				exit $e2e_exit
+			else
+				echo "Building Stoke image and starting server for E2E..."
+				ARG_IMAGE=$( docker image ls | grep stoke-inttest | head -n 1 | awk '{print $1}' )
+				if [[ -z "$ARG_IMAGE" ]]
+				then
+					ARG_IMAGE=stoke-inttest-$(date +%Y%m%d%H%M)
+					echo Building new image $ARG_IMAGE...
+					docker build -t $ARG_IMAGE $TASK_DIR
+				fi
+				cd $TASK_DIR/test
+				e2e_config_dir="$TASK_DIR/test/e2e/configs"
+				docker run -d --name stoke-e2e \
+					-v "$e2e_config_dir/config.yaml:/etc/stoke/config.yaml" \
+					-v "$e2e_config_dir/dbinit.yaml:/etc/stoke/dbinit.yaml" \
+					-v $TASK_DIR/client/examples/certs/stoke.crt:/etc/stoke/stoke.crt \
+					-v $TASK_DIR/client/examples/certs/stoke.key:/etc/stoke/stoke.key \
+					-p 8080:8080 \
+					$ARG_IMAGE -config /etc/stoke/config.yaml -dbinit /etc/stoke/dbinit.yaml
+				sleep 3
+				if ! docker ps | grep stoke-e2e > /dev/null
+				then
+					echo "Stoke container failed to start."
+					docker logs stoke-e2e 2>&1 || true
+					docker rm stoke-e2e 2>/dev/null || true
+					exit 1
+				fi
+				cd $TASK_DIR/test/e2e
+				npx playwright test $e2e_playwright_args
+				e2e_exit=$?
+				docker stop stoke-e2e > /dev/null
+				docker rm stoke-e2e > /dev/null
+				exit $e2e_exit
+			fi
+		else
+			echo "Running Playwright E2E tests (STOKE_BASE_URL=$STOKE_BASE_URL)..."
+			echo "See test/docs/playwright.md for full documentation."
+			npx playwright test $e2e_playwright_args
+		fi
 	fi
 }
 
@@ -221,6 +301,132 @@ arguments_stoke() {
 
 task_stoke() {
 	_compose_task "$TASK_DIR/client/examples/stoke-server/docker-compose.yaml"
+}
+
+arguments_kube() {
+	DESCRIPTION="Kubernetes helper scripts"
+	SUBCOMMANDS="pvc|tkn|build|helm"
+	PVC_OPTIONS="create:c:bool update:u:bool delete:d:bool"
+	TKN_OPTIONS="local:l:bool git:g:bool"
+	BUILD_REQUIREMENTS="tag:t:str"
+	HELM_OPTIONS="install:i:bool uninstall:u:bool name:n:str list:l:bool"
+}
+
+task_kube() {
+	if [[ "$TASK_SUBCOMMAND" == "pvc" ]]
+	then
+		if [[ -n "$ARG_CREATE" ]]
+		then
+			cat << EOF| kubectl apply -f -
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: stoke-local
+spec:
+  storageClassName: local-path
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+EOF
+
+		fi
+
+		if [[ -n "$ARG_UPDATE" ]]
+		then
+			echo "Starting transfer pod..."
+			cat << EOF | kubectl apply -f -
+apiVersion: v1
+kind: Pod
+metadata:
+  name: stoke-xfer-pod
+spec:
+  restartPolicy: Never
+  volumes:
+    - name: stoke
+      persistentVolumeClaim:
+        claimName: stoke-local
+  containers:
+    - name: xfer
+      image: alpine:latest
+      command: ["tail", "-f", "/dev/null"]
+      volumeMounts:
+        - name: stoke
+          mountPath: /mnt/stoke
+EOF
+
+			while [[ "$(kubectl get pod stoke-xfer-pod -o 'jsonpath={.status.phase}')" != "Running" ]]
+			do
+				echo "Waiting for pod to be ready..."
+				sleep 1
+			done
+
+			echo "Deleting existing files..."
+			kubectl exec -i stoke-xfer-pod -- /bin/ash -c 'rm -rf /mnt/stoke/*'
+
+			echo "Updating to latest files..."
+			cd $TASK_DIR
+			tar -cf - . | kubectl exec -i stoke-xfer-pod -- tar xf - -C /mnt/stoke
+
+			echo "List of files in pvc:"
+			kubectl exec -i stoke-xfer-pod -- ls /mnt/stoke
+
+			echo "Removing xfer pod..."
+			kubectl delete pod stoke-xfer-pod --now
+
+		fi
+		if [[ -n "$ARG_DELETE" ]]
+		then
+			echo "Deleting PVC..."
+			kubectl delete pvc stoke-local
+		fi
+
+	fi
+	if [[ "$TASK_SUBCOMMAND" == "tkn" ]]
+	then
+		if [[ -n "$ARG_LOCAL" ]]
+		then
+			echo Running pipeline with local pvc...
+			kubectl create -f $TASK_DIR/test/tekton/local_run.yaml
+		fi
+		if [[ -n "$ARG_GIT" ]]
+		then
+			echo Running pipeline on latest from git...
+			kubectl create -f $TASK_DIR/test/tekton/git_run.yaml
+		fi
+	fi
+	if [[ "$TASK_SUBCOMMAND" == "build" ]]
+	then
+		echo Building container for kubernetes environment...
+		cd $TASK_DIR
+		nerdctl -n k8s.io build -t hpprdev/stoke-auth:$ARG_TAG .
+	fi
+	if [[ "$TASK_SUBCOMMAND" == "helm" ]]
+	then
+		cd $TASK_DIR/helm
+		if [[ -z "$ARG_NAME" ]]
+		then
+			ARG_NAME=stoketest
+		fi
+		if [[ -n "$ARG_INSTALL" ]]
+		then
+			echo Installing stoke helm chart as $ARG_NAME...
+			helm install $ARG_NAME .
+		fi
+		if [[ -n "$ARG_UNINSTALL" ]]
+		then
+			echo Uninstalling helm chart $ARG_NAME...
+			helm uninstall $ARG_NAME
+		fi
+		if [[ -n "$ARG_LIST" ]]
+		then
+			echo Installed helm charts:
+			helm list
+		fi
+	fi
+	echo "Done."
+
 }
 
 _compose_task() { #compose_file

@@ -37,7 +37,7 @@ func (p ClaimGroupMutationPolicy) EvalMutation(ctx context.Context, m ent.Mutati
 	}
 
 	modClaimGroups, err := p.getTargetClaimGroupsOrDeny(ctx, groupM)
-	if err != nil {
+	if !groupM.Op().Is(ent.OpCreate) && err != nil {
 		logger.Warn().Err(err).Msg("Could not get target claim groups")
 		return err
 	}
@@ -63,13 +63,22 @@ func (p ClaimGroupMutationPolicy) EvalMutation(ctx context.Context, m ent.Mutati
 }
 
 func (p ClaimGroupMutationPolicy) getTargetClaimGroupsOrDeny(ctx context.Context, m *ent.ClaimGroupMutation) (ent.ClaimGroups, error) {
+	logger := zerolog.Ctx(ctx)
 	ids, err := m.IDs(ctx)
 	if err != nil {
+		logger.Warn().
+			Err(err).
+			Ints("ids", ids).
+			Msg("Access Denied to IDs")
 		return nil, privacy.Denyf("Could not determine target group IDs")
 	}
 
 	modClaimGroups, err := m.Client().ClaimGroup.Query().Where(claimgroup.IDIn(ids...)).All(ctx)
 	if err != nil {
+		logger.Warn().
+			Err(err).
+			Ints("ids", ids).
+			Msg("Access denied to claim groups")
 		return nil, privacy.Denyf("Could not determine target group IDs")
 	}
 
@@ -79,6 +88,9 @@ func (p ClaimGroupMutationPolicy) getTargetClaimGroupsOrDeny(ctx context.Context
 func (p ClaimGroupMutationPolicy) denyChangesToProtectedEntities(ctx context.Context, groups ent.ClaimGroups) error {
 	for _, group := range groups {
 		if slices.Contains(policyFromCtx(ctx).protectedGroupNames, group.Name) {
+			zerolog.Ctx(ctx).Warn().
+				Str("name", group.Name).
+				Msg("Read only claim group change denied")
 			return privacy.Denyf("ClaimGroup %s is read-only", group.Name)
 		}
 	}

@@ -3,7 +3,6 @@ package key
 import (
 	"context"
 	"encoding/base64"
-	"errors"
 	"fmt"
 	"stoke/internal/tel"
 	"time"
@@ -18,6 +17,21 @@ type issuerCtxKey struct{}
 
 func IssuerFromCtx(ctx context.Context) TokenIssuer {
 	return ctx.Value(issuerCtxKey{}).(TokenIssuer)
+}
+
+// localKeysOnlyCtxKey is the context key for the "local keys only" flag (e.g. from ?local=true on /api/pkeys).
+type localKeysOnlyCtxKey struct{}
+
+// LocalKeysOnly returns true if the context requests only this node's keys (no peer merge).
+// Used to avoid recursion when a peer fetches our keys for JWKS merge.
+func LocalKeysOnly(ctx context.Context) bool {
+	v, _ := ctx.Value(localKeysOnlyCtxKey{}).(bool)
+	return v
+}
+
+// WithLocalKeysOnly marks the context so PublicKeys returns only local keys (no peer merge).
+func WithLocalKeysOnly(ctx context.Context) context.Context {
+	return context.WithValue(ctx, localKeysOnlyCtxKey{}, true)
 }
 
 type TokenIssuer interface {
@@ -55,17 +69,20 @@ func (a *AsymetricTokenIssuer[P]) IssueToken(claims *stoke.Claims, ctx context.C
 
 	a.ReadLock()
 	curr := a.CurrentKey()
-	currId := a.CurrentID()
+	keyId := a.CurrentKeyId()
 	priv := curr.Key()
 	a.ReadUnlock()
 
-	claims.StokeClaims["kid"] = fmt.Sprint(currId)
+	claims.StokeClaims["kid"] = keyId
 
-	token, tok_err := jwt.NewWithClaims(curr.SigningMethod(), claims).SignedString(priv)
-
-	refresh, ref_err := curr.SigningMethod().Sign(token, priv)
-
-	return token, base64.URLEncoding.EncodeToString(refresh), errors.Join(tok_err, ref_err)
+	token := jwt.NewWithClaims(curr.SigningMethod(), claims)
+	token.Header["kid"] = keyId
+	signed, tok_err := token.SignedString(priv)
+	if tok_err != nil {
+		return "", "", tok_err
+	}
+	refresh, ref_err := curr.SigningMethod().Sign(signed, priv)
+	return signed, base64.URLEncoding.EncodeToString(refresh), ref_err
 }
 
 func (a *AsymetricTokenIssuer[P]) RefreshToken(jwtToken *jwt.Token, refreshToken string, extendTime time.Duration, ctx context.Context) (string, string, error) {

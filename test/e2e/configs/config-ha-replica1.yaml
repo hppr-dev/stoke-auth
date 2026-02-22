@@ -1,0 +1,54 @@
+---
+# E2E HA replica 1 (port 8080). Shared Postgres; cluster.static_peers points at replica 2.
+server:
+  address: ""
+  port: 8080
+  timeout: 1000
+  allowed_hosts: ["*"]
+  disable_admin: false
+
+database:
+  type: postgres
+  postgres:
+    host: postgres
+    port: 5432
+    database: stoke
+    user: stoke_user
+    password: pass
+    extra_args: "sslmode=disable"
+
+logging:
+  level: debug
+  pretty_stdout: true
+  write_to_stdout: true
+
+tokens:
+  algorithm: ECDSA
+  num_bits: 256
+  persist_keys: false
+  key_duration: 3h
+  token_duration: 30m
+  issuer: "stk"
+  token_refresh_limit: 2
+  user_info:
+    full_name: "n"
+    username: "u"
+    email: "e"
+
+cluster:
+  enabled: true
+  discovery: static
+  static_peers: ["http://stoke2:8081"]
+  refresh_sec: 30
+  instance_id: "stoke1"
+
+telemetry:
+  disable_monitoring: true
+
+users:
+  create_stoke_claims: false
+  user_init_file: ""
+  policy_config:
+    protected_users: ["sadmin"]
+    protected_claims: ["stk"]
+    protected_groups: ["Stoke Superusers"]

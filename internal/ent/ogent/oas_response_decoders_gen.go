@@ -14,7 +14,7 @@ import (
 	"github.com/ogen-go/ogen/validate"
 )
 
-func decodeAvailableProvidersResponse(resp *http.Response) (res []AvailableProvidersOKItem, _ error) {
+func decodeAvailableProvidersResponse(resp *http.Response) (res *AvailableProvidersOK, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -30,17 +30,9 @@ func decodeAvailableProvidersResponse(resp *http.Response) (res []AvailableProvi
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response []AvailableProvidersOKItem
+			var response AvailableProvidersOK
 			if err := func() error {
-				response = make([]AvailableProvidersOKItem, 0)
-				if err := d.Arr(func(d *jx.Decoder) error {
-					var elem AvailableProvidersOKItem
-					if err := elem.Decode(d); err != nil {
-						return err
-					}
-					response = append(response, elem)
-					return nil
-				}); err != nil {
+				if err := response.Decode(d); err != nil {
 					return err
 				}
 				if err := d.Skip(); err != io.EOF {
@@ -57,14 +49,14 @@ func decodeAvailableProvidersResponse(resp *http.Response) (res []AvailableProvi
 			}
 			// Validate response.
 			if err := func() error {
-				if response == nil {
-					return errors.New("nil is invalid value")
+				if err := response.Validate(); err != nil {
+					return err
 				}
 				return nil
 			}(); err != nil {
 				return res, errors.Wrap(err, "validate")
 			}
-			return response, nil
+			return &response, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}

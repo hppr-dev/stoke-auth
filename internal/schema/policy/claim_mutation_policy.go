@@ -37,7 +37,7 @@ func (p ClaimMutationPolicy) EvalMutation(ctx context.Context, m ent.Mutation) e
 	}
 
 	modClaims, err := p.getTargetClaimsOrDeny(ctx, claimM)
-	if err != nil {
+	if !claimM.Op().Is(ent.OpCreate) && err != nil {
 		logger.Warn().Err(err).Msg("Could not get target claims")
 		return err
 	}
@@ -70,7 +70,7 @@ func (p ClaimMutationPolicy) getTargetClaimsOrDeny(ctx context.Context, m *ent.C
 
 	modClaims, err := m.Client().Claim.Query().Where(claim.IDIn(ids...)).All(ctx)
 	if err != nil {
-		return nil, privacy.Denyf("Could not determine target claim IDs")
+		return nil, privacy.Denyf("Access denied to claims")
 	}
 
 	return modClaims, nil

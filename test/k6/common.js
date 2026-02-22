@@ -2,7 +2,7 @@ import { check, sleep } from 'k6'
 import http from 'k6/http'
 
 export const okLogin = function(user, pass, sleepTime) {
-  const resp = http.post('http://localhost:8080/api/login',
+  const resp = http.post(`http://${__ENV.STOKE_ADDRESS}/api/login`,
 		JSON.stringify({
 			"username" : user,
 			"password" : pass,
@@ -29,7 +29,7 @@ export const okLogin = function(user, pass, sleepTime) {
 }
 
 export const badLogin = function(user, pass, sleepTime) {
-  const resp = http.post('http://localhost:8080/api/login',
+  const resp = http.post(`http://${__ENV.STOKE_ADDRESS}/api/login`,
 		JSON.stringify({
 			"username" : user,
 			"password" : pass,

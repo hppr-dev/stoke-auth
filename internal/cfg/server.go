@@ -7,11 +7,13 @@ import (
 
 type Server struct {
 	// Address to serve the application on
-	Address string `json:"address"`
+	Address       string `json:"address"`
 	// Port to serve the application on
-	Port    int    `json:"port"`
+	Port          int    `json:"port"`
 	// Request Timeout in milliseconds
-	Timeout int    `json:"timeout"`
+	Timeout       int    `json:"timeout"`
+	// Base Path for web assets and api, useful for hosting behind a proxy
+	BasePath   string `json:"base_path"`
 
 	// Private TLS Key
 	TLSPrivateKey string `json:"tls_private_key"`

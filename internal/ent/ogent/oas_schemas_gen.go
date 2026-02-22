@@ -48,6 +48,33 @@ func (s *AvailableProvidersOKItem) SetTypeSpec(val string) {
 	s.TypeSpec = val
 }
 
+type AvailableProvidersOK struct {
+	// Array of available providers.
+	Providers []AvailableProvidersOKItem `json:"providers"`
+	// Base path for the admin UI when served behind a proxy, e.g. /auth; empty when admin is at /admin/.
+	BaseAdminPath string `json:"base_admin_path,omitempty"`
+}
+
+// GetProviders returns the value of Providers.
+func (s *AvailableProvidersOK) GetProviders() []AvailableProvidersOKItem {
+	return s.Providers
+}
+
+// SetProviders sets the value of Providers.
+func (s *AvailableProvidersOK) SetProviders(val []AvailableProvidersOKItem) {
+	s.Providers = val
+}
+
+// GetBaseAdminPath returns the value of BaseAdminPath.
+func (s *AvailableProvidersOK) GetBaseAdminPath() string {
+	return s.BaseAdminPath
+}
+
+// SetBaseAdminPath sets the value of BaseAdminPath.
+func (s *AvailableProvidersOK) SetBaseAdminPath(val string) {
+	s.BaseAdminPath = val
+}
+
 type CapabilitiesOK struct {
 	// List of enabled capabilites.
 	Capabilities []string `json:"capabilities"`

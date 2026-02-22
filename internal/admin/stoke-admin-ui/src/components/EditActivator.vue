@@ -1,7 +1,7 @@
 <template>
   <v-tooltip :text="props.tooltipText" location="start">
-    <template #activator="{ props }">
-      <v-btn elevation="0" class="float-right" :icon="icons.EDIT" size="small" v-bind="props" @click="dialogOpen = true"></v-btn>
+    <template #activator="{ props: activatorProps }">
+      <v-btn :aria-label="props.tooltipText" elevation="0" class="float-right" :icon="icons.EDIT" size="small" v-bind="activatorProps" @click="dialogOpen = true"></v-btn>
     </template>
   </v-tooltip>
 

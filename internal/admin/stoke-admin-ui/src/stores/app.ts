@@ -31,7 +31,6 @@ export interface ChartDatasets {
 
 export const useAppStore = defineStore('app', {
   state: () => ({
-    api_url: import.meta.env.DEV? import.meta.env.VITE_API_URL : "",
     username: "",
     capabilities : [] as string[],
 
@@ -76,6 +75,32 @@ export const useAppStore = defineStore('app', {
     availableProviders: [] as ProviderType[],
   }),
   getters: {
+    /** Base URL for API requests: relative '../api' in production, or VITE_API_URL + '/api' in dev when set. */
+    apiBase: function(): string {
+      const env = import.meta.env
+      if (env.DEV && env.VITE_API_URL) {
+        const url = String(env.VITE_API_URL).replace(/\/$/, '')
+        return url + '/api'
+      }
+      return '../api'
+    },
+    /** Base URL for metrics: relative '../metrics' in production, or VITE_API_URL + '/metrics' in dev when set. */
+    metricsBase: function(): string {
+      const env = import.meta.env
+      if (env.DEV && env.VITE_API_URL) {
+        const url = String(env.VITE_API_URL).replace(/\/$/, '')
+        return url + '/metrics'
+      }
+      return '../metrics'
+    },
+    /** Server root for building URLs (e.g. OIDC): relative '..' in production, or VITE_API_URL in dev when set. */
+    serverBase: function(): string {
+      const env = import.meta.env
+      if (env.DEV && env.VITE_API_URL) {
+        return String(env.VITE_API_URL).replace(/\/$/, '')
+      }
+      return '..'
+    },
     authenticated: function() {
       return this.token !== ""
     },

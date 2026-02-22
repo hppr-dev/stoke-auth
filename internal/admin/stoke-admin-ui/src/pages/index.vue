@@ -119,10 +119,11 @@ function openIDProviders() {
 
 // TODO bring in provider type
 function handleOIDCLogin(prov) {
-  let u = new URL(store.api_url + "/oidc/" + prov.name + "?xfer=window&next=" + window.location.origin, window.location.origin)
-  console.log(u)
+  const base = store.serverBase
+  const path = base + '/oidc/' + prov.name + '?xfer=window&next=' + encodeURIComponent(window.location.origin + (window.location.pathname.replace(/\/admin\/?.*$/, '') + '/admin/'))
+  const resolved = base.startsWith('http') ? new URL(path) : new URL(path, window.location.origin + window.location.pathname)
   addEventListener("message", async (event: MessageEvent) => {
-    if ( event.origin !== u.origin ) return;
+    if ( event.origin !== resolved.origin ) return
     let result = JSON.parse(event.data)
     try {
       if ( result.id_token && result.access_code ) {
@@ -133,7 +134,7 @@ function handleOIDCLogin(prov) {
       loginError.value = true
     }
   })
-  window.open(u.toString(), prov.name + " Login", "popup")
+  window.open(resolved.toString(), prov.name + " Login", "popup")
 }
 
 async function loginOrShowError(event : Promise<SubmitEvent>) {

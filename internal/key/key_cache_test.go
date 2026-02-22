@@ -363,7 +363,7 @@ func TestNewPrivateKeyCacheWithManagementHappy(t *testing.T) {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	keyCache, err := key.NewPrivateKeyCache(tokenDuration, keyDuration, false, edKeyPair, ctx)
+	keyCache, err := key.NewPrivateKeyCache(tokenDuration, keyDuration, false, edKeyPair, ctx, "")
 	if err != nil {
 		t.Logf("Failed to create private key cache: %v", err)
 		t.Fail()

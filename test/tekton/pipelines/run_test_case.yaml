@@ -1,0 +1,76 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: run-test-case
+spec:
+  description: This pipeline runs a stoke test case.
+  params:
+    - name: k6_file
+      type: string
+      description: The k6 test file to run
+    - name: pull_latest
+      type: string
+      description: Whether or not to pull the latest source from github
+      default: "true"
+
+  workspaces:
+    - name: stoke-source
+      description: This workspace contains the cloned repo files, so they can be read by the next task.
+
+  tasks:
+    - name: fetch-source
+      when:
+        - input: "$(params.pull_latest)"
+          operator: in
+          values: ["true"]
+      taskRef:
+        name: git-clone
+      params:
+       - name: url
+         value: "https://github.com/hppr-dev/stoke-auth"
+      workspaces:
+       - name: source
+         workspace: stoke-source
+
+    - name: install-helm-chart
+      runAfter: ["fetch-source"]
+      taskRef:
+        name: helm-command
+      params:
+        - name: chart_dir
+          value: helm
+        - name: command
+          value: install
+        - name: extra_args
+          value: "stoketest . --wait --timeout 60s --debug"
+      workspaces:
+        - name: source
+          workspace: stoke-source
+
+    - name: run-test-case
+      runAfter: ["install-helm-chart"]
+      taskRef:
+        name: run-k6
+      params:
+        - name: file
+          value: $(params.k6_file)
+        - name: extra_args
+          value: "--env STOKE_ADDRESS=stoke-stoketest:8080"
+      workspaces:
+        - name: source
+          workspace: stoke-source
+
+    - name: remove-helm-chart
+      runAfter: ["run-test-case"]
+      taskRef:
+        name: helm-command
+      params:
+        - name: chart_dir
+          value: helm
+        - name: command
+          value: uninstall
+        - name: extra_args
+          value: "stoketest --wait --timeout 60s --debug"
+      workspaces:
+        - name: source
+          workspace: stoke-source

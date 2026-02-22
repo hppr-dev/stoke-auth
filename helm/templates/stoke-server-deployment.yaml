@@ -9,7 +9,7 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     app.kubernetes.io/instance: {{ .Release.Name }}
 spec:
-  replicas: 1
+  replicas: {{ .Values.server.replicaCount | default 1 }}
   selector:
     matchLabels:
       app.kubernetes.io/name: stoke
@@ -30,9 +30,25 @@ spec:
         - {{ .Values.server.pullSecret }}
       {{ end }}
       volumes:
+{{- if .Values.dbInit }}
+        - name: server-config
+          projected:
+            sources:
+              - configMap:
+                  name: stoke-config-{{ .Release.Name }}
+                  items:
+                    - key: config.yaml
+                      path: config.yaml
+              - configMap:
+                  name: stoke-dbinit-{{ .Release.Name }}
+                  items:
+                    - key: 00_generated.yaml
+                      path: dbinit.d/00_generated.yaml
+{{- else }}
         - name: server-config
           configMap:
-            name: stoke-config
+            name: stoke-config-{{ .Release.Name }}
+{{- end }}
       containers:
       - name: server
         image: {{ .Values.server.image }}
