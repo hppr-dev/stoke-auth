@@ -15,6 +15,7 @@ type Config struct {
 	Tokens    Tokens    `json:"tokens,omitempty"`
 	Users     Users     `json:"users,omitempty"`
 	Telemetry Telemetry `json:"telemetry,omitempty"`
+	Cluster   Cluster   `json:"cluster,omitempty"`
 }
 
 func FromFile(filename string) *Config {
@@ -36,6 +37,7 @@ func (c *Config) WithContext(ctx context.Context) context.Context {
 	confCtx = c.Logging.withContext(confCtx)
 	confCtx = c.Server.WithContext(confCtx)
 	confCtx = c.Database.withContext(confCtx)
-	confCtx = c.Users.withContext(confCtx) 
+	confCtx = c.Users.withContext(confCtx)
+	confCtx = c.Cluster.withContext(confCtx)
 	return c.Tokens.withContext(confCtx)
 }
