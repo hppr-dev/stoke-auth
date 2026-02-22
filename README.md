@@ -17,6 +17,7 @@ Features:
   * ♻️ Refreshable Tokens
   * 🤹 Configurable credential sources
   * 👮‍♀️ Admin console
+  * 📡 High availability: multi-replica with shared DB and federated JWKS at `/api/pkeys` (see [docs/high-availability.md](docs/high-availability.md))
 
 In simple single application environments, Stoke can be used as a drop in solution for authentication and authorization.
 In more complex environments, Stoke can be used as the "last leg" of authentication to simplify an application's authentication implementation.
@@ -371,13 +372,14 @@ By default, the executable looks for a config file named `config.yaml` in the ru
 
 ## Main Configuration file
 
-There are 6 config sections:
+There are 7 config sections:
  * server    -- web server options
  * database  -- user/groups/claims database connection options
  * logging   -- logging options
  * tokens    -- token/key generation/rotation options
  * telemetry -- where and how to send telemetry data
  * users     -- user sources and policy (providers, database init, protection rules)
+ * cluster   -- high availability (optional); see [docs/high-availability.md](docs/high-availability.md)
 
 Here is an example config file will all possible configuration values:
 ```yaml
@@ -461,6 +463,15 @@ telemetry:
 
   disable_monitoring: true                  # Whether to disable the default /metrics and /metrics/logs endpoints
   require_prometheus_authentication: false  # Whether to require authentication to reach default prometheus metrics
+
+# High availability (optional). When enabled, key persistence is disabled and /api/pkeys returns merged JWKS from all peers.
+# See docs/high-availability.md for full description.
+# cluster:
+#   enabled: false
+#   discovery: static
+#   static_peers: []        # e.g. ["https://stoke-0:8080", "https://stoke-1:8080"]
+#   refresh_sec: 30
+#   instance_id: ""          # optional; unique per replica (e.g. "stoke-0")
 
 # User sources and policy
 users:
@@ -660,7 +671,7 @@ A summary is as follows:
 - /api -- JSON api
   - /api/pkeys -- current valid public verification keys
   - /api/login -- JSON login
-  - /api/renew -- renew a given JWT
+  - /api/refresh -- refresh a given JWT
   - /api/available_providers -- lists configured identity providers (name, provider_type, type_spec); used by the admin UI for login options
   - /api/admin -- endpoints used from the admin console
 

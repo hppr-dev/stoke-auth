@@ -6,8 +6,8 @@ Clients libraries implement the following:
     * Public keys should be pulled from the /api/pkeys endpoint
     * Clients must refresh keys at the keyset expire time returned by /api/pkeys
     * The keyset returned by /api/pkeys may be cached until the time at which they expire
-    * Stoke's /api/pk
-    
+    * Stoke's /api/pkeys endpoint returns the current valid public keys (JWKS).
+
 2. Extract the token from a given requests Authentication header using the standard "Bearer" prefix, i.e. "Authentication: Bearer <TOKEN>".
 
 3. Verify the token's signature against the current public keys
