@@ -4,5 +4,3 @@
 **/__pycache__
 test/logs
 
-dist/
-internal/admin/stoke-admin-ui/dist/
