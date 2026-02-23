@@ -9,7 +9,7 @@ replace engine v0.0.0 => ../engine
 require (
 	engine v0.0.0
 	github.com/golang-jwt/jwt/v5 v5.2.2
-	golang.org/x/net v0.26.0
+	golang.org/x/net v0.38.0
 	google.golang.org/grpc v1.64.1
 	hppr.dev/stoke v0.0.0
 )
