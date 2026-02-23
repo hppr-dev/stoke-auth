@@ -49,7 +49,7 @@
       console.error("given empty monitoring data:", props.name, props.data)
       return
     }
-    let distinctTags = {}
+    const distinctTags = {}
     // We want tags: tags, le1: value1, le2: value2
     // Find which tags/what levels to show
     props.data.values.forEach((v) => {

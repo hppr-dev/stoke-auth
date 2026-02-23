@@ -58,12 +58,12 @@
   const oidcValue = ref("")
 
   function selectedProviderType() {
-    let sel = store.availableProviders.find((p) => p.type_spec == linkType.value)
+    const sel = store.availableProviders.find((p) => p.type_spec == linkType.value)
     return sel? sel.provider_type : ""
   }
 
   function updateScratchLink() {
-    let provType = selectedProviderType()
+    const provType = selectedProviderType()
     let resourceSpec = ""
     if ( provType == "LDAP" ) {
       resourceSpec = ldapGroup.value

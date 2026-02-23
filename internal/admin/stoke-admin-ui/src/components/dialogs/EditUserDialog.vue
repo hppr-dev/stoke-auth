@@ -78,9 +78,9 @@
   }
 
   function setRowProps({ item } : { item : Group } ) {
-    let isGroup = (g : Group) => g.id === item.id
-    let inCurrent = store.currentGroups.find(isGroup);
-    let inScratch = store.scratchGroups.find(isGroup)
+    const isGroup = (g : Group) => g.id === item.id
+    const inCurrent = store.currentGroups.find(isGroup);
+    const inScratch = store.scratchGroups.find(isGroup)
 
     if ( inCurrent && inScratch ) {
       // Existed
@@ -103,8 +103,8 @@
 
   function addOrRemoveGroup(_ : PointerEvent,  { item } : { item : Group } ) {
     changed = true
-    let isGroup = (g : Group) => g.id === item.id
-    let inScratch = store.scratchGroups.find(isGroup)
+    const isGroup = (g : Group) => g.id === item.id
+    const inScratch = store.scratchGroups.find(isGroup)
     if ( inScratch ) {
       store.$patch({
         scratchGroups : store.scratchGroups.filter((v) => !isGroup(v)),
