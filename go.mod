@@ -31,7 +31,6 @@ require (
 	go.uber.org/multierr v1.11.0
 	golang.org/x/crypto v0.45.0
 	hppr.dev/stoke v0.0.0
-	filippo.io/edwards25519 v1.1.1
 )
 
 replace entgo.io/contrib v0.3.5 => github.com/swalkerhppr/ent-contrib v0.0.0-20240415204700-185b78ea4766
@@ -42,6 +41,7 @@ replace hppr.dev/stoke v0.0.0 => ./client/stoke
 
 require (
 	ariga.io/atlas v0.19.1-0.20240203083654-5948b60a8e43 // indirect
+	filippo.io/edwards25519 v1.1.1 // indirect
 	github.com/Azure/go-ntlmssp v0.0.0-20221128193559-754e69321358 // indirect
 	github.com/agext/levenshtein v1.2.3 // indirect
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
