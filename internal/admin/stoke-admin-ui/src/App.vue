@@ -23,9 +23,9 @@
   router.afterEach(store.resetSelections)
 
   onMounted(() => {
-    let token = sessionStorage.getItem("token")
-    let refresh = sessionStorage.getItem("refresh")
-    let username = sessionStorage.getItem("username")
+    const token = sessionStorage.getItem("token")
+    const refresh = sessionStorage.getItem("refresh")
+    const username = sessionStorage.getItem("username")
 
     if (
       token !== "undefined" && token !== null && token !== "" && token &&

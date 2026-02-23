@@ -40,8 +40,8 @@
   const tableData = ref([])
 
   onMounted(() => {
-    let distinctLevels = {}
-    let distinctTags = {}
+    const distinctLevels = {}
+    const distinctTags = {}
     // We want tags: tags, le1: value1, le2: value2
     // Find which tags/what levels to show
     props.data.values.forEach((v) => {

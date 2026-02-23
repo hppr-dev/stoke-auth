@@ -124,7 +124,7 @@ function handleOIDCLogin(prov) {
   const resolved = base.startsWith('http') ? new URL(path) : new URL(path, window.location.origin + window.location.pathname)
   addEventListener("message", async (event: MessageEvent) => {
     if ( event.origin !== resolved.origin ) return
-    let result = JSON.parse(event.data)
+    const result = JSON.parse(event.data)
     try {
       if ( result.id_token && result.access_code ) {
         await store.login(result.id_token, result.access_code, prov.name, () => router.push("/user"))

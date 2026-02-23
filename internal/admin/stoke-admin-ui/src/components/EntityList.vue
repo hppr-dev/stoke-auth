@@ -69,7 +69,7 @@
 
   const props = defineProps<{
     headers : Headers,
-    items: Array<Object>,
+    items: Array<object>,
     rowClick: Function,
     totalItems: number,
     perPage: number,

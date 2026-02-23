@@ -27,7 +27,7 @@ export interface MetricDataMap {
 }
 
 export function parseMetricData(fullText: string) : MetricDataMap {
-  let metricData : MetricDataMap = {}
+  const metricData : MetricDataMap = {}
   const lines = fullText.split('\n')
   const subMetrics = ["_bucket", "_sum", "_count"]
   lines.forEach((l) => {
@@ -86,7 +86,7 @@ export function parseMetricData(fullText: string) : MetricDataMap {
 }
 
 function parseTags(tags: string, addPart : string) : object {
-  let tagObj = {}
+  const tagObj = {}
   if( addPart !== "" ){
     tagObj["part"] = addPart
   }

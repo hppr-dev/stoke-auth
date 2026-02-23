@@ -74,9 +74,9 @@
   }
 
   function setRowProps({ item } : { item : Claim } ) {
-    let isClaim = (g : Claim) => g.id === item.id
-    let inCurrent = store.currentClaims.find(isClaim);
-    let inScratch = store.scratchClaims.find(isClaim)
+    const isClaim = (g : Claim) => g.id === item.id
+    const inCurrent = store.currentClaims.find(isClaim);
+    const inScratch = store.scratchClaims.find(isClaim)
 
     if ( inCurrent && inScratch ) {
       // Existed
@@ -99,8 +99,8 @@
 
   function addOrRemoveClaim(_ : PointerEvent,  { item } : { item : Claim } ) {
     changed = true
-    let isClaim = (g : Claim) => g.id === item.id
-    let inScratch = store.scratchClaims.find(isClaim)
+    const isClaim = (g : Claim) => g.id === item.id
+    const inScratch = store.scratchClaims.find(isClaim)
     if ( inScratch ) {
       store.$patch({
         scratchClaims : store.scratchClaims.filter((v) => !isClaim(v)),

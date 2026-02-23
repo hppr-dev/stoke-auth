@@ -7,9 +7,9 @@ cffi==1.16.0
 channels==4.1.0
 click==8.1.7
 constantly==23.10.4
-cryptography==42.0.5
+cryptography==46.0.5
 daphne==4.1.2
-Django==5.0.7
+Django==5.1.14
 grpcio==1.64.1
 grpcio-tools==1.64.1
 hyperlink==21.0.0
@@ -17,7 +17,7 @@ idna==3.7
 incremental==22.10.0
 Jinja2==3.1.4
 MarkupSafe==2.1.5
-protobuf==5.27.1
+protobuf==5.29.6
 pyasn1==0.6.0
 pyasn1_modules==0.4.0
 pycparser==2.22

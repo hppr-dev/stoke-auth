@@ -14,7 +14,7 @@ export const managementActions = {
     })
 
     if ( !response.ok ){
-      let cause = await response.json()
+      const cause = await response.json()
       throw new Error(response.statusText, { cause : cause.error_message })
     }
 
@@ -62,7 +62,7 @@ export const managementActions = {
     })
 
     if ( !response.ok ){
-      let cause = await response.json()
+      const cause = await response.json()
       throw new Error(response.statusText, { cause : cause.error_message })
     }
   },
@@ -101,7 +101,7 @@ export const managementActions = {
       body : JSON.stringify(this.passwordForm),
     })
     if ( !response.ok ){
-      let cause = await response.json()
+      const cause = await response.json()
       throw new Error(response.statusText, { cause : cause.error_message })
     }
   },
@@ -115,7 +115,7 @@ export const managementActions = {
       body : JSON.stringify(this[stateToSend]),
     })
     if ( !response.ok ){
-      let cause = await response.json()
+      const cause = await response.json()
       throw new Error(response.statusText, { cause : cause.error_message })
     }
   },
@@ -159,7 +159,7 @@ export const managementActions = {
     })
 
     if ( !response.ok ){
-      let cause = await response.json()
+      const cause = await response.json()
       throw new Error(response.statusText, { cause : cause.error_message })
     }
   },
